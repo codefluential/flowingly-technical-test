@@ -10,29 +10,50 @@
   - Milestone gates configured
   - Global context references set
 
-### Sample Task Files Created (Pattern Established)
-- [x] **task_001.json** - M0: Create Solution Structure
+### Task Files Created
+
+- [x] **task_001.json** - M0: Create Solution Structure (Sample)
   - Full PRD + ADR references
   - Clean Architecture context
   - Deliverables and validation
 
-- [x] **task_014.json** - M1: Write Tag Validation Tests (TDD RED)
+- [x] **task_003.json** - M0: Setup API Endpoint Structure (2025-10-06)
+  - 4 PRD sections, 4 ADRs, test brief, delivery plan
+  - 7 deliverables (DTOs, endpoint, Program.cs)
+  - 7 business rules, 5 code examples
+  - Validated against TASK_CREATION_GUIDE
+
+- [x] **task_004.json** - M0: Bootstrap React+Vite Frontend (2025-10-06)
+  - 3 PRD sections, 2 ADRs, test brief, delivery plan
+  - 7 deliverables (client structure, configs)
+  - 6 business rules, 4 code examples
+  - Validated against TASK_CREATION_GUIDE
+
+- [x] **task_014.json** - M1: Write Tag Validation Tests (TDD RED) (Sample)
   - ADR-0008 (Stack-based validation) fully referenced
   - 7+ test scenarios with rationale
   - BDD scenarios from PRD Section 13
   - TDD workflow documented
 
-- [x] **task_019.json** - M1: Write Banker's Rounding Tests (TDD RED)
+- [x] **task_019.json** - M1: Write Banker's Rounding Tests (TDD RED) (Sample)
   - ADR-0009 (Banker's Rounding) comprehensively referenced
   - 10+ edge case scenarios
   - Financial calculation context
   - IEEE 754 standard explanation
 
-- [x] **task_031.json** - M2: Create DTOs
+- [x] **task_031.json** - M2: Create DTOs (Sample)
   - ADR-0007 (Response contract XOR) fully documented
   - Classification-specific response pattern
   - TypeScript discriminated union preview
   - Swagger annotations guidance
+
+- [x] **TASK_CREATION_GUIDE.md** - Complete task creation methodology (2025-10-06)
+  - 1,040 lines comprehensive guide
+  - Source documents catalog
+  - Field-by-field JSON schema
+  - 7 task type patterns
+  - 14-step creation process
+  - Quality checklist
 
 - [x] **README.md** - Task system documentation
   - Usage instructions
@@ -43,10 +64,11 @@
 
 ## 📊 Statistics
 
-### Files Created: 6
+### Files Created: 9
 - 1 master orchestration (tasks.json)
-- 4 sample task files (001, 014, 019, 031)
-- 1 documentation (README.md)
+- 6 task files (001, 003, 004, 014, 019, 031)
+- 1 creation guide (TASK_CREATION_GUIDE.md)
+- 1 task system documentation (README.md)
 
 ### Context Coverage
 Each task file includes:
@@ -67,10 +89,11 @@ Each task file includes:
 
 ## 📋 Remaining Tasks to Create
 
-### M0 Tasks (6 remaining)
-- [ ] task_002 - Configure Clean Architecture Layers
-- [ ] task_003 - Setup API Endpoint Structure
-- [ ] task_004 - Bootstrap React+Vite Frontend
+### M0 Tasks (4 remaining of 9 total)
+- [x] task_001 - Create Solution Structure (sample, already executed)
+- [ ] task_002 - Configure Clean Architecture Layers (not needed - completed manually)
+- [x] task_003 - Setup API Endpoint Structure (created 2025-10-06)
+- [x] task_004 - Bootstrap React+Vite Frontend (created 2025-10-06)
 - [ ] task_005 - Create API Client
 - [ ] task_006 - Build Minimal UI Components
 - [ ] task_007 - Wire Echo Flow
@@ -121,28 +144,33 @@ Each task file includes:
 - [ ] task_049 - Manual Smoke Test
 - [ ] task_050 - Verify M3 & Phase 1 DoD - SUBMITTABLE
 
-**Total Remaining: 46 task files**
+**Total Remaining: 44 task files**
 
-## 🎯 Next Steps
+## 🎯 Workflow: Just-In-Time Task Creation
 
-### Option 1: Complete All Task Files
-Create all 46 remaining task files following established pattern.
+### Adopted Approach
+**Create task files as needed during implementation** (not all upfront):
 
-### Option 2: Proceed with Implementation
-Use existing 4 sample tasks + tasks.json to begin implementation:
-- task_001 provides M0 start pattern
-- task_014/019 show M1 TDD pattern
-- task_031 shows M2 API pattern
-- Master tasks.json has full dependency graph
+1. **Before starting a task**:
+   - Check if `task_XXX.json` exists
+   - If NO: Create it using TASK_CREATION_GUIDE.md
+   - If YES: Proceed with execution
 
-### Recommendation
-**Option 2** - The pattern is established. Key tasks demonstrate:
-- M0 scaffold approach (task_001)
-- M1 TDD workflow (task_014, task_019)
-- M2 API contracts (task_031)
-- Master graph has all dependencies
+2. **Creation process** (5-10 minutes per task):
+   - Extract metadata from tasks.json
+   - Read relevant PRD sections, ADRs, test brief pages
+   - Follow TASK_CREATION_GUIDE.md patterns
+   - Validate against quality checklist
+   - Commit task file before execution
 
-Remaining tasks follow same structure. Implementation can begin while creating remaining task files incrementally.
+3. **Benefits**:
+   - ✅ Tasks stay relevant (adapt to implementation learnings)
+   - ✅ Faster to start implementation (don't wait for 44 files)
+   - ✅ Task files reflect actual state (account for work done)
+   - ✅ Learning from each task informs next task creation
+
+### Updated in CLAUDE.md
+See "Implementation Workflow" section for just-in-time task creation protocol.
 
 ## 📈 Success Metrics
 

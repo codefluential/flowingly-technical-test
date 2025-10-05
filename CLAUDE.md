@@ -139,14 +139,19 @@ The project uses a **50-task decomposition system** with 4 milestone gates (M0, 
 - **M2: API Contracts** (10 tasks, 4 hours) - DTOs, validation, error handling, 10+ contract tests
 - **M3: UI & E2E Tests** (10 tasks, 4 hours) - Enhanced UI, 5+ E2E tests, **SUBMITTABLE**
 
-**Task Execution Flow**:
-1. Check `project-context/implementation/tasks/tasks.json` for task dependencies
-2. Read individual task file (e.g., `tasks/task_001.json`) for full context
-3. Mark task in-progress: `./scripts/update-progress.sh task_001 in_progress`
-4. Execute task following acceptance criteria
-5. Mark completed: `./scripts/update-progress.sh task_001 completed [test_type] [count]`
-6. Commit implementation, then commit progress files separately
-7. Move to next task in sequence
+**Task Execution Flow** (Just-In-Time Task Creation):
+1. **Check task file exists**: Look for `project-context/implementation/tasks/task_XXX.json`. Also check `project-context/implementation/tasks/tasks.json` for task dependencies.
+2. **If task file missing**:
+   - Extract metadata from `tasks.json`
+   - Create task file using `TASK_CREATION_GUIDE.md` (5-10 min)
+   - Validate against quality checklist
+   - Commit task file: `git add tasks/task_XXX.json && git commit`
+3. **If task file exists**: Read for full context (PRD sections, ADRs, deliverables, acceptance criteria)
+4. Mark task in-progress: `./scripts/update-progress.sh task_XXX in_progress`
+5. Execute task following acceptance criteria (use specialized agent if assigned)
+6. Mark completed: `./scripts/update-progress.sh task_XXX completed [test_type] [count]`
+7. Commit implementation, then commit progress files separately
+8. Move to next task in sequence
 
 **Parallel Execution Groups**: 15+ tasks can run concurrently (defined in tasks.json). Respect dependencies.
 
