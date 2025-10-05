@@ -60,7 +60,32 @@ jq '.tasks[] | select(.id == "task_XXX")' project-context/implementation/tasks/t
 - Validate against quality checklist
 - Commit task file before starting implementation
 
-### 3. Execute Task
+### 3. **⚠️ MANDATORY: Discuss with User Before Execution**
+**NEVER execute tasks without explicit user approval**
+
+Present to user:
+- Task ID and name
+- Assigned agent and why it's appropriate
+- Key deliverables (files to be created/modified)
+- Estimated duration
+- Parallel execution status (if applicable)
+- Proposed approach summary
+
+Wait for user confirmation before proceeding to step 4.
+
+**Example discussion**:
+```
+Ready to execute task_XXX: [Name]
+- Agent: [agent-name] (selected for [reason])
+- Deliverables: [file1, file2, file3]
+- Duration: [Xmin]
+- Parallel: [yes/no with task_YYY]
+- Approach: [brief summary]
+
+May I proceed? (requires explicit yes)
+```
+
+### 4. Execute Task (After User Approval)
 ```bash
 # Mark in-progress
 ./scripts/update-progress.sh task_XXX in_progress

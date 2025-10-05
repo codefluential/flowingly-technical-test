@@ -263,11 +263,17 @@ The project uses a **50-task decomposition system** with 4 milestone gates (M0, 
    - Validate against quality checklist
    - Commit task file: `git add tasks/task_XXX.json && git commit`
 3. **If task file exists**: Read for full context (PRD sections, ADRs, deliverables, acceptance criteria)
-4. Mark task in-progress: `./scripts/update-progress.sh task_XXX in_progress`
-5. Execute task following acceptance criteria (use specialized agent if assigned)
-6. Mark completed: `./scripts/update-progress.sh task_XXX completed [test_type] [count]`
-7. Commit implementation, then commit progress files separately
-8. Move to next task in sequence
+4. **⚠️ MANDATORY: Discuss with user BEFORE execution**:
+   - Present task summary (ID, name, agent, deliverables, duration)
+   - Verify agent selection is appropriate for task type
+   - Confirm approach and get explicit approval to proceed
+   - If parallel tasks, confirm parallel execution is acceptable
+   - **NEVER skip this step - always wait for user approval**
+5. Mark task in-progress: `./scripts/update-progress.sh task_XXX in_progress`
+6. Execute task following acceptance criteria (use specialized agent if assigned)
+7. Mark completed: `./scripts/update-progress.sh task_XXX completed [test_type] [count]`
+8. Commit implementation, then commit progress files separately
+9. Move to next task in sequence
 
 **Parallel Execution Groups**: 15+ tasks can run concurrently (defined in tasks.json). Respect dependencies.
 
