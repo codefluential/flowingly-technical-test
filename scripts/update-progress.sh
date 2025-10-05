@@ -63,11 +63,18 @@ CURRENT_MILESTONE=$(jq -r '.progress_tracking.current_milestone' "$TASKS_JSON")
 TASK_NAME=$(jq -r ".tasks[] | select(.id == \"$TASK_ID\") | .name" "$TASKS_JSON")
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M')
 PERCENT=$(( COMPLETED * 100 / TOTAL ))
+UNIT_TESTS=$(jq -r '.progress_tracking.tests_passing.unit' "$TASKS_JSON")
+CONTRACT_TESTS=$(jq -r '.progress_tracking.tests_passing.contract' "$TASKS_JSON")
+E2E_TESTS=$(jq -r '.progress_tracking.tests_passing.e2e' "$TASKS_JSON")
 
+# Update top-level header (standalone format)
 sed -i "s/^\*\*Last Updated\*\*:.*/\*\*Last Updated\*\*: $TIMESTAMP/" "$PROGRESS_MD"
-sed -i "s/^\*\*Current Task\*\*:.*/\*\*Current Task\*\*: $TASK_ID: $TASK_NAME/" "$PROGRESS_MD"
-sed -i "s/^\*\*Tasks Completed\*\*: [0-9]*\/[0-9]* .*/\*\*Tasks Completed\*\*: $COMPLETED\/$TOTAL ($PERCENT%)/" "$PROGRESS_MD"
-sed -i "s/^\*\*Tests Passing\*\*:.*/\*\*Tests Passing\*\*: $TESTS\/45/" "$PROGRESS_MD"
+sed -i "s/^\*\*Overall Progress\*\*:.*/\*\*Overall Progress\*\*: $COMPLETED\/$TOTAL tasks ($PERCENT%)/" "$PROGRESS_MD"
+
+# Update Quick Status table (table format)
+sed -i "s/| \*\*Current Task\*\* | .* |/| **Current Task** | $TASK_ID: $TASK_NAME |/" "$PROGRESS_MD"
+sed -i "s/| \*\*Tasks Completed\*\* | .* |/| **Tasks Completed** | $COMPLETED\/$TOTAL ($PERCENT%) |/" "$PROGRESS_MD"
+sed -i "s/| \*\*Tests Passing\*\* | .* |/| **Tests Passing** | $TESTS\/45 ($UNIT_TESTS unit, $CONTRACT_TESTS contract, $E2E_TESTS E2E) |/" "$PROGRESS_MD"
 
 # Update task checkbox in PROGRESS.md
 TASK_LINE=$(grep -n "\[ \] $TASK_ID:" "$PROGRESS_MD" | cut -d: -f1 | head -1)
