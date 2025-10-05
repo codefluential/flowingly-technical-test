@@ -13,10 +13,13 @@ Capturing my thoughts as I work through this.
 
 # Claude.md rules
 
-- Use TDD/BDD developmentt methodololy - keep it reasonable, do not over-engineer. Include core features and some edge cases. Alway priortise happy path first.
+- Use TDD/BDD developmentt methodology - keep it reasonable, do not over-engineer. Include core features and some edge cases. Alway priortise happy path first.
 - Use conventional commit syntax for git commits
 - Use best practice, patterns and principles (SOLID, DRY, KISS, YAGNI) for each relevant stack, solution architecture and code implementation. Alway choose simple, maintainable and extensible over complex solutions.
-- Alway check impementation and specification to verify what needs to be implement and has been implented when planing tasks or implementing code
+- Never assume thning. Based decision on evidence, test and checks. 
+    - Alway check impementation and specification to verify what needs to be implement and has been implented when planing tasks or implementing code
+    - look at tests to understand the application
+    - ensure type safey, database schema and application code type alignment
 - Documentation just enough so it is not onerous to maintain between  markdown guides and code comments. The most maitainable options foe each context.
 - stick to the specification provided - this is a minimal app to demostrate broad coding capabilities to producde simple and maintainable codebase. Key documents are
     - [list of key document location and tasks]
