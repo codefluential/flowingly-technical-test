@@ -83,6 +83,40 @@ Each processor implements an internal pipeline:
 4. **Persist**: Save to database via repository
 5. **Build Response**: Create API response DTO
 
+### Response Contract Design
+
+Each processor builds a **classification-specific response** (see ADR-0007 for full details):
+
+**ExpenseProcessor Response**:
+```json
+{
+  "classification": "expense",
+  "expense": {
+    "vendor": "Mojo Coffee",
+    "total": 120.50,
+    "totalExclTax": 104.78,
+    "salesTax": 15.72,
+    ...
+  },
+  "meta": { "correlationId": "...", ... }
+}
+```
+
+**OtherProcessor Response**:
+```json
+{
+  "classification": "other",
+  "other": {
+    "rawTags": { "reservation_date": "2024-12-25", ... }
+  },
+  "meta": { "correlationId": "...", ... }
+}
+```
+
+**Key Design Principle**: Responses are **specific to classification** (expense XOR other, never both). This ensures clear contracts, smaller payloads, and client-side type safety (TypeScript discriminated unions).
+
+See **ADR-0007: Response Contract Design** for detailed rationale and alternatives considered.
+
 ## Consequences
 
 ### Positive
@@ -272,7 +306,9 @@ public async Task ExpenseProcessor_WithValidExpense_ReturnsSuccessResult()
 
 ## References
 
-- PRD + Technical Specification (v0.1), Section 7: Patterns (Strategy for processor selection)
+- PRD + Technical Specification v0.3, Section 7: Patterns (Strategy for processor selection)
+- PRD v0.3, Section 4.1, 6: API Contract (response structure changes)
+- ADR-0007: Response Contract Design (classification-specific responses)
 - Gang of Four Design Patterns: Strategy Pattern
 - Martin Fowler on Strategy: https://refactoring.guru/design-patterns/strategy
 - Open/Closed Principle (SOLID): https://en.wikipedia.org/wiki/Open%E2%80%93closed_principle
