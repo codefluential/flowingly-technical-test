@@ -410,3 +410,48 @@ Planning and documentation phase 100% complete. All artifacts created:
 **Ready for implementation**: Begin task_001 (Create .NET Solution Structure)
 
 ---
+
+## 2025-10-06 09:05 - M0 Started: Solution Structure Created (task_001)
+
+**Changes**:
+- Installed .NET 8 SDK (8.0.414) via dotnet-install.sh
+- Installed jq for JSON processing in progress tracking scripts
+- Fixed update-progress.sh to use system jq instead of /tmp/jq
+- Created Flowingly.ParsingService.sln solution file
+- Created 5 projects following Clean Architecture:
+  - Api (src/Api): ASP.NET 8 Minimal API with Swagger
+  - Application (src/Application): CQRS handlers layer
+  - Domain (src/Domain): Core business logic (parsers, validators, calculators)
+  - Infrastructure (src/Infrastructure): Data access adapters (EF Core, repositories)
+  - Contracts (contracts/): Shared DTOs for request/response models
+- Added project references following dependency rule (inner → outer):
+  - Api → Application, Infrastructure, Contracts
+  - Application → Domain, Contracts
+  - Infrastructure → Domain
+  - Domain → no dependencies
+  - Contracts → no dependencies
+- Verified solution builds successfully (0 warnings, 0 errors)
+
+**Rationale**:
+Clean Architecture foundation enforces proper dependency direction (inner layers don't depend on outer). Api layer is composition root for DI. Domain contains pure business logic with no external dependencies. Application orchestrates use cases. Infrastructure implements interfaces defined in Domain. Contracts are shared between all layers for consistent DTOs.
+
+**Issues/Blockers**:
+None. Solution structure created successfully. .NET 8 SDK installed and configured. Progress tracking system operational with jq dependency resolved.
+
+**Testing**:
+- Solution builds: ✅ (dotnet build succeeded)
+- Tests passing: 0/45 (no tests written yet)
+- Next: task_002 will add folder structure within each project
+
+**Deployment**:
+N/A - M0 in progress. Deployment planned for M5.
+
+**Next Steps**:
+1. task_002: Configure Clean Architecture folder structure within each project
+2. task_003: Setup API endpoint structure (parallel)
+3. task_004: Bootstrap React+Vite frontend (parallel)
+4. Complete M0 (10 tasks) → DoD verification at task_010
+
+**Progress**: 1/50 tasks (2%) | M0: 1/10 tasks
+
+---
