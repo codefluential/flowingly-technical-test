@@ -3,10 +3,15 @@
   "version": "1.0.0",
   "description": "Text parsing service for structured data extraction",
   "scripts": {
-    "dev": "./scripts/dev.sh",
-    "test": "./scripts/test.sh",
-    "build": "./scripts/build.sh",
-    "clean": "./scripts/clean.sh"
+    "dev": "node scripts/run-script.js dev",
+    "dev:sh": "./scripts/dev.sh",
+    "dev:ps1": "powershell -ExecutionPolicy Bypass -File ./scripts/dev.ps1",
+    "test": "node scripts/run-script.js test",
+    "test:sh": "./scripts/test.sh",
+    "build": "node scripts/run-script.js build",
+    "build:sh": "./scripts/build.sh",
+    "clean": "node scripts/run-script.js clean",
+    "clean:sh": "./scripts/clean.sh"
   },
   "keywords": ["parsing", "expense", "dotnet", "react"],
   "author": "",
