@@ -1,0 +1,617 @@
+{
+  "project": "Flowingly Parsing Service",
+  "phase": "Phase 1 - Core Submission (M0→M3)",
+  "timeline": "2.5 days",
+  "total_tasks": 50,
+  "submittable_after": "task_050",
+  "aadf_compliant": true,
+  "tdd_approach": true,
+
+  "global_context": {
+    "primary_spec": "project-context/specifications/prd-technical_spec.md",
+    "test_brief": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+    "delivery_plan": "project-context/planning/delivery-plan-optimized.md",
+    "agent_resourcing": "project-context/planning/agent-resourcing-plan.md",
+    "adr_directory": "project-context/adr/",
+    "key_adrs": [
+      "ADR-0001-v2-storage-choice.md",
+      "ADR-0002-architecture-style.md",
+      "ADR-0007-response-contract-design.md",
+      "ADR-0008-parsing-validation-rules.md",
+      "ADR-0009-bankers-rounding.md",
+      "ADR-0010-test-strategy-coverage.md"
+    ]
+  },
+
+  "milestones": {
+    "M0": {
+      "name": "Minimal Scaffold",
+      "tasks": "001-010",
+      "duration": "4 hours",
+      "objective": "Prove end-to-end wiring with minimal setup friction",
+      "dod_task": "task_010"
+    },
+    "M1": {
+      "name": "Core Parsing & Validation",
+      "tasks": "011-030",
+      "duration": "1 day",
+      "objective": "Lock ALL parsing rules that test brief evaluates",
+      "dod_task": "task_030"
+    },
+    "M2": {
+      "name": "API Contracts",
+      "tasks": "031-040",
+      "duration": "4 hours",
+      "objective": "Wrap parsing in API surface with error handling",
+      "dod_task": "task_040"
+    },
+    "M3": {
+      "name": "UI & E2E Tests",
+      "tasks": "041-050",
+      "duration": "4 hours",
+      "objective": "Demonstrate working flow with E2E validation",
+      "dod_task": "task_050"
+    }
+  },
+
+  "parallel_execution_groups": {
+    "M0_parallel_1": {
+      "description": "API and UI scaffold can run concurrently",
+      "tasks": ["task_003", "task_004"],
+      "after": "task_002"
+    },
+    "M1_parallel_1": {
+      "description": "Independent validator implementations",
+      "tasks": ["task_014", "task_017", "task_019"],
+      "after": "task_013"
+    },
+    "M1_parallel_2": {
+      "description": "Independent parser implementations",
+      "tasks": ["task_021", "task_023", "task_025"],
+      "after": "task_020"
+    },
+    "M2_parallel_1": {
+      "description": "Tests and documentation can run concurrently",
+      "tasks": ["task_037", "task_038"],
+      "after": "task_036"
+    },
+    "M3_parallel_1": {
+      "description": "All E2E tests can run concurrently",
+      "tasks": ["task_045", "task_046", "task_047"],
+      "after": "task_044"
+    }
+  },
+
+  "dependency_rules": {
+    "tdd_principle": "Tests must be written before implementation (tdd-london-swarm before coder)",
+    "milestone_gates": "Each milestone DoD task must complete before next milestone starts",
+    "sequential_foundation": "Architecture tasks (001-002) are sequential prerequisites",
+    "integration_order": "Core parsers (M1) must complete before API wiring (M2)",
+    "parallel_safety": "Only independent components without shared dependencies run concurrently"
+  },
+
+  "tasks": [
+    {
+      "id": "task_001",
+      "file": "task_001.json",
+      "milestone": "M0",
+      "name": "Create Solution Structure",
+      "agent": "base-template-generator",
+      "duration": "30min",
+      "dependencies": [],
+      "parallel_group": null
+    },
+    {
+      "id": "task_002",
+      "file": "task_002.json",
+      "milestone": "M0",
+      "name": "Configure Clean Architecture Layers",
+      "agent": "backend-architect",
+      "duration": "30min",
+      "dependencies": ["task_001"],
+      "parallel_group": null
+    },
+    {
+      "id": "task_003",
+      "file": "task_003.json",
+      "milestone": "M0",
+      "name": "Setup API Endpoint Structure",
+      "agent": "backend-architect",
+      "duration": "45min",
+      "dependencies": ["task_002"],
+      "parallel_group": "M0_parallel_1"
+    },
+    {
+      "id": "task_004",
+      "file": "task_004.json",
+      "milestone": "M0",
+      "name": "Bootstrap React+Vite Frontend",
+      "agent": "frontend-design-expert",
+      "duration": "45min",
+      "dependencies": ["task_001"],
+      "parallel_group": "M0_parallel_1"
+    },
+    {
+      "id": "task_005",
+      "file": "task_005.json",
+      "milestone": "M0",
+      "name": "Create API Client",
+      "agent": "frontend-design-expert",
+      "duration": "30min",
+      "dependencies": ["task_003", "task_004"],
+      "parallel_group": null
+    },
+    {
+      "id": "task_006",
+      "file": "task_006.json",
+      "milestone": "M0",
+      "name": "Build Minimal UI Components",
+      "agent": "frontend-design-expert",
+      "duration": "45min",
+      "dependencies": ["task_005"],
+      "parallel_group": null
+    },
+    {
+      "id": "task_007",
+      "file": "task_007.json",
+      "milestone": "M0",
+      "name": "Wire Echo Flow",
+      "agent": "frontend-design-expert",
+      "duration": "30min",
+      "dependencies": ["task_003", "task_006"],
+      "parallel_group": null
+    },
+    {
+      "id": "task_008",
+      "file": "task_008.json",
+      "milestone": "M0",
+      "name": "Create README Quick Start",
+      "agent": "project-organizer",
+      "duration": "30min",
+      "dependencies": ["task_007"],
+      "parallel_group": null
+    },
+    {
+      "id": "task_009",
+      "file": "task_009.json",
+      "milestone": "M0",
+      "name": "Setup Development Scripts",
+      "agent": "project-organizer",
+      "duration": "20min",
+      "dependencies": ["task_007"],
+      "parallel_group": null
+    },
+    {
+      "id": "task_010",
+      "file": "task_010.json",
+      "milestone": "M0",
+      "name": "Verify M0 DoD",
+      "agent": "project-organizer",
+      "duration": "20min",
+      "dependencies": ["task_001", "task_002", "task_003", "task_004", "task_005", "task_006", "task_007", "task_008", "task_009"],
+      "parallel_group": null,
+      "milestone_gate": true
+    },
+    {
+      "id": "task_011",
+      "file": "task_011.json",
+      "milestone": "M1",
+      "name": "Create Test Fixtures from Brief",
+      "agent": "tester",
+      "duration": "30min",
+      "dependencies": ["task_010"],
+      "parallel_group": null
+    },
+    {
+      "id": "task_012",
+      "file": "task_012.json",
+      "milestone": "M1",
+      "name": "Design Test Strategy",
+      "agent": "tester",
+      "duration": "45min",
+      "dependencies": ["task_011"],
+      "parallel_group": null
+    },
+    {
+      "id": "task_013",
+      "file": "task_013.json",
+      "milestone": "M1",
+      "name": "Setup xUnit + FluentAssertions",
+      "agent": "tdd-london-swarm",
+      "duration": "30min",
+      "dependencies": ["task_002"],
+      "parallel_group": null
+    },
+    {
+      "id": "task_014",
+      "file": "task_014.json",
+      "milestone": "M1",
+      "name": "Write Tag Validation Tests (TDD)",
+      "agent": "tdd-london-swarm",
+      "duration": "1h",
+      "dependencies": ["task_013"],
+      "parallel_group": "M1_parallel_1",
+      "tdd_phase": "red"
+    },
+    {
+      "id": "task_015",
+      "file": "task_015.json",
+      "milestone": "M1",
+      "name": "Implement ITagValidator",
+      "agent": "coder",
+      "duration": "30min",
+      "dependencies": ["task_014"],
+      "parallel_group": null,
+      "tdd_phase": "green"
+    },
+    {
+      "id": "task_016",
+      "file": "task_016.json",
+      "milestone": "M1",
+      "name": "Verify Tag Validation Quality",
+      "agent": "code-analyzer",
+      "duration": "20min",
+      "dependencies": ["task_015"],
+      "parallel_group": null,
+      "tdd_phase": "refactor"
+    },
+    {
+      "id": "task_017",
+      "file": "task_017.json",
+      "milestone": "M1",
+      "name": "Write Number Normalization Tests (TDD)",
+      "agent": "tdd-london-swarm",
+      "duration": "45min",
+      "dependencies": ["task_013"],
+      "parallel_group": "M1_parallel_1",
+      "tdd_phase": "red"
+    },
+    {
+      "id": "task_018",
+      "file": "task_018.json",
+      "milestone": "M1",
+      "name": "Implement INumberNormalizer",
+      "agent": "coder",
+      "duration": "45min",
+      "dependencies": ["task_017"],
+      "parallel_group": null,
+      "tdd_phase": "green"
+    },
+    {
+      "id": "task_019",
+      "file": "task_019.json",
+      "milestone": "M1",
+      "name": "Write Banker's Rounding Tests (TDD)",
+      "agent": "tdd-london-swarm",
+      "duration": "1h",
+      "dependencies": ["task_013"],
+      "parallel_group": "M1_parallel_1",
+      "tdd_phase": "red"
+    },
+    {
+      "id": "task_020",
+      "file": "task_020.json",
+      "milestone": "M1",
+      "name": "Implement Rounding Helper",
+      "agent": "coder",
+      "duration": "30min",
+      "dependencies": ["task_019"],
+      "parallel_group": null,
+      "tdd_phase": "green"
+    },
+    {
+      "id": "task_021",
+      "file": "task_021.json",
+      "milestone": "M1",
+      "name": "Write Tax Calculator Tests (TDD)",
+      "agent": "tdd-london-swarm",
+      "duration": "1h",
+      "dependencies": ["task_020"],
+      "parallel_group": "M1_parallel_2",
+      "tdd_phase": "red"
+    },
+    {
+      "id": "task_022",
+      "file": "task_022.json",
+      "milestone": "M1",
+      "name": "Implement ITaxCalculator",
+      "agent": "coder",
+      "duration": "1h",
+      "dependencies": ["task_021"],
+      "parallel_group": null,
+      "tdd_phase": "green"
+    },
+    {
+      "id": "task_023",
+      "file": "task_023.json",
+      "milestone": "M1",
+      "name": "Write Time Parser Tests (TDD)",
+      "agent": "tdd-london-swarm",
+      "duration": "45min",
+      "dependencies": ["task_013"],
+      "parallel_group": "M1_parallel_2",
+      "tdd_phase": "red"
+    },
+    {
+      "id": "task_024",
+      "file": "task_024.json",
+      "milestone": "M1",
+      "name": "Implement ITimeParser",
+      "agent": "coder",
+      "duration": "45min",
+      "dependencies": ["task_023"],
+      "parallel_group": null,
+      "tdd_phase": "green"
+    },
+    {
+      "id": "task_025",
+      "file": "task_025.json",
+      "milestone": "M1",
+      "name": "Write XML Extractor Tests (TDD)",
+      "agent": "tdd-london-swarm",
+      "duration": "1h",
+      "dependencies": ["task_013"],
+      "parallel_group": "M1_parallel_2",
+      "tdd_phase": "red"
+    },
+    {
+      "id": "task_026",
+      "file": "task_026.json",
+      "milestone": "M1",
+      "name": "Implement IXmlIslandExtractor",
+      "agent": "coder",
+      "duration": "1h",
+      "dependencies": ["task_025"],
+      "parallel_group": null,
+      "tdd_phase": "green"
+    },
+    {
+      "id": "task_027",
+      "file": "task_027.json",
+      "milestone": "M1",
+      "name": "Write Content Router Tests (TDD)",
+      "agent": "tdd-london-swarm",
+      "duration": "45min",
+      "dependencies": ["task_015", "task_018", "task_026"],
+      "parallel_group": null,
+      "tdd_phase": "red"
+    },
+    {
+      "id": "task_028",
+      "file": "task_028.json",
+      "milestone": "M1",
+      "name": "Implement Content Router",
+      "agent": "coder",
+      "duration": "1h",
+      "dependencies": ["task_027"],
+      "parallel_group": null,
+      "tdd_phase": "green"
+    },
+    {
+      "id": "task_029",
+      "file": "task_029.json",
+      "milestone": "M1",
+      "name": "Write Expense Processor Tests (TDD)",
+      "agent": "tdd-london-swarm",
+      "duration": "1h",
+      "dependencies": ["task_011", "task_027"],
+      "parallel_group": null,
+      "tdd_phase": "red"
+    },
+    {
+      "id": "task_030",
+      "file": "task_030.json",
+      "milestone": "M1",
+      "name": "Implement Expense Processor & Verify M1 DoD",
+      "agent": "coder",
+      "duration": "1.5h",
+      "dependencies": ["task_029"],
+      "parallel_group": null,
+      "tdd_phase": "green",
+      "milestone_gate": true
+    },
+    {
+      "id": "task_031",
+      "file": "task_031.json",
+      "milestone": "M2",
+      "name": "Create DTOs",
+      "agent": "dev-backend-api",
+      "duration": "30min",
+      "dependencies": ["task_030"],
+      "parallel_group": null
+    },
+    {
+      "id": "task_032",
+      "file": "task_032.json",
+      "milestone": "M2",
+      "name": "Implement FluentValidation",
+      "agent": "dev-backend-api",
+      "duration": "30min",
+      "dependencies": ["task_031"],
+      "parallel_group": null
+    },
+    {
+      "id": "task_033",
+      "file": "task_033.json",
+      "milestone": "M2",
+      "name": "Create Error Codes & Models",
+      "agent": "dev-backend-api",
+      "duration": "30min",
+      "dependencies": ["task_031"],
+      "parallel_group": null
+    },
+    {
+      "id": "task_034",
+      "file": "task_034.json",
+      "milestone": "M2",
+      "name": "Implement Error Mapping",
+      "agent": "dev-backend-api",
+      "duration": "45min",
+      "dependencies": ["task_033"],
+      "parallel_group": null
+    },
+    {
+      "id": "task_035",
+      "file": "task_035.json",
+      "milestone": "M2",
+      "name": "Create Parse Handler",
+      "agent": "dev-backend-api",
+      "duration": "1h",
+      "dependencies": ["task_031", "task_034"],
+      "parallel_group": null
+    },
+    {
+      "id": "task_036",
+      "file": "task_036.json",
+      "milestone": "M2",
+      "name": "Wire Dependency Injection",
+      "agent": "dev-backend-api",
+      "duration": "30min",
+      "dependencies": ["task_035"],
+      "parallel_group": null
+    },
+    {
+      "id": "task_037",
+      "file": "task_037.json",
+      "milestone": "M2",
+      "name": "Write API Contract Tests",
+      "agent": "quality-assurance-engineer",
+      "duration": "1.5h",
+      "dependencies": ["task_036"],
+      "parallel_group": "M2_parallel_1"
+    },
+    {
+      "id": "task_038",
+      "file": "task_038.json",
+      "milestone": "M2",
+      "name": "Create Swagger Examples",
+      "agent": "docs-api-openapi",
+      "duration": "45min",
+      "dependencies": ["task_035"],
+      "parallel_group": "M2_parallel_1"
+    },
+    {
+      "id": "task_039",
+      "file": "task_039.json",
+      "milestone": "M2",
+      "name": "Review API Contract",
+      "agent": "reviewer",
+      "duration": "30min",
+      "dependencies": ["task_037", "task_038"],
+      "parallel_group": null
+    },
+    {
+      "id": "task_040",
+      "file": "task_040.json",
+      "milestone": "M2",
+      "name": "Verify M2 DoD",
+      "agent": "quality-assurance-engineer",
+      "duration": "20min",
+      "dependencies": ["task_031", "task_032", "task_033", "task_034", "task_035", "task_036", "task_037", "task_038", "task_039"],
+      "parallel_group": null,
+      "milestone_gate": true
+    },
+    {
+      "id": "task_041",
+      "file": "task_041.json",
+      "milestone": "M3",
+      "name": "Enhance UI Components",
+      "agent": "frontend-design-expert",
+      "duration": "1h",
+      "dependencies": ["task_040"],
+      "parallel_group": null
+    },
+    {
+      "id": "task_042",
+      "file": "task_042.json",
+      "milestone": "M3",
+      "name": "Add TypeScript Types",
+      "agent": "spec-mobile-react-native",
+      "duration": "30min",
+      "dependencies": ["task_041"],
+      "parallel_group": null
+    },
+    {
+      "id": "task_043",
+      "file": "task_043.json",
+      "milestone": "M3",
+      "name": "Implement Error Display",
+      "agent": "frontend-design-expert",
+      "duration": "45min",
+      "dependencies": ["task_042"],
+      "parallel_group": null
+    },
+    {
+      "id": "task_044",
+      "file": "task_044.json",
+      "milestone": "M3",
+      "name": "Setup Playwright",
+      "agent": "production-validator",
+      "duration": "30min",
+      "dependencies": ["task_002"],
+      "parallel_group": null
+    },
+    {
+      "id": "task_045",
+      "file": "task_045.json",
+      "milestone": "M3",
+      "name": "Write E2E Happy Path Tests",
+      "agent": "production-validator",
+      "duration": "1h",
+      "dependencies": ["task_011", "task_044"],
+      "parallel_group": "M3_parallel_1"
+    },
+    {
+      "id": "task_046",
+      "file": "task_046.json",
+      "milestone": "M3",
+      "name": "Write E2E Error Tests",
+      "agent": "production-validator",
+      "duration": "1h",
+      "dependencies": ["task_044"],
+      "parallel_group": "M3_parallel_1"
+    },
+    {
+      "id": "task_047",
+      "file": "task_047.json",
+      "milestone": "M3",
+      "name": "Write E2E GST Verification",
+      "agent": "production-validator",
+      "duration": "45min",
+      "dependencies": ["task_044"],
+      "parallel_group": "M3_parallel_1"
+    },
+    {
+      "id": "task_048",
+      "file": "task_048.json",
+      "milestone": "M3",
+      "name": "Run Full Test Suite",
+      "agent": "production-validator",
+      "duration": "30min",
+      "dependencies": ["task_030", "task_037", "task_045", "task_046", "task_047"],
+      "parallel_group": null
+    },
+    {
+      "id": "task_049",
+      "file": "task_049.json",
+      "milestone": "M3",
+      "name": "Manual Smoke Test",
+      "agent": "production-validator",
+      "duration": "20min",
+      "dependencies": ["task_048"],
+      "parallel_group": null
+    },
+    {
+      "id": "task_050",
+      "file": "task_050.json",
+      "milestone": "M3",
+      "name": "Verify M3 & Phase 1 DoD - SUBMITTABLE",
+      "agent": "production-validator",
+      "duration": "20min",
+      "dependencies": ["task_041", "task_042", "task_043", "task_044", "task_045", "task_046", "task_047", "task_048", "task_049"],
+      "parallel_group": null,
+      "milestone_gate": true,
+      "submittable": true
+    }
+  ]
+}
