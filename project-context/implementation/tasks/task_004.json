@@ -1,0 +1,184 @@
+{
+  "task_id": "task_004",
+  "milestone": "M0",
+  "name": "Bootstrap React+Vite Frontend",
+  "description": "Initialize React + Vite + TypeScript frontend application with basic project structure. Prepares UI foundation for API integration (task_005) and component development (task_006).",
+
+  "agent": {
+    "primary": "frontend-design-expert",
+    "role": "Frontend architecture and React/Vite scaffolding"
+  },
+
+  "duration": "45min",
+  "priority": "critical",
+  "dependencies": ["task_001"],
+  "parallel_group": "M0_parallel_1",
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 4: Technology Stack - React + Vite + TypeScript",
+        "Section 14: UI/UX Requirements - Simple textarea input and formatted output",
+        "Section 7: Architecture - Frontend communicates via REST API"
+      ],
+      "requirements": [
+        "React 18+ with Vite build tool",
+        "TypeScript for type safety",
+        "Simple UI: textarea for input, formatted display for output",
+        "Local development server (npm run dev)",
+        "Production build capability (npm run build)"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 1,
+      "requirement": "Create working frontend that accepts text input and displays parsed results",
+      "grading_criteria": "UI functionality and user experience are graded components"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0004-swagger-api-contract.md",
+        "decision": "Swagger for API Contract Documentation",
+        "relevance": "Frontend will consume API contract defined in Swagger"
+      },
+      {
+        "file": "project-context/adr/ADR-0007-response-contract-design.md",
+        "decision": "Classification-Specific Response (Expense XOR Other)",
+        "relevance": "TypeScript types must match C# DTOs with discriminated unions",
+        "key_excerpt": "Frontend needs discriminated union: { expense: ExpenseData } | { other: OtherData }"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M0 — Minimal Scaffold",
+      "sub_section": "Frontend Bootstrap",
+      "requirement": "React + Vite project with dev server running on localhost:5173"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "client/ directory",
+      "description": "React + Vite project root",
+      "location": "client/",
+      "created_by": "npm create vite@latest"
+    },
+    {
+      "item": "package.json",
+      "description": "NPM dependencies and scripts",
+      "location": "client/package.json",
+      "scripts": {
+        "dev": "vite - Start development server",
+        "build": "tsc && vite build - TypeScript compilation + production build",
+        "preview": "vite preview - Preview production build",
+        "lint": "eslint . - Code linting"
+      }
+    },
+    {
+      "item": "tsconfig.json",
+      "description": "TypeScript configuration with strict mode",
+      "location": "client/tsconfig.json",
+      "settings": {
+        "strict": true,
+        "target": "ES2020",
+        "module": "ESNext"
+      }
+    },
+    {
+      "item": "vite.config.ts",
+      "description": "Vite configuration with React plugin",
+      "location": "client/vite.config.ts",
+      "config": {
+        "server": { "port": 5173 },
+        "plugins": ["@vitejs/plugin-react"]
+      }
+    },
+    {
+      "item": "src/ directory structure",
+      "description": "Source code organization",
+      "location": "client/src/",
+      "structure": [
+        "client/src/components/ - React components (task_006)",
+        "client/src/api/ - API client (task_005)",
+        "client/src/types/ - TypeScript interfaces (task_005)",
+        "client/src/App.tsx - Root component",
+        "client/src/main.tsx - Entry point"
+      ]
+    },
+    {
+      "item": "index.html",
+      "description": "HTML entry point with root div",
+      "location": "client/index.html"
+    },
+    {
+      "item": ".gitignore (client)",
+      "description": "Ignore node_modules, dist, build artifacts",
+      "location": "client/.gitignore"
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ React + Vite + TypeScript project created in client/ directory",
+    "✅ npm install runs successfully",
+    "✅ npm run dev starts development server on localhost:5173",
+    "✅ Browser shows default Vite + React welcome page",
+    "✅ TypeScript strict mode enabled in tsconfig.json",
+    "✅ ESLint configured for code quality",
+    "✅ Source structure created: src/components/, src/api/, src/types/",
+    "✅ npm run build produces production bundle without errors",
+    "✅ Hot Module Replacement (HMR) works in dev mode",
+    "✅ No console errors in browser"
+  ],
+
+  "business_rules": [
+    "Use Vite (not Create React App) for faster builds and HMR",
+    "TypeScript strict mode is MANDATORY for type safety",
+    "Development server runs on port 5173 (Vite default)",
+    "API calls will target http://localhost:5000/api/v1/ (configured in task_005)",
+    "Component structure aligns with Clean Architecture (components, api, types separation)",
+    "Production build must be optimized and production-ready"
+  ],
+
+  "technical_notes": {
+    "initialization_command": "npm create vite@latest client -- --template react-ts",
+    "node_version": "Node.js 18+ recommended",
+    "package_manager": "npm (not yarn or pnpm for consistency)",
+    "vite_port": 5173,
+    "api_base_url": "http://localhost:5000/api/v1 (will be configured in task_005)",
+    "frameworks": {
+      "react": "^18.2.0",
+      "vite": "^5.0.0",
+      "typescript": "^5.0.0"
+    },
+    "dev_dependencies": [
+      "@vitejs/plugin-react",
+      "@types/react",
+      "@types/react-dom",
+      "eslint",
+      "typescript"
+    ]
+  },
+
+  "code_examples": {
+    "vite_config": "import { defineConfig } from 'vite'\nimport react from '@vitejs/plugin-react'\n\nexport default defineConfig({\n  plugins: [react()],\n  server: {\n    port: 5173,\n    proxy: {\n      '/api': {\n        target: 'http://localhost:5000',\n        changeOrigin: true\n      }\n    }\n  }\n})",
+    "tsconfig": "{\n  \"compilerOptions\": {\n    \"target\": \"ES2020\",\n    \"useDefineForClassFields\": true,\n    \"lib\": [\"ES2020\", \"DOM\", \"DOM.Iterable\"],\n    \"module\": \"ESNext\",\n    \"skipLibCheck\": true,\n    \"moduleResolution\": \"bundler\",\n    \"allowImportingTsExtensions\": true,\n    \"resolveJsonModule\": true,\n    \"isolatedModules\": true,\n    \"noEmit\": true,\n    \"jsx\": \"react-jsx\",\n    \"strict\": true,\n    \"noUnusedLocals\": true,\n    \"noUnusedParameters\": true,\n    \"noFallthroughCasesInSwitch\": true\n  },\n  \"include\": [\"src\"],\n  \"references\": [{ \"path\": \"./tsconfig.node.json\" }]\n}",
+    "app_tsx_placeholder": "import { useState } from 'react'\nimport './App.css'\n\nfunction App() {\n  const [text, setText] = useState('')\n\n  return (\n    <div className=\"App\">\n      <h1>Flowingly Parsing Service</h1>\n      <p>Enter text to parse (API integration in task_005)</p>\n      <textarea\n        value={text}\n        onChange={(e) => setText(e.target.value)}\n        placeholder=\"Enter text here...\"\n        rows={10}\n        cols={50}\n      />\n    </div>\n  )\n}\n\nexport default App",
+    "directory_structure_commands": "cd client/src\nmkdir -p components api types\ntouch components/.gitkeep api/.gitkeep types/.gitkeep"
+  },
+
+  "validation": {
+    "commands": [
+      "cd client && npm install",
+      "cd client && npm run build",
+      "cd client && npm run dev (check http://localhost:5173)"
+    ],
+    "expected_output": "Dev server runs on localhost:5173, default Vite + React page loads, build succeeds with 0 errors"
+  },
+
+  "next_task": {
+    "id": "task_005",
+    "name": "Create API Client",
+    "why": "Frontend structure ready, now create API client to connect to backend (depends on task_003 + task_004)"
+  }
+}

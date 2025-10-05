@@ -1,0 +1,200 @@
+{
+  "task_id": "task_003",
+  "milestone": "M0",
+  "name": "Setup API Endpoint Structure",
+  "description": "Create API endpoint for /api/v1/parse with echo flow (returns input as 'other' content). Establishes API contract foundation with Swagger documentation and CORS configuration for local frontend development.",
+
+  "agent": {
+    "primary": "backend-architect",
+    "role": "API architecture and endpoint design"
+  },
+
+  "duration": "45min",
+  "priority": "critical",
+  "dependencies": ["task_002"],
+  "parallel_group": "M0_parallel_1",
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 7: Architecture - Clean/Hexagonal with CQRS-lite",
+        "Section 11: Request/Response Contracts",
+        "Section 11.2: Response Contract - Classification-Specific (XOR)",
+        "Section 4: Technology Stack - ASP.NET 8 Minimal API"
+      ],
+      "requirements": [
+        "Single endpoint: POST /api/v1/parse",
+        "Request: { content: string }",
+        "Response: { correlationId, expense?, other? } - XOR pattern",
+        "Echo flow for M0: return input as 'other' content",
+        "Minimal API pattern (not Controllers)"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 1,
+      "requirement": "Create working API endpoint that accepts text and returns structured data",
+      "grading_criteria": "API functionality and contract design are core graded components"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0005-versioning-via-uri.md",
+        "decision": "URI-based API Versioning",
+        "rationale": "Version in URI path (/api/v1/) for clarity and simplicity",
+        "context": "API versioning strategy for future compatibility",
+        "key_excerpt": "All endpoints under /api/v1/ namespace"
+      },
+      {
+        "file": "project-context/adr/ADR-0004-swagger-api-contract.md",
+        "decision": "Swagger/OpenAPI for API Contract Documentation",
+        "rationale": "Auto-generate API documentation, enable API testing, improve developer experience",
+        "relevance": "Must configure Swagger with examples and descriptions"
+      },
+      {
+        "file": "project-context/adr/ADR-0007-response-contract-design.md",
+        "decision": "Classification-Specific Response (Expense XOR Other)",
+        "rationale": "Type safety, smaller payloads, clear contracts",
+        "context": "Response NEVER contains both expense and other fields",
+        "key_excerpt": "For M0 echo flow: always return 'other' with rawContent"
+      },
+      {
+        "file": "project-context/adr/ADR-0002-architecture-style.md",
+        "decision": "Clean/Hexagonal Architecture + CQRS-lite",
+        "relevance": "Endpoint in Api layer, delegates to Application layer (prepared for M1)"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M0 — Minimal Scaffold",
+      "sub_section": "API Endpoint Structure",
+      "requirement": "Create /api/v1/parse endpoint with echo flow (input → other.rawContent)"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "ParseRequest.cs",
+      "description": "Request DTO with content property",
+      "location": "contracts/Requests/",
+      "properties": {
+        "Content": "string (required) - Raw text to parse"
+      }
+    },
+    {
+      "item": "ParseResponse.cs",
+      "description": "Base response with correlation ID and XOR pattern (expense | other)",
+      "location": "contracts/Responses/",
+      "properties": {
+        "CorrelationId": "string (required) - GUID for traceability",
+        "Expense": "ExpenseData? (nullable) - Populated for expense content",
+        "Other": "OtherData? (nullable) - Populated for non-expense content"
+      }
+    },
+    {
+      "item": "ExpenseData.cs",
+      "description": "Expense-specific data model (structure only for M0)",
+      "location": "contracts/Responses/",
+      "properties": {
+        "CostCentre": "string",
+        "Total": "decimal",
+        "TaxAmount": "decimal",
+        "TotalExcludingTax": "decimal",
+        "Currency": "string"
+      }
+    },
+    {
+      "item": "OtherData.cs",
+      "description": "Other/unprocessed data model",
+      "location": "contracts/Responses/",
+      "properties": {
+        "RawContent": "string - Original input for future processing"
+      }
+    },
+    {
+      "item": "ErrorResponse.cs",
+      "description": "Standard error response structure",
+      "location": "contracts/Errors/",
+      "properties": {
+        "CorrelationId": "string",
+        "ErrorCode": "string",
+        "Message": "string",
+        "Details": "Dictionary<string, string>?"
+      }
+    },
+    {
+      "item": "ParseEndpoint.cs",
+      "description": "Minimal API endpoint mapping for /api/v1/parse",
+      "location": "src/Api/Endpoints/",
+      "http_method": "POST",
+      "route": "/api/v1/parse"
+    },
+    {
+      "item": "Program.cs (updated)",
+      "description": "Configure Swagger, CORS, and map parse endpoint",
+      "location": "src/Api/",
+      "changes": [
+        "Add Swagger configuration with API metadata",
+        "Add CORS for localhost:5173 (Vite) and localhost:3000 (React)",
+        "Map ParseEndpoint",
+        "Remove default WeatherForecast endpoint"
+      ]
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ Endpoint responds to POST /api/v1/parse",
+    "✅ Accepts ParseRequest with 'content' property",
+    "✅ Returns ParseResponse with correlation ID",
+    "✅ Echo flow: input → response.Other.RawContent (expense = null)",
+    "✅ Swagger UI accessible at /swagger",
+    "✅ Swagger shows request/response schemas with descriptions",
+    "✅ CORS configured for localhost:5173 and localhost:3000",
+    "✅ Solution builds with 0 warnings",
+    "✅ All DTOs in contracts/ project",
+    "✅ Endpoint in src/Api/Endpoints/ following separation of concerns"
+  ],
+
+  "business_rules": [
+    "URI versioning: /api/v1/ (from ADR-0005)",
+    "Response MUST include correlation ID (GUID) for traceability",
+    "Response follows XOR pattern: expense XOR other (from ADR-0007)",
+    "For M0 echo flow: always populate 'other', never 'expense'",
+    "CORS allows localhost:5173 (Vite default) and localhost:3000 (React fallback)",
+    "Swagger documentation required (from ADR-0004)",
+    "Minimal API pattern preferred over Controllers (from PRD Section 4)"
+  ],
+
+  "technical_notes": {
+    "packages_needed": [
+      "Swashbuckle.AspNetCore (already installed)",
+      "Microsoft.AspNetCore.OpenApi (already installed)"
+    ],
+    "cors_origins": [
+      "http://localhost:5173",
+      "http://localhost:3000"
+    ],
+    "swagger_route": "/swagger",
+    "api_route_template": "/api/v1/{endpoint}",
+    "correlation_id_generation": "Guid.NewGuid().ToString()"
+  },
+
+  "code_examples": {
+    "parse_request": "public sealed record ParseRequest\n{\n    public required string Content { get; init; }\n}",
+    "parse_response": "public sealed record ParseResponse\n{\n    public required string CorrelationId { get; init; }\n    public ExpenseData? Expense { get; init; }\n    public OtherData? Other { get; init; }\n}",
+    "endpoint_structure": "public static class ParseEndpoint\n{\n    public static void MapParseEndpoint(this IEndpointRouteBuilder app)\n    {\n        app.MapPost(\"/api/v1/parse\", ([FromBody] ParseRequest request) =>\n        {\n            var correlationId = Guid.NewGuid().ToString();\n            return Results.Ok(new ParseResponse\n            {\n                CorrelationId = correlationId,\n                Expense = null,\n                Other = new OtherData { RawContent = request.Content }\n            });\n        })\n        .WithName(\"Parse\")\n        .WithTags(\"Parsing\")\n        .WithOpenApi();\n    }\n}",
+    "swagger_config": "builder.Services.AddSwaggerGen(options =>\n{\n    options.SwaggerDoc(\"v1\", new()\n    {\n        Title = \"Flowingly Parsing Service API\",\n        Version = \"v1\",\n        Description = \"Text ingestion and parsing service\"\n    });\n});",
+    "cors_config": "builder.Services.AddCors(options =>\n{\n    options.AddDefaultPolicy(policy =>\n    {\n        policy.WithOrigins(\"http://localhost:5173\", \"http://localhost:3000\")\n              .AllowAnyHeader()\n              .AllowAnyMethod();\n    });\n});"
+  },
+
+  "validation": {
+    "command": "dotnet build src/Api/Flowingly.ParsingService.Api.csproj",
+    "expected_output": "Build succeeded. 0 Warning(s) 0 Error(s)"
+  },
+
+  "next_task": {
+    "id": "task_004",
+    "name": "Bootstrap React+Vite Frontend",
+    "why": "API endpoint structure ready, now create frontend to consume it (runs in parallel)"
+  }
+}
