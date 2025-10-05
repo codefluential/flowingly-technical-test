@@ -233,7 +233,17 @@ Balance between markdown guides and code comments—choose the most maintainable
    - `tasks/tasks.json`: 50-task orchestration with dependencies
    - `PROGRESS.md`: Real-time progress dashboard
    - `TRACKING-WORKFLOW.md`: Tracking system documentation
+   - `tasks/TASK_CREATION_GUIDE.md`: **Comprehensive guide for creating task files**
    - Individual task files: Self-contained context for agent execution
+
+5. **Task Creation Guide** at `project-context/implementation/tasks/TASK_CREATION_GUIDE.md`
+   - **Complete methodology** for creating self-contained task files
+   - **Source documents catalog**: PRD, ADRs, test brief, delivery plan
+   - **Field-by-field guide**: Every JSON field explained with examples
+   - **Task type patterns**: M0 scaffold, M1 TDD (RED/GREEN/REFACTOR), M2 API, M3 UI/E2E
+   - **Step-by-step creation process**: From extracting metadata to validation
+   - **Quality checklist**: Ensure context completeness, traceability, actionability
+   - **Use this guide** when creating new task files (46 remaining tasks)
 
 **These are the key documents** — always reference these before planning or implementing tasks.
 
