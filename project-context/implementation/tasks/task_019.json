@@ -1,0 +1,207 @@
+{
+  "task_id": "task_019",
+  "milestone": "M1",
+  "name": "Write Banker's Rounding Tests (TDD)",
+  "description": "Write comprehensive unit tests for Banker's Rounding (MidpointRounding.ToEven) BEFORE implementation. Critical for GST calculation accuracy.",
+
+  "agent": {
+    "primary": "tdd-london-swarm",
+    "role": "TDD Test Implementation"
+  },
+
+  "duration": "1h",
+  "priority": "critical",
+  "dependencies": ["task_013"],
+  "parallel_group": "M1_parallel_1",
+  "tdd_phase": "RED",
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 9.3: Banker's Rounding (MidpointRounding.ToEven)",
+        "Section 13: BDD Scenario - 'Banker's Rounding Applied to Tax Calculations'"
+      ],
+      "requirements": [
+        "Use MidpointRounding.ToEven for all financial calculations",
+        "Apply to: GST calculations, totals in response",
+        "Round to 2 decimal places for money values",
+        "2.125 → 2.12 (round to even), not 2.13"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 3,
+      "requirement": "GST calculation must be accurate",
+      "grading_criteria": "Rounding precision affects final submission grade"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0009-bankers-rounding.md",
+        "decision": "Banker's Rounding (MidpointRounding.ToEven)",
+        "rationale": "Statistically unbiased, financial industry standard (IEEE 754)",
+        "context": "Why half-away-from-zero causes systematic bias",
+        "key_points": [
+          "Midpoint values round to nearest even number",
+          "Eliminates cumulative rounding errors in large datasets",
+          "Standard for financial systems and accounting"
+        ],
+        "examples_from_adr": [
+          "2.125 → 2.12 (2 is even)",
+          "2.135 → 2.14 (4 is even)",
+          "2.145 → 2.14 (4 is even)",
+          "2.155 → 2.16 (6 is even)"
+        ]
+      },
+      {
+        "file": "project-context/adr/ADR-0010-test-strategy-coverage.md",
+        "decision": "Test edge cases for all financial calculations",
+        "relevance": "Banker's Rounding edge cases must be verified"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M1 — Core Parsing & Validation",
+      "sub_section": "Banker's Rounding (Critical!)",
+      "requirement": "Apply at business boundaries: tax calc, totals"
+    }
+  },
+
+  "test_scenarios": [
+    {
+      "name": "Midpoint_Rounding_To_Even_Lower",
+      "input": 2.125,
+      "precision": 2,
+      "expected": 2.12,
+      "reason": "2 is even, rounds down"
+    },
+    {
+      "name": "Midpoint_Rounding_To_Even_Upper",
+      "input": 2.135,
+      "precision": 2,
+      "expected": 2.14,
+      "reason": "4 is even, rounds up"
+    },
+    {
+      "name": "Midpoint_Rounding_To_Even_Same_Lower",
+      "input": 2.145,
+      "precision": 2,
+      "expected": 2.14,
+      "reason": "4 is even, rounds down"
+    },
+    {
+      "name": "Midpoint_Rounding_To_Even_Same_Upper",
+      "input": 2.155,
+      "precision": 2,
+      "expected": 2.16,
+      "reason": "6 is even, rounds up"
+    },
+    {
+      "name": "Edge_Case_0_005",
+      "input": 0.005,
+      "precision": 2,
+      "expected": 0.00,
+      "reason": "0 is even, rounds down"
+    },
+    {
+      "name": "Edge_Case_0_015",
+      "input": 0.015,
+      "precision": 2,
+      "expected": 0.02,
+      "reason": "2 is even, rounds up"
+    },
+    {
+      "name": "Edge_Case_0_025",
+      "input": 0.025,
+      "precision": 2,
+      "expected": 0.02,
+      "reason": "2 is even, rounds down"
+    },
+    {
+      "name": "Negative_Midpoint_Lower",
+      "input": -2.125,
+      "precision": 2,
+      "expected": -2.12,
+      "reason": "Works with negative numbers"
+    },
+    {
+      "name": "Non_Midpoint_Should_Round_Normally",
+      "input": 2.126,
+      "precision": 2,
+      "expected": 2.13,
+      "reason": "Not midpoint, standard rounding"
+    },
+    {
+      "name": "Already_Even_Precision",
+      "input": 2.12,
+      "precision": 2,
+      "expected": 2.12,
+      "reason": "No rounding needed"
+    }
+  ],
+
+  "deliverables": [
+    {
+      "item": "BankersRoundingTests.cs",
+      "description": "xUnit test class for rounding helper",
+      "location": "api/tests/Flowingly.ParsingService.Tests/Helpers/",
+      "test_count": "10+ test methods"
+    },
+    {
+      "item": "Failing tests",
+      "description": "All tests must FAIL initially (RED phase)",
+      "validation": "Test runner shows RED for all rounding tests"
+    }
+  },
+
+  "acceptance_criteria": [
+    "✅ 10+ test methods covering midpoint edge cases",
+    "✅ All tests use FluentAssertions for decimal comparisons",
+    "✅ All tests currently FAIL (no implementation yet)",
+    "✅ Tests verify MidpointRounding.ToEven behavior",
+    "✅ Negative number edge cases included",
+    "✅ Non-midpoint cases verify standard behavior",
+    "✅ Tests use decimal type (not double/float)"
+  ],
+
+  "business_rules": [
+    "MUST use MidpointRounding.ToEven (not AwayFromZero)",
+    "Apply to ALL financial calculations (GST, totals)",
+    "Precision is always 2 decimal places for money",
+    "Use decimal type for financial accuracy",
+    "Midpoint values round to nearest even number"
+  ],
+
+  "code_examples": {
+    "test_structure": "// Arrange\nvar helper = new RoundingHelper();\ndecimal input = 2.125m;\nint precision = 2;\n\n// Act\nvar result = helper.Round(input, precision);\n\n// Assert\nresult.Should().Be(2.12m);",
+    "interface": "public interface IRoundingHelper\n{\n    decimal Round(decimal value, int precision);\n}",
+    "dotnet_implementation": "Math.Round(value, precision, MidpointRounding.ToEven)",
+    "gst_usage_example": "// Tax calculation with Banker's Rounding\nvar totalExcl = totalIncl / (1 + 0.15m);\ntotalExcl = Round(totalExcl, 2); // Apply Banker's Rounding\nvar salesTax = Round(totalIncl - totalExcl, 2);"
+  },
+
+  "why_bankers_rounding": {
+    "problem_with_half_away_from_zero": "Always rounds 0.5 up, causing systematic upward bias in large datasets",
+    "banker_solution": "Midpoint rounds to even, distributing bias equally (50% up, 50% down)",
+    "real_world_example": "Processing 1000 invoices with midpoint rounding: half-away = cumulative +$250 error, banker's = ~$0 error",
+    "industry_standard": "IEEE 754, financial systems, accounting software"
+  },
+
+  "tdd_workflow": {
+    "current_phase": "RED - Write failing tests",
+    "next_phase": "task_020 - GREEN - Implement rounding helper",
+    "principle": "Verify ToEven behavior before implementing"
+  },
+
+  "validation": {
+    "command": "dotnet test --filter FullyQualifiedName~BankersRounding",
+    "expected_output": "10+ tests FAILED (RED)",
+    "failure_is_success": true
+  },
+
+  "next_task": {
+    "id": "task_020",
+    "name": "Implement Rounding Helper",
+    "why": "Tests prove ToEven logic, now implement it",
+    "tdd_phase": "GREEN"
+  }
+}

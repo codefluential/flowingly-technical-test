@@ -1,0 +1,161 @@
+{
+  "task_id": "task_014",
+  "milestone": "M1",
+  "name": "Write Tag Validation Tests (TDD)",
+  "description": "Write comprehensive unit tests for stack-based tag validator BEFORE implementation. Tests MUST fail initially (RED phase of TDD).",
+
+  "agent": {
+    "primary": "tdd-london-swarm",
+    "role": "TDD Test Implementation (London School - mockist style)"
+  },
+
+  "duration": "1h",
+  "priority": "critical",
+  "dependencies": ["task_013"],
+  "parallel_group": "M1_parallel_1",
+  "tdd_phase": "RED",
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 10.1: Tag Validation Rules - Stack-based validator required",
+        "Section 13: BDD Scenarios - 'Scenario: Overlapping Tags Should Be Rejected'"
+      ],
+      "requirements": [
+        "Reject overlapping tags like <a><b></a></b>",
+        "Reject unclosed tags like <a><b>",
+        "Accept proper nesting like <a><b></b></a>",
+        "Use stack-based algorithm (not regex)"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 2,
+      "requirement": "Validate tag integrity and reject malformed content",
+      "grading_criteria": "Tag validation is a core graded component"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0008-parsing-validation-rules.md",
+        "decision": "Stack-based Tag Validation (Not Regex Balance)",
+        "rationale": "Detect overlapping tags, not just unclosed tags",
+        "context": "Why overlapping tags like <a><b></a></b> must be rejected",
+        "key_excerpt": "A stack-based parser can detect when closing tags don't match the most recent opening tag"
+      },
+      {
+        "file": "project-context/adr/ADR-0010-test-strategy-coverage.md",
+        "decision": "TDD with London School (mockist) approach",
+        "relevance": "Defines how to structure validator tests"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M1 — Core Parsing & Validation",
+      "sub_section": "Tag Validation",
+      "requirement": "Implement stack-based validator tracking open/close tags"
+    }
+  },
+
+  "test_scenarios": [
+    {
+      "name": "Overlapping_Tags_Should_Be_Rejected",
+      "input": "<a><b></a></b>",
+      "expected": "ValidationException with UNCLOSED_TAGS",
+      "reason": "Closing tag </a> doesn't match most recent opening <b>"
+    },
+    {
+      "name": "Unclosed_Tags_Should_Be_Rejected",
+      "input": "<a><b>",
+      "expected": "ValidationException with UNCLOSED_TAGS",
+      "reason": "Stack not empty at end of parsing"
+    },
+    {
+      "name": "Proper_Nesting_Should_Be_Accepted",
+      "input": "<a><b></b></a>",
+      "expected": "Valid (no exception)",
+      "reason": "LIFO ordering maintained"
+    },
+    {
+      "name": "Self_Closing_Tags_Should_Be_Valid",
+      "input": "<expense><total>100</total></expense>",
+      "expected": "Valid (no exception)",
+      "reason": "Properly nested standard tags"
+    },
+    {
+      "name": "Multiple_Nesting_Levels_Should_Work",
+      "input": "<a><b><c></c></b></a>",
+      "expected": "Valid (no exception)",
+      "reason": "Deep nesting with proper LIFO"
+    },
+    {
+      "name": "Empty_Content_Should_Be_Valid",
+      "input": "",
+      "expected": "Valid (no exception)",
+      "reason": "No tags to validate"
+    },
+    {
+      "name": "Mixed_Overlapping_At_Different_Levels",
+      "input": "<expense><a><b></expense></b></a>",
+      "expected": "ValidationException with UNCLOSED_TAGS",
+      "reason": "Closing </expense> doesn't match <b>"
+    }
+  ],
+
+  "deliverables": [
+    {
+      "item": "TagValidatorTests.cs",
+      "description": "xUnit test class with FluentAssertions",
+      "location": "api/tests/Flowingly.ParsingService.Tests/Validators/",
+      "test_count": "7+ test methods"
+    },
+    {
+      "item": "Failing tests",
+      "description": "All tests must FAIL initially (RED phase)",
+      "validation": "Test runner shows RED for all tag validation tests"
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ 7+ test methods created covering all scenarios",
+    "✅ All tests use FluentAssertions syntax",
+    "✅ All tests currently FAIL (no implementation yet)",
+    "✅ Test names follow Given_When_Then or Should pattern",
+    "✅ Each test has clear Arrange-Act-Assert structure",
+    "✅ Tests verify both valid and invalid inputs",
+    "✅ Error messages specify UNCLOSED_TAGS error code"
+  ],
+
+  "business_rules": [
+    "Stack-based validation is MANDATORY (not regex)",
+    "Overlapping tags MUST be rejected (not just unclosed)",
+    "Proper nesting follows LIFO (Last In First Out) principle",
+    "Error code must be UNCLOSED_TAGS for all tag errors",
+    "Validation happens before any content processing"
+  ],
+
+  "code_examples": {
+    "test_structure": "// Arrange\nvar validator = new TagValidator();\nvar input = \"<a><b></a></b>\";\n\n// Act\nAction act = () => validator.Validate(input);\n\n// Assert\nact.Should().Throw<ValidationException>()\n   .WithMessage(\"*UNCLOSED_TAGS*\");",
+    "interface": "public interface ITagValidator\n{\n    ValidationResult Validate(string content);\n}",
+    "expected_exception": "public class ValidationException : Exception\n{\n    public string ErrorCode { get; set; }\n}"
+  },
+
+  "tdd_workflow": {
+    "current_phase": "RED - Write failing tests",
+    "next_phase": "task_015 - GREEN - Implement to make tests pass",
+    "principle": "Never write implementation before tests fail"
+  },
+
+  "validation": {
+    "command": "dotnet test --filter FullyQualifiedName~TagValidator",
+    "expected_output": "7+ tests FAILED (RED)",
+    "failure_is_success": true
+  },
+
+  "next_task": {
+    "id": "task_015",
+    "name": "Implement ITagValidator",
+    "why": "Tests are failing (RED), now make them pass (GREEN)",
+    "tdd_phase": "GREEN"
+  }
+}

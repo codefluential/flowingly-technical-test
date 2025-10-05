@@ -1,0 +1,102 @@
+{
+  "task_id": "task_001",
+  "milestone": "M0",
+  "name": "Create Solution Structure",
+  "description": "Create .NET 8 solution with Clean/Hexagonal architecture structure following project specifications",
+
+  "agent": {
+    "primary": "base-template-generator",
+    "role": "Lead scaffold generation"
+  },
+
+  "duration": "30min",
+  "priority": "critical",
+  "dependencies": [],
+  "parallel_group": null,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 4: Technology Stack - .NET 8 Minimal API",
+        "Section 7: Architecture - Clean/Hexagonal with CQRS-lite"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 1,
+      "requirement": "Setup phase - Create working .NET API project"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0002-architecture-style.md",
+        "decision": "Clean/Hexagonal Architecture + CQRS-lite",
+        "relevance": "Defines project layer structure"
+      },
+      {
+        "file": "project-context/adr/ADR-0005-versioning-via-uri.md",
+        "decision": "URI-based API versioning (/api/v1/)",
+        "relevance": "API endpoint structure"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M0 — Minimal Scaffold",
+      "requirement": ".NET solution with Api and Domain projects"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "Flowingly.ParsingService.sln",
+      "description": ".NET 8 solution file",
+      "location": "/api/"
+    },
+    {
+      "item": "Directory structure",
+      "description": "api/src/, api/tests/ folders created",
+      "structure": [
+        "api/",
+        "api/src/",
+        "api/tests/",
+        "api/Flowingly.ParsingService.sln"
+      ]
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ Solution file (.sln) exists and is valid",
+    "✅ Directory structure matches Clean Architecture pattern",
+    "✅ Solution can be opened in IDE without errors",
+    "✅ Folder structure ready for project additions"
+  ],
+
+  "business_rules": [
+    "Use .NET 8 (not .NET 6 or 7)",
+    "Follow Clean/Hexagonal architecture layers",
+    "Prepare for CQRS-lite pattern (separate read/write concerns)",
+    "URI versioning will be /api/v1/ (from ADR-0005)"
+  ],
+
+  "technical_notes": {
+    "dotnet_command": "dotnet new sln -n Flowingly.ParsingService",
+    "architecture_layers": [
+      "Api (Presentation)",
+      "Application (Use Cases)",
+      "Domain (Business Logic)",
+      "Infrastructure (External Concerns)"
+    ],
+    "naming_convention": "Flowingly.ParsingService.<LayerName>"
+  },
+
+  "validation": {
+    "command": "dotnet sln list",
+    "expected_output": "Solution file is valid and can list projects"
+  },
+
+  "next_task": {
+    "id": "task_002",
+    "name": "Configure Clean Architecture Layers",
+    "why": "Solution structure exists, now add project layers"
+  }
+}

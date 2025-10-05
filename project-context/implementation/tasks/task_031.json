@@ -1,0 +1,202 @@
+{
+  "task_id": "task_031",
+  "milestone": "M2",
+  "name": "Create DTOs",
+  "description": "Create Request/Response Data Transfer Objects implementing classification-specific contract (expense XOR other). Critical for API contract compliance.",
+
+  "agent": {
+    "primary": "dev-backend-api",
+    "role": "API Contract Implementation"
+  },
+
+  "duration": "30min",
+  "priority": "critical",
+  "dependencies": ["task_030"],
+  "parallel_group": null,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 11: Request/Response Contracts",
+        "Section 11.2: Response Contract - Classification-Specific (XOR)",
+        "Section 13: BDD Scenario - 'Response Never Contains Both Expense and Other'"
+      ],
+      "requirements": [
+        "Request: { text: string, taxRate?: number }",
+        "Response MUST be classification-specific (expense XOR other)",
+        "NEVER return both expense and other in same response",
+        "Include meta: { correlationId, warnings, tagsFound }"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 3,
+      "requirement": "Return structured expense data with GST breakdown",
+      "grading_criteria": "API contract structure affects submission grade"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0007-response-contract-design.md",
+        "decision": "Classification-Specific Response (Expense XOR Other)",
+        "rationale": "Type safety, smaller payloads, clear contracts, avoids ambiguity",
+        "context": "Why combined response { expense?, other? } is problematic",
+        "key_points": [
+          "Expense response contains ONLY expense + meta",
+          "Other response contains ONLY other + meta",
+          "TypeScript discriminated unions for type safety",
+          "OpenAPI oneOf discriminator for documentation"
+        ],
+        "example_expense": "{\n  \"classification\": \"expense\",\n  \"expense\": {\n    \"vendor\": \"...\",\n    \"total\": 115.00,\n    \"totalExclTax\": 100.00,\n    \"salesTax\": 15.00,\n    \"costCentre\": \"DEP-001\"\n  },\n  \"meta\": {\n    \"correlationId\": \"...\",\n    \"warnings\": [],\n    \"tagsFound\": [\"vendor\", \"total\", \"cost_centre\"]\n  }\n}",
+        "example_other": "{\n  \"classification\": \"other\",\n  \"other\": {\n    \"rawTags\": { \"reservation\": \"...\", \"guest_count\": \"...\" },\n    \"note\": \"Unprocessed content stored for future processing\"\n  },\n  \"meta\": {\n    \"correlationId\": \"...\",\n    \"warnings\": [],\n    \"tagsFound\": [\"reservation\", \"guest_count\"]\n  }\n}"
+      },
+      {
+        "file": "project-context/adr/ADR-0004-swagger-api-contract.md",
+        "decision": "Swagger for API Contract Documentation",
+        "relevance": "DTOs must be Swagger-compatible with examples"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M2 — Domain + API contract",
+      "sub_section": "Request/Response Models",
+      "requirement": "Response (Expense) and Response (Other) - never both"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "ParseRequest.cs",
+      "description": "Request DTO with validation attributes",
+      "location": "api/src/Flowingly.ParsingService.Api/Contracts/",
+      "properties": {
+        "Text": "string (required)",
+        "TaxRate": "decimal? (optional, default 0.15)"
+      }
+    },
+    {
+      "item": "ParseResponseBase.cs",
+      "description": "Base response with meta",
+      "properties": {
+        "Classification": "string (\"expense\" | \"other\")",
+        "Meta": "ResponseMeta"
+      }
+    },
+    {
+      "item": "ExpenseParseResponse.cs",
+      "description": "Expense-specific response (inherits base)",
+      "properties": {
+        "Classification": "\"expense\"",
+        "Expense": "ExpenseData",
+        "Meta": "ResponseMeta"
+      }
+    },
+    {
+      "item": "OtherParseResponse.cs",
+      "description": "Other-specific response (inherits base)",
+      "properties": {
+        "Classification": "\"other\"",
+        "Other": "OtherData",
+        "Meta": "ResponseMeta"
+      }
+    },
+    {
+      "item": "ExpenseData.cs",
+      "description": "Expense payload",
+      "properties": {
+        "Vendor": "string",
+        "Total": "decimal",
+        "TotalExclTax": "decimal",
+        "SalesTax": "decimal",
+        "CostCentre": "string",
+        "Description": "string?"
+      }
+    },
+    {
+      "item": "OtherData.cs",
+      "description": "Other payload",
+      "properties": {
+        "RawTags": "Dictionary<string, string>",
+        "Note": "string"
+      }
+    },
+    {
+      "item": "ResponseMeta.cs",
+      "description": "Metadata for all responses",
+      "properties": {
+        "CorrelationId": "Guid",
+        "Warnings": "List<string>",
+        "TagsFound": "List<string>"
+      }
+    },
+    {
+      "item": "ErrorResponse.cs",
+      "description": "Error response DTO",
+      "properties": {
+        "Error": "ErrorDetail",
+        "CorrelationId": "Guid"
+      }
+    },
+    {
+      "item": "ErrorDetail.cs",
+      "description": "Error details",
+      "properties": {
+        "Code": "string (UNCLOSED_TAGS, MISSING_TOTAL, etc.)",
+        "Message": "string",
+        "Details": "object?"
+      }
+    }
+  },
+
+  "acceptance_criteria": [
+    "✅ All DTO classes created with correct properties",
+    "✅ Expense response NEVER has Other property",
+    "✅ Other response NEVER has Expense property",
+    "✅ Both response types have Meta property",
+    "✅ Classification field uses string literals (\"expense\"|\"other\")",
+    "✅ Decimal types used for all money fields",
+    "✅ Nullable types used appropriately (TaxRate?, Description?)",
+    "✅ Data annotations added for validation (Required, Range, etc.)",
+    "✅ XML documentation comments on all public properties"
+  ],
+
+  "business_rules": [
+    "XOR enforcement: Response contains expense XOR other, NEVER both",
+    "Classification field determines which payload is present",
+    "Meta must be present in ALL responses (success and partial)",
+    "CorrelationId must be Guid type for uniqueness",
+    "Money fields use decimal (not double/float)",
+    "TaxRate is nullable with 0.15 default in handler",
+    "Error responses have separate structure (not success response)"
+  ],
+
+  "code_examples": {
+    "expense_response": "public class ExpenseParseResponse : ParseResponseBase\n{\n    public string Classification => \"expense\";\n    public ExpenseData Expense { get; set; }\n    public ResponseMeta Meta { get; set; }\n}",
+    "other_response": "public class OtherParseResponse : ParseResponseBase\n{\n    public string Classification => \"other\";\n    public OtherData Other { get; set; }\n    public ResponseMeta Meta { get; set; }\n}",
+    "request": "public class ParseRequest\n{\n    [Required]\n    public string Text { get; set; }\n    \n    [Range(0, 1)]\n    public decimal? TaxRate { get; set; }\n}",
+    "discriminator_pattern": "// Handler returns one of:\nreturn classification == \"expense\" \n    ? new ExpenseParseResponse { ... }\n    : new OtherParseResponse { ... };"
+  },
+
+  "typescript_types": {
+    "note": "TypeScript discriminated unions will be created in task_042",
+    "preview": "type ParseResponse = \n  | { classification: 'expense'; expense: ExpenseData; meta: Meta }\n  | { classification: 'other'; other: OtherData; meta: Meta };"
+  },
+
+  "swagger_annotations": {
+    "requirement": "Add Swashbuckle annotations for OpenAPI generation",
+    "oneOf_discriminator": "[SwaggerDiscriminator(\"classification\")]",
+    "example_attributes": "[SwaggerSchema(Example = \"...\")]"
+  },
+
+  "validation": {
+    "compile_check": "dotnet build",
+    "expected_output": "No compilation errors for DTO classes",
+    "type_safety": "Compiler enforces XOR (can't set both Expense and Other)"
+  },
+
+  "next_task": {
+    "id": "task_032",
+    "name": "Implement FluentValidation",
+    "why": "DTOs exist, now add request validation rules"
+  }
+}
