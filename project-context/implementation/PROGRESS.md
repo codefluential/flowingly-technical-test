@@ -1,6 +1,6 @@
 # Implementation Progress Tracker
 
-**Last Updated**: 2025-10-06 11:33
+**Last Updated**: 2025-10-06 11:40
 **Current Phase**: Planning Complete → Ready for Implementation
 **Overall Progress**: 0/50 tasks (0%)
 
@@ -39,8 +39,8 @@
 - [x] task_005: Create API Client
 - [x] task_006: Build Minimal UI Components
 - [x] task_007: Wire Echo Flow
-- [ ] task_008: Create README Quick Start
-- [ ] task_009: Setup Development Scripts
+- [x] task_008: Create README Quick Start
+- [x] task_009: Setup Development Scripts
 - [ ] task_010: ✅ Verify M0 DoD (GATE)
 
 **DoD Criteria**:
