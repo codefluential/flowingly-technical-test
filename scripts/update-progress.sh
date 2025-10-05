@@ -60,10 +60,14 @@ TESTS=$(jq -r '.progress_tracking.tests_passing.total' "$TASKS_JSON")
 CURRENT_MILESTONE=$(jq -r '.progress_tracking.current_milestone' "$TASKS_JSON")
 
 # Update PROGRESS.md header
-sed -i "s/^**Last Updated**:.*/\*\*Last Updated\*\*: $(date '+%Y-%m-%d %H:%M')/" "$PROGRESS_MD"
-sed -i "s/^**Current Task**:.*/\*\*Current Task\*\*: $TASK_ID: $(jq -r ".tasks[] | select(.id == \"$TASK_ID\") | .name" "$TASKS_JSON")/" "$PROGRESS_MD"
-sed -i "s/\*\*Tasks Completed\*\*: [0-9]*\/[0-9]* .*/\*\*Tasks Completed\*\*: $COMPLETED\/$TOTAL ($(( COMPLETED * 100 / TOTAL ))%)/" "$PROGRESS_MD"
-sed -i "s/\*\*Tests Passing\*\*:.*/\*\*Tests Passing\*\*: $TESTS\/45/" "$PROGRESS_MD"
+TASK_NAME=$(jq -r ".tasks[] | select(.id == \"$TASK_ID\") | .name" "$TASKS_JSON")
+TIMESTAMP=$(date '+%Y-%m-%d %H:%M')
+PERCENT=$(( COMPLETED * 100 / TOTAL ))
+
+sed -i "s/^\*\*Last Updated\*\*:.*/\*\*Last Updated\*\*: $TIMESTAMP/" "$PROGRESS_MD"
+sed -i "s/^\*\*Current Task\*\*:.*/\*\*Current Task\*\*: $TASK_ID: $TASK_NAME/" "$PROGRESS_MD"
+sed -i "s/^\*\*Tasks Completed\*\*: [0-9]*\/[0-9]* .*/\*\*Tasks Completed\*\*: $COMPLETED\/$TOTAL ($PERCENT%)/" "$PROGRESS_MD"
+sed -i "s/^\*\*Tests Passing\*\*:.*/\*\*Tests Passing\*\*: $TESTS\/45/" "$PROGRESS_MD"
 
 # Update task checkbox in PROGRESS.md
 TASK_LINE=$(grep -n "\[ \] $TASK_ID:" "$PROGRESS_MD" | cut -d: -f1 | head -1)

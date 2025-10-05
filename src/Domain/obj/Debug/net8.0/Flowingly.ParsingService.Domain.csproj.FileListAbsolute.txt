@@ -1,0 +1,11 @@
+/home/adarsh/dev/codefluent/flowingly-technical-test/src/Domain/bin/Debug/net8.0/Flowingly.ParsingService.Domain.deps.json
+/home/adarsh/dev/codefluent/flowingly-technical-test/src/Domain/bin/Debug/net8.0/Flowingly.ParsingService.Domain.dll
+/home/adarsh/dev/codefluent/flowingly-technical-test/src/Domain/bin/Debug/net8.0/Flowingly.ParsingService.Domain.pdb
+/home/adarsh/dev/codefluent/flowingly-technical-test/src/Domain/obj/Debug/net8.0/Flowingly.ParsingService.Domain.GeneratedMSBuildEditorConfig.editorconfig
+/home/adarsh/dev/codefluent/flowingly-technical-test/src/Domain/obj/Debug/net8.0/Flowingly.ParsingService.Domain.AssemblyInfoInputs.cache
+/home/adarsh/dev/codefluent/flowingly-technical-test/src/Domain/obj/Debug/net8.0/Flowingly.ParsingService.Domain.AssemblyInfo.cs
+/home/adarsh/dev/codefluent/flowingly-technical-test/src/Domain/obj/Debug/net8.0/Flowingly.ParsingService.Domain.csproj.CoreCompileInputs.cache
+/home/adarsh/dev/codefluent/flowingly-technical-test/src/Domain/obj/Debug/net8.0/Flowingly.ParsingService.Domain.dll
+/home/adarsh/dev/codefluent/flowingly-technical-test/src/Domain/obj/Debug/net8.0/refint/Flowingly.ParsingService.Domain.dll
+/home/adarsh/dev/codefluent/flowingly-technical-test/src/Domain/obj/Debug/net8.0/Flowingly.ParsingService.Domain.pdb
+/home/adarsh/dev/codefluent/flowingly-technical-test/src/Domain/obj/Debug/net8.0/ref/Flowingly.ParsingService.Domain.dll

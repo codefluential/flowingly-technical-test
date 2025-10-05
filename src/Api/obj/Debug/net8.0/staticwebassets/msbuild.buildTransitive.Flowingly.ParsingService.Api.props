@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="../buildMultiTargeting/Flowingly.ParsingService.Api.props" />
+</Project>

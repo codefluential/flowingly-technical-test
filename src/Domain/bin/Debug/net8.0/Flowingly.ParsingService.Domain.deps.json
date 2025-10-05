@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "Flowingly.ParsingService.Domain/1.0.0": {
+        "runtime": {
+          "Flowingly.ParsingService.Domain.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Flowingly.ParsingService.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

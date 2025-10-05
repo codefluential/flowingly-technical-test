@@ -1,0 +1,94 @@
+{
+  "version": 3,
+  "targets": {
+    "net8.0": {
+      "Flowingly.ParsingService.Domain/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "compile": {
+          "bin/placeholder/Flowingly.ParsingService.Domain.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Flowingly.ParsingService.Domain.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Flowingly.ParsingService.Domain/1.0.0": {
+      "type": "project",
+      "path": "../Domain/Flowingly.ParsingService.Domain.csproj",
+      "msbuildProject": "../Domain/Flowingly.ParsingService.Domain.csproj"
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net8.0": [
+      "Flowingly.ParsingService.Domain >= 1.0.0"
+    ]
+  },
+  "packageFolders": {
+    "/home/adarsh/.nuget/packages/": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "/home/adarsh/dev/codefluent/flowingly-technical-test/src/Infrastructure/Flowingly.ParsingService.Infrastructure.csproj",
+      "projectName": "Flowingly.ParsingService.Infrastructure",
+      "projectPath": "/home/adarsh/dev/codefluent/flowingly-technical-test/src/Infrastructure/Flowingly.ParsingService.Infrastructure.csproj",
+      "packagesPath": "/home/adarsh/.nuget/packages/",
+      "outputPath": "/home/adarsh/dev/codefluent/flowingly-technical-test/src/Infrastructure/obj/",
+      "projectStyle": "PackageReference",
+      "configFilePaths": [
+        "/home/adarsh/.nuget/NuGet/NuGet.Config"
+      ],
+      "originalTargetFrameworks": [
+        "net8.0"
+      ],
+      "sources": {
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "projectReferences": {
+            "/home/adarsh/dev/codefluent/flowingly-technical-test/src/Domain/Flowingly.ParsingService.Domain.csproj": {
+              "projectPath": "/home/adarsh/dev/codefluent/flowingly-technical-test/src/Domain/Flowingly.ParsingService.Domain.csproj"
+            }
+          }
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      }
+    },
+    "frameworks": {
+      "net8.0": {
+        "targetAlias": "net8.0",
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "/home/adarsh/.dotnet/sdk/8.0.414/PortableRuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}

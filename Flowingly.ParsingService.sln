@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{4E5086C9-9263-4860-8063-A70A6D117882}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flowingly.ParsingService.Api", "src\Api\Flowingly.ParsingService.Api.csproj", "{BDCD3615-B560-4904-B3F6-359338FF03B5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flowingly.ParsingService.Application", "src\Application\Flowingly.ParsingService.Application.csproj", "{8792D166-999C-4BB8-93D4-666955F289B7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flowingly.ParsingService.Domain", "src\Domain\Flowingly.ParsingService.Domain.csproj", "{F04CFD2C-889A-4BF6-A8A1-179EDE74380C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flowingly.ParsingService.Infrastructure", "src\Infrastructure\Flowingly.ParsingService.Infrastructure.csproj", "{56F88BC9-95FA-4395-82F8-4D64809AC54A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flowingly.ParsingService.Contracts", "contracts\Flowingly.ParsingService.Contracts.csproj", "{2D64AD5F-BF40-450E-ACB5-C9E4371C786A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BDCD3615-B560-4904-B3F6-359338FF03B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BDCD3615-B560-4904-B3F6-359338FF03B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BDCD3615-B560-4904-B3F6-359338FF03B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BDCD3615-B560-4904-B3F6-359338FF03B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8792D166-999C-4BB8-93D4-666955F289B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8792D166-999C-4BB8-93D4-666955F289B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8792D166-999C-4BB8-93D4-666955F289B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8792D166-999C-4BB8-93D4-666955F289B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F04CFD2C-889A-4BF6-A8A1-179EDE74380C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F04CFD2C-889A-4BF6-A8A1-179EDE74380C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F04CFD2C-889A-4BF6-A8A1-179EDE74380C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F04CFD2C-889A-4BF6-A8A1-179EDE74380C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{56F88BC9-95FA-4395-82F8-4D64809AC54A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{56F88BC9-95FA-4395-82F8-4D64809AC54A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{56F88BC9-95FA-4395-82F8-4D64809AC54A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{56F88BC9-95FA-4395-82F8-4D64809AC54A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2D64AD5F-BF40-450E-ACB5-C9E4371C786A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D64AD5F-BF40-450E-ACB5-C9E4371C786A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2D64AD5F-BF40-450E-ACB5-C9E4371C786A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2D64AD5F-BF40-450E-ACB5-C9E4371C786A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{BDCD3615-B560-4904-B3F6-359338FF03B5} = {4E5086C9-9263-4860-8063-A70A6D117882}
+		{8792D166-999C-4BB8-93D4-666955F289B7} = {4E5086C9-9263-4860-8063-A70A6D117882}
+		{F04CFD2C-889A-4BF6-A8A1-179EDE74380C} = {4E5086C9-9263-4860-8063-A70A6D117882}
+		{56F88BC9-95FA-4395-82F8-4D64809AC54A} = {4E5086C9-9263-4860-8063-A70A6D117882}
+	EndGlobalSection
+EndGlobal
