@@ -60,6 +60,122 @@ npx playwright test path/to/test.spec.ts
 
 **Note**: These commands will be available once project scaffolding is complete. Currently no implementation exists.
 
+### MCP Servers & Tools
+
+This project uses **Model Context Protocol (MCP) servers** for enhanced development capabilities:
+
+#### Serena MCP (Semantic Code Analysis)
+**Status**: ✅ Configured and indexed (as of M0 completion)
+**Purpose**: Semantic code navigation, refactoring, and symbol-based editing for C# codebase
+
+**When to Use**:
+- ✅ Exploring code structure (classes, methods, interfaces)
+- ✅ Finding all references to a symbol across the project
+- ✅ Refactoring (renaming, changing signatures)
+- ✅ Editing code by symbol (not line numbers)
+- ✅ Understanding dependencies and call chains
+
+**Key Tools**:
+```bash
+# Symbol exploration
+Get symbols overview for src/Domain/Services/TaxCalculator.cs
+Find symbol "TaxCalculator/CalculateFromInclusive" with include_body=true
+Find all references to "ITaxCalculator"
+
+# Code editing
+Replace symbol body "ExpenseProcessor/ProcessAsync" with [new implementation]
+Insert after symbol "TaxCalculator/CalculateFromInclusive" [new method]
+
+# Project memory
+Write a memory "architecture-notes" with [content]
+List all memories
+```
+
+**Setup**:
+- Project indexed at `.serena/cache/` (gitignored)
+- Configuration in `.serena/project.yml`
+- Language: C#, 20+ tools available
+- See `project-context/learnings/serena-mcp-guide.md` for comprehensive guide
+
+**Best Practices**:
+- Start with `get_symbols_overview` before reading full files
+- Use `find_symbol` with `depth=1` to see class methods
+- Find references before refactoring
+- Prefer symbol editing over line-based editing
+
+---
+
+#### Context7 MCP (Library Documentation)
+**Purpose**: Fetch up-to-date documentation for libraries and frameworks
+
+**When to Use**:
+- Looking up .NET, React, or other library APIs
+- Need current documentation (beyond Claude's knowledge cutoff)
+- Understanding library-specific patterns
+
+**Usage**:
+```
+Get documentation for Entity Framework Core migrations
+Get docs for React Query useQuery hook
+```
+
+---
+
+#### Playwright MCP (Browser Automation & Testing)
+**Purpose**: Browser automation for E2E testing and web interaction
+
+**When to Use**:
+- ✅ Writing/debugging E2E tests (M3 milestone)
+- ✅ Testing UI flows in the browser
+- ✅ Verifying form submissions, navigation, API responses
+- ✅ Taking screenshots for debugging
+- ✅ Inspecting console errors and network requests
+
+**Key Tools**:
+```bash
+# Navigation
+Navigate to http://localhost:3000
+Take screenshot of current page
+
+# Interaction
+Click on element (e.g., submit button)
+Type text into input field
+Fill form with multiple fields
+
+# Verification
+Get page snapshot (accessibility tree)
+Get console messages
+Get network requests
+Wait for text to appear/disappear
+
+# Session management
+List/create/close/select browser tabs
+```
+
+**Usage Example (E2E Test Flow)**:
+```
+1. Navigate to http://localhost:3000
+2. Take snapshot to verify page structure
+3. Type sample expense text into textarea
+4. Click "Parse" button
+5. Wait for response
+6. Verify parsed expense data appears
+7. Take screenshot of results
+```
+
+**Best for M3**: Writing the 5+ E2E tests required for submission.
+
+---
+
+#### IDE MCP (VS Code Integration)
+**Purpose**: Language diagnostics and code execution
+
+**Tools**:
+- `getDiagnostics`: Get compiler errors/warnings from VS Code
+- `executeCode`: Run code in Jupyter kernels (for notebooks)
+
+---
+
 ### Progress Tracking
 ```bash
 # Start a task (updates tasks.json, PROGRESS.md)
