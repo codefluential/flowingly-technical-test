@@ -1,7 +1,8 @@
 # ADR-0001: Storage Choice - Postgres for All Environments
 
-**Status**: Accepted
+**Status**: Superseded by ADR-0001-v2
 **Date**: 2025-10-05
+**Superseded Date**: 2025-10-06
 **Deciders**: Technical Lead, Development Team
 
 ## Context
