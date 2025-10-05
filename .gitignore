@@ -7,6 +7,10 @@
 
     # todo: add core ignores
 
-# specific files
-/home/adarsh/dev/codefluent/flowingly-technical-test/project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf:Zone.Identifier
-/home/adarsh/dev/codefluent/flowingly-technical-test/project-context/general-notes.md
+# specific files and folders
+# Zone.Identifier files (Windows/WSL metadata)
+*:Zone.Identifier
+
+# Project context working files
+project-context/general-notes.md
+project-context/agents/
