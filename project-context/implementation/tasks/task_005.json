@@ -1,0 +1,153 @@
+{
+  "task_id": "task_005",
+  "milestone": "M0",
+  "name": "Create API Client",
+  "description": "Implement TypeScript API client with fetch wrapper for calling the parsing service. Includes TypeScript types aligned with C# DTOs (discriminated union for expense XOR other responses) and error handling.",
+
+  "agent": {
+    "primary": "frontend-design-expert",
+    "role": "Frontend API integration and TypeScript type safety"
+  },
+
+  "duration": "30min",
+  "priority": "critical",
+  "dependencies": ["task_003", "task_004"],
+  "parallel_group": null,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 6: Frontend (React) — State & API",
+        "Section 11: Request/Response Contracts",
+        "Section 11.2: Response Contract - Classification-Specific (XOR)"
+      ],
+      "requirements": [
+        "API client with fetch wrapper (minimal state, no Redux needed)",
+        ".env for API base URL",
+        "Request contract: { text: string, taxRate?: number }",
+        "Response discriminated by classification: expense XOR other",
+        "Error responses include error.code and error.message",
+        "All responses include meta.correlationId for support"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 3,
+      "requirement": "API contract must align backend DTOs with frontend TypeScript types",
+      "grading_criteria": "Type safety and API integration are graded components"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0005-versioning-via-uri.md",
+        "decision": "URI-based API versioning",
+        "rationale": "All endpoints use /api/v1/ prefix",
+        "key_excerpt": "API base URL: http://localhost:5000/api/v1/"
+      },
+      {
+        "file": "project-context/adr/ADR-0007-response-contract-design.md",
+        "decision": "Classification-Specific Response (Expense XOR Other)",
+        "rationale": "Responses are specific to classification, never both",
+        "context": "TypeScript discriminated unions provide compile-time type safety",
+        "key_excerpt": "type ParseResponse = ExpenseResponse | OtherResponse; frontend uses discriminated union with classification field as discriminator"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M0 — Minimal Scaffold",
+      "sub_section": "API Client Integration",
+      "requirement": "TypeScript API client with type-safe fetch wrapper and error handling"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "client/src/types/api.ts",
+      "description": "TypeScript interfaces for request/response contracts (discriminated union)",
+      "location": "client/src/types/",
+      "exports": [
+        "ParseRequest",
+        "ParseResponse (discriminated union)",
+        "ExpenseResponse",
+        "OtherResponse",
+        "ExpenseDto",
+        "OtherDto",
+        "Metadata",
+        "ErrorResponse"
+      ]
+    },
+    {
+      "item": "client/src/api/parseClient.ts",
+      "description": "Fetch-based API client with POST /api/v1/parse endpoint",
+      "location": "client/src/api/",
+      "exports": [
+        "parseText(text: string, taxRate?: number): Promise<ParseResponse>",
+        "API_BASE_URL from .env"
+      ]
+    },
+    {
+      "item": "client/.env",
+      "description": "Environment configuration with API base URL",
+      "location": "client/",
+      "content": {
+        "VITE_API_BASE_URL": "http://localhost:5000/api/v1"
+      }
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ TypeScript types defined in client/src/types/api.ts",
+    "✅ ParseResponse uses discriminated union (expense XOR other)",
+    "✅ TypeScript strict mode compiles without errors",
+    "✅ API client in client/src/api/parseClient.ts",
+    "✅ parseText() function accepts text and optional taxRate",
+    "✅ Fetch calls POST /api/v1/parse with JSON body",
+    "✅ API base URL loaded from .env (VITE_API_BASE_URL)",
+    "✅ Error handling includes network errors and API errors",
+    "✅ All exports use named exports (no default exports)",
+    "✅ TypeScript types align with C# DTOs from ADR-0007"
+  ],
+
+  "business_rules": [
+    "API endpoint: POST /api/v1/parse (from ADR-0005)",
+    "Request body: { text: string, taxRate?: number }",
+    "Response discriminated by classification field: 'expense' | 'other'",
+    "Expense XOR Other: response contains expense OR other, never both (from ADR-0007)",
+    "All responses include meta.correlationId (required for support)",
+    "Error responses have { error: { code: string, message: string } }",
+    "Default taxRate is optional; if omitted, backend uses 0.15 (NZ GST)",
+    "API base URL configurable via .env for local/production environments",
+    "Use fetch API (no axios/other libraries for minimal dependencies)",
+    "TypeScript discriminated union enables compile-time type safety"
+  ],
+
+  "technical_notes": {
+    "vite_env_vars": "Vite exposes env vars prefixed with VITE_ to client code via import.meta.env",
+    "fetch_api": "Native fetch API (no external libraries)",
+    "error_handling": "Handle network errors (fetch failures) and API errors (non-2xx responses)",
+    "cors": "Backend will configure CORS for http://localhost:5173 (React dev server)",
+    "content_type": "Content-Type: application/json for POST requests",
+    "discriminated_union": "TypeScript discriminated union with classification as discriminator enables type narrowing"
+  },
+
+  "code_examples": {
+    "types_file": "// client/src/types/api.ts\n\n// Request\nexport interface ParseRequest {\n  text: string;\n  taxRate?: number;\n}\n\n// Response (discriminated union)\nexport type ParseResponse = ExpenseResponse | OtherResponse;\n\nexport interface ExpenseResponse {\n  classification: 'expense';\n  expense: ExpenseDto;\n  meta: Metadata;\n}\n\nexport interface OtherResponse {\n  classification: 'other';\n  other: OtherDto;\n  meta: Metadata;\n}\n\nexport interface ExpenseDto {\n  vendor: string;\n  description: string;\n  total: number;\n  totalExclTax: number;\n  salesTax: number;\n  costCentre: string;\n  date: string;\n  time: string | null;\n  taxRate: number;\n}\n\nexport interface OtherDto {\n  rawTags: Record<string, string>;\n}\n\nexport interface Metadata {\n  correlationId: string;\n  processingTimeMs: number;\n  warnings: string[];\n}\n\nexport interface ErrorResponse {\n  error: {\n    code: string;\n    message: string;\n  };\n  meta?: {\n    correlationId: string;\n  };\n}",
+    "api_client": "// client/src/api/parseClient.ts\nimport type { ParseRequest, ParseResponse, ErrorResponse } from '../types/api';\n\nconst API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';\n\nexport class ApiError extends Error {\n  constructor(\n    message: string,\n    public code: string,\n    public correlationId?: string\n  ) {\n    super(message);\n    this.name = 'ApiError';\n  }\n}\n\nexport async function parseText(\n  text: string,\n  taxRate?: number\n): Promise<ParseResponse> {\n  const request: ParseRequest = { text, taxRate };\n\n  try {\n    const response = await fetch(`${API_BASE_URL}/parse`, {\n      method: 'POST',\n      headers: {\n        'Content-Type': 'application/json',\n      },\n      body: JSON.stringify(request),\n    });\n\n    if (!response.ok) {\n      const errorData: ErrorResponse = await response.json();\n      throw new ApiError(\n        errorData.error.message,\n        errorData.error.code,\n        errorData.meta?.correlationId\n      );\n    }\n\n    return await response.json();\n  } catch (error) {\n    if (error instanceof ApiError) {\n      throw error;\n    }\n    // Network error or fetch failure\n    throw new ApiError(\n      'Network error: Unable to reach parsing service',\n      'NETWORK_ERROR'\n    );\n  }\n}",
+    "env_file": "# client/.env\nVITE_API_BASE_URL=http://localhost:5000/api/v1",
+    "usage_example": "// Usage in React component (task_006)\nimport { parseText } from './api/parseClient';\nimport type { ParseResponse } from './types/api';\n\nconst handleSubmit = async () => {\n  try {\n    const result: ParseResponse = await parseText(inputText);\n    \n    if (result.classification === 'expense') {\n      console.log('Expense:', result.expense.vendor);\n      // TypeScript knows result.expense exists\n    } else {\n      console.log('Other:', result.other.rawTags);\n      // TypeScript knows result.other exists\n    }\n  } catch (error) {\n    if (error instanceof ApiError) {\n      console.error(`Error ${error.code}: ${error.message}`);\n    }\n  }\n};"
+  },
+
+  "validation": {
+    "commands": [
+      "cd client && npm run build",
+      "cd client && npx tsc --noEmit"
+    ],
+    "expected_output": "TypeScript compilation succeeds with 0 errors, build succeeds"
+  },
+
+  "next_task": {
+    "id": "task_006",
+    "name": "Build Minimal UI Components",
+    "why": "API client ready, now create React components to use parseText() for user interaction"
+  }
+}
