@@ -1,0 +1,193 @@
+{
+  "task_id": "task_010",
+  "milestone": "M0",
+  "name": "Verify M0 DoD",
+  "description": "Milestone gate task: Verify all M0 Definition of Done criteria are met before proceeding to M1. Ensures scaffold is complete, echo flow works end-to-end, and quick-start guide enables setup in under 5 minutes. Auto-updates BUILDLOG.md with M0 completion status.",
+
+  "agent": {
+    "primary": "project-organizer",
+    "role": "Quality gate verification and milestone completion"
+  },
+
+  "duration": "20min",
+  "priority": "critical",
+  "dependencies": [
+    "task_001",
+    "task_002",
+    "task_003",
+    "task_004",
+    "task_005",
+    "task_006",
+    "task_007",
+    "task_008",
+    "task_009"
+  ],
+  "parallel_group": null,
+  "milestone_gate": true,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 4: Technology Stack - Verify .NET 8 + React + Vite setup",
+        "Section 7: Architecture - Verify Clean/Hexagonal layers exist"
+      ],
+      "requirements": [
+        "Solution structure with all layers",
+        "API endpoint structure ready",
+        "React frontend with API client",
+        "End-to-end echo flow working",
+        "README with quick start guide"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 1,
+      "requirement": "Working scaffold with documented setup process",
+      "grading_criteria": "Project structure, documentation, and initial setup quality"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0002-architecture-style.md",
+        "decision": "Clean/Hexagonal Architecture",
+        "verification": "Verify all 4 layers exist (Api, Application, Domain, Infrastructure)"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M0 — Minimal Scaffold",
+      "dod_criteria": [
+        "dotnet run + npm run dev work without setup",
+        "Echo flow works end-to-end",
+        "README has 3-step quick start",
+        "Zero external dependencies (SQLite for local dev)",
+        "All 10 M0 tasks completed"
+      ]
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "M0 Verification Checklist",
+      "description": "Completed checklist of all DoD criteria",
+      "location": "Documented in BUILDLOG.md"
+    },
+    {
+      "item": "BUILDLOG.md (updated)",
+      "description": "Append M0 completion entry with verification results",
+      "location": "project-context/build-logs/",
+      "entry_format": {
+        "date": "2025-10-06",
+        "milestone": "M0",
+        "status": "COMPLETE",
+        "tasks_completed": "10/10",
+        "verification_results": "All DoD criteria passed",
+        "blockers": "None",
+        "next_milestone": "M1 - Core Parsing & Validation"
+      }
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ All 10 M0 tasks marked completed in tasks.json",
+    "✅ Solution builds successfully (dotnet build)",
+    "✅ Backend API starts on localhost:5000 (dotnet run --project src/Api)",
+    "✅ Frontend dev server starts on localhost:5173 (npm run dev)",
+    "✅ Echo flow verified: UI → API → UI with mock response",
+    "✅ CORS configured correctly (no CORS errors in browser console)",
+    "✅ Mock response includes correlation ID",
+    "✅ README.md exists with quick start guide",
+    "✅ Quick start verified: clone → run → works in under 5 minutes",
+    "✅ All 4 architecture layers exist (Api, Application, Domain, Infrastructure)",
+    "✅ Development scripts work (npm run dev, npm test, npm run build)",
+    "✅ No external dependencies required (SQLite local, no DB setup)",
+    "✅ BUILDLOG.md updated with M0 completion entry",
+    "✅ PROGRESS.md shows M0 complete (10/10 tasks)",
+    "✅ Ready to proceed to M1 (no blockers)"
+  ],
+
+  "business_rules": [
+    "ALL M0 tasks must be completed before M1 starts",
+    "Echo flow must demonstrate end-to-end connectivity",
+    "Quick start must work from clean clone (no cached dependencies)",
+    "No test coverage required for M0 (tests begin in M1)",
+    "SQLite used for local dev (no Postgres setup needed)",
+    "BUILDLOG entry must document verification results",
+    "Any blockers must be documented and resolved before M1"
+  ],
+
+  "technical_notes": {
+    "verification_approach": "Manual testing + automated checks",
+    "buildlog_format": "Append chronologically (oldest → newest)",
+    "progress_update": "Use update-progress.sh to mark task_010 completed",
+    "milestone_marker": "M0 completion triggers milestone_completed update",
+    "handoff_to_m1": "Ensure all scaffolding is ready for TDD implementation"
+  },
+
+  "dod_checklist": {
+    "project_structure": [
+      "Solution file exists (Flowingly.ParsingService.sln)",
+      "All 4 architecture layers present (Api, Application, Domain, Infrastructure)",
+      "Client directory with React + Vite + TypeScript",
+      "Contracts directory for shared DTOs",
+      "Scripts directory with dev/test/build/clean scripts"
+    ],
+    "api_functionality": [
+      "POST /api/v1/parse endpoint responds",
+      "CORS configured for localhost:5173",
+      "Mock response returns ExpenseResponse structure",
+      "Correlation ID generated for each request",
+      "Swagger UI accessible at /swagger"
+    ],
+    "frontend_functionality": [
+      "UI renders at localhost:5173",
+      "ParseForm accepts text input",
+      "Submit button calls API",
+      "ResultDisplay shows mock expense data",
+      "ErrorBanner handles errors (if tested)",
+      "Correlation ID displayed in footer"
+    ],
+    "documentation": [
+      "README.md with quick start guide",
+      "Prerequisites documented",
+      "Architecture overview included",
+      "Testing section (even if no tests yet)",
+      "Project structure documented"
+    ],
+    "developer_experience": [
+      "npm run dev starts both servers",
+      "npm test command exists (will have tests in M1)",
+      "npm run build works",
+      "Clean script removes artifacts",
+      "Setup takes under 5 minutes from clean clone"
+    ]
+  },
+
+  "validation": {
+    "manual_tests": [
+      "Clone repo to fresh directory",
+      "Follow README quick start",
+      "Time the setup (should be <5 min)",
+      "Paste text in UI, click Parse",
+      "Verify mock expense data displays",
+      "Check correlation ID in footer",
+      "Verify no console errors"
+    ],
+    "automated_checks": [
+      "dotnet build (exit code 0)",
+      "npm run build in client/ (exit code 0)",
+      "Check all M0 tasks completed in tasks.json",
+      "Verify README.md exists and has quick start section"
+    ],
+    "expected_outcome": "All DoD criteria pass, M0 marked complete, ready for M1"
+  },
+
+  "buildlog_entry_template": "## M0 Milestone Complete — 2025-10-06\n\n**Status**: ✅ COMPLETE (10/10 tasks)\n\n**Deliverables**:\n- Solution structure with Clean/Hexagonal layers (Api, Application, Domain, Infrastructure)\n- React + Vite + TypeScript frontend with API client\n- POST /api/v1/parse endpoint with mock response\n- CORS configured for local development\n- README with <5 min quick start guide\n- Development scripts (dev, test, build, clean)\n\n**Verification**:\n- ✅ Echo flow works end-to-end (UI → API → UI)\n- ✅ Mock expense response displays correctly\n- ✅ Correlation ID tracking functional\n- ✅ Quick start verified from clean clone (4m 12s)\n- ✅ No external dependencies required\n- ✅ Both servers start without errors\n\n**Technical Notes**:\n- Using SQLite for local development (no DB setup needed)\n- Mock response hardcoded for M0 (will implement real parsing in M1)\n- TypeScript discriminated union pattern established for expense XOR other\n- CORS policy allows localhost:5173 origin\n\n**Blockers**: None\n\n**Next Milestone**: M1 — Core Parsing & Validation (20 tasks, TDD approach)\n- Implement tag validation (stack-based)\n- Implement tax calculator (Banker's Rounding)\n- Implement number/date/time normalizers\n- Implement XML island extractor\n- Target: 30+ unit tests\n\n---",
+
+  "next_task": {
+    "id": "task_011",
+    "name": "M1 Planning & Setup",
+    "why": "M0 complete, now begin M1 TDD implementation phase with test project setup",
+    "milestone": "M1"
+  }
+}

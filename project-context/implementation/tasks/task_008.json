@@ -1,0 +1,134 @@
+{
+  "task_id": "task_008",
+  "milestone": "M0",
+  "name": "Create README Quick Start",
+  "description": "Create comprehensive README.md with 3-step quick start guide enabling clone → run → verify workflow in under 5 minutes. Includes prerequisites, setup instructions, architecture overview, and testing guidance.",
+
+  "agent": {
+    "primary": "project-organizer",
+    "role": "Documentation and project setup guide creation"
+  },
+
+  "duration": "30min",
+  "priority": "critical",
+  "dependencies": ["task_007"],
+  "parallel_group": null,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 4: Technology Stack",
+        "Section 7: Architecture - Clean/Hexagonal layers",
+        "Section 5: Non-Functional Requirements - Docs & Handover"
+      ],
+      "requirements": [
+        "README with quick-start guide",
+        "Clone → run → verify in under 5 minutes",
+        "Prerequisites documented (.NET 8, Node.js 18+)",
+        "Architecture overview (Clean/Hexagonal)",
+        "Testing instructions (unit, contract, E2E)"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 1,
+      "requirement": "README with clear setup instructions for evaluator",
+      "grading_criteria": "Documentation quality and ease of setup are graded"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0002-architecture-style.md",
+        "decision": "Clean/Hexagonal Architecture",
+        "rationale": "Document architecture layers in README",
+        "key_excerpt": "Api → Application → Domain → Infrastructure"
+      },
+      {
+        "file": "project-context/adr/ADR-0010-test-strategy-coverage.md",
+        "decision": "Test Strategy and Coverage (45+ tests)",
+        "rationale": "Document testing commands and coverage targets",
+        "key_excerpt": "30 unit + 10 contract + 5 E2E tests"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M0 — Minimal Scaffold",
+      "sub_section": "Documentation",
+      "requirement": "README enables clone → run → verify in <5 min with zero external dependencies"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "README.md",
+      "description": "Project README with quick start, architecture, and testing guides",
+      "location": "/",
+      "sections": [
+        "Project Overview",
+        "Quick Start (3 steps: clone, run backend, run frontend)",
+        "Prerequisites (.NET 8, Node.js 18+)",
+        "Architecture Overview (Clean/Hexagonal layers)",
+        "Development Workflow",
+        "Testing (unit, contract, E2E)",
+        "API Documentation (Swagger URL)",
+        "Project Structure",
+        "Tech Stack",
+        "Contributing",
+        "License"
+      ]
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ README.md created in project root",
+    "✅ Quick Start section with 3 clear steps",
+    "✅ Prerequisites listed (.NET 8 SDK, Node.js 18+)",
+    "✅ Backend run command: dotnet run --project src/Api",
+    "✅ Frontend run command: npm install && npm run dev (in client/)",
+    "✅ Verification steps: API on :5000, UI on :5173, test echo flow",
+    "✅ Architecture section explains Clean/Hexagonal layers",
+    "✅ Testing section includes commands for unit/contract/E2E tests",
+    "✅ Project structure documented with directory descriptions",
+    "✅ Tech stack listed (backend: .NET 8, frontend: React+Vite+TypeScript)",
+    "✅ Swagger URL documented (http://localhost:5000/swagger)",
+    "✅ Tone is clear, concise, and evaluator-friendly"
+  ],
+
+  "business_rules": [
+    "Quick start must enable setup in under 5 minutes",
+    "No external dependencies required (SQLite for local dev)",
+    "Commands must be copy-pasteable and work on Windows/Mac/Linux",
+    "Architecture section references ADR-0002 layers",
+    "Testing section references ADR-0010 coverage targets",
+    "Include both development and production deployment notes",
+    "Swagger URL for API exploration: http://localhost:5000/swagger",
+    "Mention M0 echo flow vs M1+ full parsing implementation"
+  ],
+
+  "technical_notes": {
+    "quick_start_format": "Numbered steps with code blocks for commands",
+    "prerequisites": ".NET 8 SDK, Node.js 18+, Git",
+    "ports": "Backend :5000, Frontend :5173",
+    "database": "SQLite (no setup required for local dev)",
+    "testing_commands": "dotnet test, npm run test:e2e",
+    "swagger_url": "http://localhost:5000/swagger (when API running)"
+  },
+
+  "code_examples": {
+    "quick_start_section": "## Quick Start\n\n### Prerequisites\n- .NET 8 SDK ([Download](https://dotnet.microsoft.com/download))\n- Node.js 18+ ([Download](https://nodejs.org/))\n- Git\n\n### 1. Clone and Setup\n```bash\ngit clone <repository-url>\ncd flowingly-technical-test\n```\n\n### 2. Run Backend API\n```bash\n# Build and run .NET API (runs on http://localhost:5000)\ndotnet run --project src/Api\n```\n\n### 3. Run Frontend (in new terminal)\n```bash\ncd client\nnpm install\nnpm run dev  # Runs on http://localhost:5173\n```\n\n### Verify\n1. Open http://localhost:5173 in browser\n2. Paste sample text in textarea\n3. Click \"Parse\" - should see mock expense result\n4. Verify correlation ID in footer\n\n✅ **Setup complete in under 5 minutes!**",
+    "architecture_section": "## Architecture\n\n**Style**: Clean/Hexagonal Architecture with CQRS-lite\n\n```\n/src\n  Api/            → Endpoints, DI, Swagger, Middleware\n  Application/    → Commands/Queries, Validators, Handlers\n  Domain/         → Parsers, Value Objects, Interfaces (Ports)\n  Infrastructure/ → EF Core, Repositories (Adapters)\n/client           → React + Vite + TypeScript frontend\n/contracts        → Shared DTOs\n```\n\n**Key Principles**:\n- Dependency flow: Api → Application → Domain (← Infrastructure)\n- Domain has zero external dependencies\n- Interfaces (Ports) defined in Domain, implemented in Infrastructure (Adapters)\n\nSee [ADR-0002](project-context/adr/ADR-0002-architecture-style.md) for full rationale.",
+    "testing_section": "## Testing\n\n**Coverage Targets** (ADR-0010):\n- 30+ unit tests (Domain/Application logic)\n- 10+ contract tests (API integration)\n- 5+ E2E tests (Playwright browser tests)\n- **Total: 45+ tests**\n\n### Run Tests\n\n**Backend Unit Tests**:\n```bash\ndotnet test --filter Category=Unit\n```\n\n**Backend Contract Tests**:\n```bash\ndotnet test --filter Category=Contract\n```\n\n**Frontend E2E Tests** (requires both servers running):\n```bash\ncd client\nnpm run test:e2e\n```\n\n**All Tests**:\n```bash\ndotnet test  # Backend\ncd client && npm run test:e2e  # Frontend\n```",
+    "project_structure": "## Project Structure\n\n```\nflowingly-technical-test/\n├── src/\n│   ├── Api/                  # REST API endpoints\n│   ├── Application/          # Business logic handlers\n│   ├── Domain/               # Core domain logic\n│   └── Infrastructure/       # Data access, external services\n├── client/                   # React + Vite frontend\n│   ├── src/\n│   │   ├── components/       # UI components\n│   │   ├── api/              # API client\n│   │   └── types/            # TypeScript types\n├── contracts/                # Shared request/response DTOs\n├── tests/                    # Test projects\n└── project-context/          # Specifications, ADRs, planning\n```"
+  },
+
+  "validation": {
+    "command": "Follow README quick start steps from clean clone",
+    "expected_output": "Backend and frontend run successfully, echo flow works, setup takes under 5 minutes"
+  },
+
+  "next_task": {
+    "id": "task_009",
+    "name": "Setup Development Scripts",
+    "why": "README documented, now create convenience scripts for common development workflows"
+  }
+}

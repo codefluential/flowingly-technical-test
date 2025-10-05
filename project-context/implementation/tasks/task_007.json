@@ -1,0 +1,155 @@
+{
+  "task_id": "task_007",
+  "milestone": "M0",
+  "name": "Wire Echo Flow",
+  "description": "Connect frontend UI to backend API endpoint to enable end-to-end parsing workflow. Implements minimal echo flow for M0 testing: backend echoes request structure back as a mock response to verify API connectivity before implementing full parsing logic in M1.",
+
+  "agent": {
+    "primary": "backend-architect",
+    "role": "Backend API endpoint implementation with mock response"
+  },
+
+  "duration": "30min",
+  "priority": "critical",
+  "dependencies": ["task_003", "task_006"],
+  "parallel_group": null,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 11: Request/Response Contracts",
+        "Section 11.2: Response Contract - Classification-Specific (XOR)",
+        "Section 5: Non-Functional Requirements - CORS configuration"
+      ],
+      "requirements": [
+        "POST /api/v1/parse endpoint accepts { text: string, taxRate?: number }",
+        "Returns ParseResponse with classification discriminator",
+        "For M0: mock/echo response to verify connectivity",
+        "CORS enabled for http://localhost:5173 (React dev server)",
+        "All responses include meta.correlationId",
+        "Error responses include error.code and error.message"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 1,
+      "requirement": "Working end-to-end flow from UI to API (echo flow for M0, full parsing in M1)",
+      "grading_criteria": "End-to-end integration is a graded component"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0005-versioning-via-uri.md",
+        "decision": "URI-based API versioning",
+        "rationale": "All endpoints use /api/v1/ prefix",
+        "key_excerpt": "Endpoint: POST /api/v1/parse"
+      },
+      {
+        "file": "project-context/adr/ADR-0007-response-contract-design.md",
+        "decision": "Classification-Specific Response (Expense XOR Other)",
+        "rationale": "Mock response should follow same structure as real parsing",
+        "key_excerpt": "Echo flow returns mock expense response to verify contract alignment"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M0 — Minimal Scaffold",
+      "sub_section": "Echo Flow",
+      "requirement": "End-to-end connectivity verified: UI → API → UI with mock response"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "src/Api/Program.cs (updated)",
+      "description": "Configure CORS for localhost:5173 and add /parse endpoint",
+      "location": "src/Api/",
+      "changes": [
+        "Add CORS policy for http://localhost:5173",
+        "Map POST /api/v1/parse endpoint",
+        "Return mock ExpenseResponse for M0 testing"
+      ]
+    },
+    {
+      "item": "Mock response handler",
+      "description": "Temporary echo/mock handler returning sample ExpenseResponse",
+      "location": "src/Api/Program.cs or src/Api/Endpoints/",
+      "mock_response": {
+        "classification": "expense",
+        "expense": {
+          "vendor": "Mock Vendor",
+          "description": "Sample expense for testing",
+          "total": 120.50,
+          "totalExclTax": 104.78,
+          "salesTax": 15.72,
+          "costCentre": "UNKNOWN",
+          "date": "2025-10-06",
+          "time": null,
+          "taxRate": 0.15
+        },
+        "meta": {
+          "correlationId": "generated-guid",
+          "processingTimeMs": 10,
+          "warnings": ["M0 echo flow - full parsing in M1"]
+        }
+      }
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ CORS configured for http://localhost:5173",
+    "✅ POST /api/v1/parse endpoint accepts JSON body",
+    "✅ Endpoint returns 200 OK with mock ExpenseResponse",
+    "✅ Response includes classification='expense'",
+    "✅ Response includes meta.correlationId (generated GUID)",
+    "✅ Frontend can successfully call API without CORS errors",
+    "✅ UI displays mock expense data after form submission",
+    "✅ Correlation ID appears in footer",
+    "✅ dotnet run starts API on localhost:5000",
+    "✅ npm run dev + dotnet run work together (both servers running)",
+    "✅ End-to-end flow verified: paste text → submit → see mock result"
+  ],
+
+  "business_rules": [
+    "POST /api/v1/parse endpoint (from ADR-0005)",
+    "CORS must allow http://localhost:5173 for local development",
+    "Mock response follows ExpenseResponse structure (from ADR-0007)",
+    "All responses include correlation ID (generated GUID)",
+    "For M0: hardcoded mock response is acceptable (parsing logic in M1)",
+    "Response format must match TypeScript types from task_005",
+    "API runs on localhost:5000 (default .NET port)",
+    "Content-Type: application/json for request and response"
+  ],
+
+  "technical_notes": {
+    "cors_setup": "app.UseCors() with policy allowing localhost:5173, GET/POST methods, JSON content type",
+    "endpoint_registration": "app.MapPost(\"/api/v1/parse\", handler) in Program.cs",
+    "correlation_id": "Generate new GUID for each request: Guid.NewGuid().ToString()",
+    "mock_response": "Hardcoded mock for M0, will be replaced with real parsing in M1",
+    "port_configuration": "API: 5000, UI: 5173 (verify no conflicts)",
+    "testing": "Use browser or curl to verify CORS and endpoint response"
+  },
+
+  "code_examples": {
+    "cors_configuration": "// Program.cs\nbuilder.Services.AddCors(options =>\n{\n    options.AddPolicy(\"AllowLocalhost\", policy =>\n    {\n        policy.WithOrigins(\"http://localhost:5173\")\n              .AllowAnyMethod()\n              .AllowAnyHeader();\n    });\n});\n\n// After app.Build()\napp.UseCors(\"AllowLocalhost\");",
+    "parse_endpoint": "// Program.cs or Endpoints/ParseEndpoint.cs\napp.MapPost(\"/api/v1/parse\", ([FromBody] ParseRequest request) =>\n{\n    var correlationId = Guid.NewGuid().ToString();\n    \n    // M0 Mock Response (will be replaced in M1)\n    var mockResponse = new\n    {\n        classification = \"expense\",\n        expense = new\n        {\n            vendor = \"Mock Vendor\",\n            description = \"Sample expense for M0 testing\",\n            total = 120.50m,\n            totalExclTax = 104.78m,\n            salesTax = 15.72m,\n            costCentre = \"UNKNOWN\",\n            date = DateTime.Now.ToString(\"yyyy-MM-dd\"),\n            time = (string?)null,\n            taxRate = 0.15m\n        },\n        meta = new\n        {\n            correlationId,\n            processingTimeMs = 10,\n            warnings = new[] { \"M0 echo flow - full parsing implemented in M1\" }\n        }\n    };\n    \n    return Results.Ok(mockResponse);\n})\n.WithName(\"ParseText\")\n.WithOpenApi();",
+    "request_dto": "// Contracts/ParseRequest.cs (or inline)\npublic class ParseRequest\n{\n    public string Text { get; set; } = string.Empty;\n    public decimal? TaxRate { get; set; }\n}",
+    "test_with_curl": "# Test endpoint with curl\ncurl -X POST http://localhost:5000/api/v1/parse \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"text\":\"sample expense text\",\"taxRate\":0.15}'"
+  },
+
+  "validation": {
+    "commands": [
+      "cd /home/adarsh/dev/codefluent/flowingly-technical-test && dotnet build",
+      "cd /home/adarsh/dev/codefluent/flowingly-technical-test && dotnet run --project src/Api &",
+      "cd client && npm run dev &",
+      "curl -X POST http://localhost:5000/api/v1/parse -H 'Content-Type: application/json' -d '{\"text\":\"test\"}'"
+    ],
+    "expected_output": "API returns 200 OK with mock ExpenseResponse, UI can submit form and display result, CORS allows cross-origin requests"
+  },
+
+  "next_task": {
+    "id": "task_008",
+    "name": "Create README Quick Start",
+    "why": "Echo flow working, now document quick-start instructions for clone → run → verify"
+  }
+}

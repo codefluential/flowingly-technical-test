@@ -1,0 +1,149 @@
+{
+  "task_id": "task_009",
+  "milestone": "M0",
+  "name": "Setup Development Scripts",
+  "description": "Create convenience scripts for common development workflows: start both servers, run all tests, build for production, and clean build artifacts. Enhances developer experience and reduces manual command repetition.",
+
+  "agent": {
+    "primary": "project-organizer",
+    "role": "Development tooling and automation setup"
+  },
+
+  "duration": "20min",
+  "priority": "medium",
+  "dependencies": ["task_007"],
+  "parallel_group": null,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 5: Non-Functional Requirements - Config, hot reload in dev",
+        "Section 7: Backend - Development workflow"
+      ],
+      "requirements": [
+        "Development scripts for common workflows",
+        "Hot reload in development mode",
+        "Easy test execution",
+        "Production build capability"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 1,
+      "requirement": "Quick setup and testing for evaluator",
+      "grading_criteria": "Ease of development and testing workflow"
+    },
+    "adr_references": [],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M0 — Minimal Scaffold",
+      "sub_section": "Development Scripts",
+      "requirement": "Scripts enable common workflows with single commands"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "scripts/dev.sh",
+      "description": "Start both backend and frontend dev servers concurrently",
+      "location": "scripts/",
+      "executable": true,
+      "platforms": ["Linux", "macOS"]
+    },
+    {
+      "item": "scripts/dev.ps1",
+      "description": "Windows PowerShell version of dev script",
+      "location": "scripts/",
+      "platforms": ["Windows"]
+    },
+    {
+      "item": "scripts/test.sh",
+      "description": "Run all tests (backend unit/contract + frontend E2E)",
+      "location": "scripts/",
+      "executable": true
+    },
+    {
+      "item": "scripts/build.sh",
+      "description": "Build both backend and frontend for production",
+      "location": "scripts/",
+      "executable": true
+    },
+    {
+      "item": "scripts/clean.sh",
+      "description": "Clean all build artifacts and node_modules",
+      "location": "scripts/",
+      "executable": true
+    },
+    {
+      "item": "package.json (root)",
+      "description": "Root package.json with npm scripts as wrappers",
+      "location": "/",
+      "scripts": {
+        "dev": "Run dev servers",
+        "test": "Run all tests",
+        "build": "Production build",
+        "clean": "Clean artifacts"
+      }
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ scripts/dev.sh created and executable",
+    "✅ scripts/dev.ps1 created for Windows",
+    "✅ scripts/test.sh runs all tests (backend + frontend)",
+    "✅ scripts/build.sh builds both projects for production",
+    "✅ scripts/clean.sh removes build artifacts",
+    "✅ Root package.json with wrapper scripts",
+    "✅ npm run dev starts both servers concurrently",
+    "✅ npm test runs all tests",
+    "✅ npm run build produces production bundles",
+    "✅ Scripts work on Linux, macOS, and Windows (with appropriate .sh/.ps1)",
+    "✅ Scripts output clear status messages"
+  ],
+
+  "business_rules": [
+    "Dev script runs both backend and frontend concurrently",
+    "Test script runs backend tests then frontend tests sequentially",
+    "Build script ensures both projects build successfully",
+    "Clean script removes bin/, obj/, node_modules/, dist/",
+    "Scripts should be idempotent (safe to run multiple times)",
+    "Scripts exit with non-zero code on failure",
+    "Scripts output clear progress messages",
+    "Cross-platform support (Linux/macOS via .sh, Windows via .ps1)"
+  ],
+
+  "technical_notes": {
+    "concurrency": "Use & for background processes in bash, Start-Process in PowerShell",
+    "error_handling": "Check exit codes, stop on first failure for build/test scripts",
+    "output": "Echo status messages for clarity",
+    "permissions": "Make .sh scripts executable: chmod +x scripts/*.sh",
+    "npm_scripts": "Use cross-env or platform-agnostic commands where possible"
+  },
+
+  "code_examples": {
+    "dev_sh": "#!/bin/bash\n# scripts/dev.sh - Start both dev servers\n\nset -e\n\necho \"🚀 Starting Flowingly Parsing Service...\"\necho \"\"\n\necho \"📦 Installing frontend dependencies...\"\ncd client && npm install && cd ..\n\necho \"\"\necho \"🔧 Starting backend API (port 5000)...\"\ndotnet run --project src/Api &\nBACKEND_PID=$!\n\necho \"⚛️  Starting frontend dev server (port 5173)...\"\ncd client && npm run dev &\nFRONTEND_PID=$!\n\necho \"\"\necho \"✅ Both servers started!\"\necho \"   Backend:  http://localhost:5000\"\necho \"   Frontend: http://localhost:5173\"\necho \"   Swagger:  http://localhost:5000/swagger\"\necho \"\"\necho \"Press Ctrl+C to stop both servers\"\n\n# Wait for both processes\nwait $BACKEND_PID $FRONTEND_PID",
+    "test_sh": "#!/bin/bash\n# scripts/test.sh - Run all tests\n\nset -e\n\necho \"🧪 Running all tests...\"\necho \"\"\n\necho \"🔧 Backend Unit Tests...\"\ndotnet test --filter Category=Unit\n\necho \"\"\necho \"🔧 Backend Contract Tests...\"\ndotnet test --filter Category=Contract\n\necho \"\"\necho \"⚛️  Frontend E2E Tests...\"\ncd client\nnpm run test:e2e\ncd ..\n\necho \"\"\necho \"✅ All tests passed!\"",
+    "build_sh": "#!/bin/bash\n# scripts/build.sh - Production build\n\nset -e\n\necho \"📦 Building for production...\"\necho \"\"\n\necho \"🔧 Building backend...\"\ndotnet build --configuration Release\n\necho \"\"\necho \"⚛️  Building frontend...\"\ncd client\nnpm install\nnpm run build\ncd ..\n\necho \"\"\necho \"✅ Production build complete!\"\necho \"   Backend:  bin/Release/net8.0/\"\necho \"   Frontend: client/dist/\"",
+    "clean_sh": "#!/bin/bash\n# scripts/clean.sh - Clean build artifacts\n\nset -e\n\necho \"🧹 Cleaning build artifacts...\"\necho \"\"\n\necho \"🔧 Cleaning backend...\"\nfind . -type d -name \"bin\" -exec rm -rf {} + 2>/dev/null || true\nfind . -type d -name \"obj\" -exec rm -rf {} + 2>/dev/null || true\n\necho \"⚛️  Cleaning frontend...\"\nrm -rf client/node_modules client/dist 2>/dev/null || true\n\necho \"\"\necho \"✅ Clean complete!\"",
+    "root_package_json": "{\n  \"name\": \"flowingly-parsing-service\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Text parsing service for structured data extraction\",\n  \"scripts\": {\n    \"dev\": \"./scripts/dev.sh\",\n    \"test\": \"./scripts/test.sh\",\n    \"build\": \"./scripts/build.sh\",\n    \"clean\": \"./scripts/clean.sh\"\n  },\n  \"keywords\": [\"parsing\", \"expense\", \"dotnet\", \"react\"],\n  \"author\": \"\",\n  \"license\": \"MIT\"\n}",
+    "dev_ps1": "# scripts/dev.ps1 - Windows PowerShell version\n\nWrite-Host \"🚀 Starting Flowingly Parsing Service...\" -ForegroundColor Green\nWrite-Host \"\"\n\nWrite-Host \"📦 Installing frontend dependencies...\" -ForegroundColor Cyan\nSet-Location client\nnpm install\nSet-Location ..\n\nWrite-Host \"\"\nWrite-Host \"🔧 Starting backend API (port 5000)...\" -ForegroundColor Cyan\nStart-Process -NoNewWindow -FilePath \"dotnet\" -ArgumentList \"run\",\"--project\",\"src/Api\"\n\nStart-Sleep -Seconds 2\n\nWrite-Host \"⚛️  Starting frontend dev server (port 5173)...\" -ForegroundColor Cyan\nSet-Location client\nStart-Process -NoNewWindow -FilePath \"npm\" -ArgumentList \"run\",\"dev\"\nSet-Location ..\n\nWrite-Host \"\"\nWrite-Host \"✅ Both servers started!\" -ForegroundColor Green\nWrite-Host \"   Backend:  http://localhost:5000\"\nWrite-Host \"   Frontend: http://localhost:5173\"\nWrite-Host \"   Swagger:  http://localhost:5000/swagger\"\nWrite-Host \"\"\nWrite-Host \"Press Ctrl+C to stop servers\" -ForegroundColor Yellow"
+  },
+
+  "validation": {
+    "commands": [
+      "chmod +x scripts/*.sh",
+      "./scripts/dev.sh (test manually)",
+      "./scripts/test.sh",
+      "./scripts/build.sh",
+      "./scripts/clean.sh"
+    ],
+    "expected_output": "Scripts execute successfully, dev servers start, tests run, build succeeds, clean removes artifacts"
+  },
+
+  "next_task": {
+    "id": "task_010",
+    "name": "Verify M0 DoD",
+    "why": "All M0 components complete, now verify Definition of Done criteria before proceeding to M1"
+  }
+}
