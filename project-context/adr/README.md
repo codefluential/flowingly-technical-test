@@ -39,15 +39,28 @@ What are the positive and negative outcomes of this decision?
 What other options did we evaluate and why were they not chosen?
 ```
 
-## Planned ADRs
+## Documented ADRs
 
-According to the PRD + Technical Specification (v0.1), the following ADRs are planned:
+The following ADRs have been documented:
 
-- **ADR-0001**: Storage choice (Postgres for all environments)
-- **ADR-0002**: Architecture style (Clean/Hexagonal + CQRS-lite)
-- **ADR-0003**: Processor Strategy pattern
-- **ADR-0004**: Swagger for API contract & onboarding
-- **ADR-0005**: Versioning via URI
+### Storage and Architecture
+- **ADR-0001**: Storage choice (Postgres for all environments) — **Superseded by ADR-0001-v2**
+- **ADR-0001-v2**: Storage choice (SQLite local, Postgres deployment) — **Accepted**
+- **ADR-0002**: Architecture style (Clean/Hexagonal + CQRS-lite) — **Accepted**
+
+### API Design and Patterns
+- **ADR-0003**: Processor Strategy pattern — **Accepted**
+- **ADR-0004**: Swagger for API contract & onboarding — **Accepted**
+- **ADR-0005**: Versioning via URI — **Accepted**
+- **ADR-0006**: API key authentication — **Accepted**
+- **ADR-0007**: Response Contract Design — **Accepted**
+
+### Parsing and Validation
+- **ADR-0008**: Parsing and Validation Rules — **Accepted**
+- **ADR-0009**: Tax Calculation with Banker's Rounding — **Accepted**
+
+### Testing
+- **ADR-0010**: Test Strategy and Coverage — **Accepted**
 
 ## Naming Convention
 
