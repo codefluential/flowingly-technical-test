@@ -1,64 +1,115 @@
-# Review notes and feedback for the prd-technical_spec.md ( Flowingly Parsing Service — PRD + Technical Specification (v0.1)):
+I’ve reviewed your combined PRD/Tech Spec against (a) the original “Full Stack Engineer Test (Sen) V2.pdf” brief and (b) your own requirements notes. Below is a concise, critical read with clear “what’s good,” “what to tighten,” and concrete next steps.
 
-## Section 3
- - explain the Hexagon architecture - what is is and why chosen and what were the options
- - Domain - explain what you mean by parsing/normalization
- - Command/Query - explain evnet sourcing - what it is and why not used in v1?
- - Ports/Adapters - Explain the items - what these are and what you mean by 'DI-backed implementations'
+# Alignment check (spec vs. test brief)
 
-## Section 4
-  - Explain Errors 400 - why 400 - what does it mean?
-  
-## Section 4.2 
-	- Explain for XML Island 'secure XMl settings (no DTD/XXE)
-	- For Date and Time - should we also store as UTC? Why or why not? Will the chosen methods suffice?
-	
-## Section 5
-	-  explain CORS  - what it is and why we 'restrict to known origins'
-	- Performance - explain ther terminlogy '...200ms p50 samll payloads'
-	
+**What the brief requires** (essentials):
 
-## Section 6
-	- State & API - any need for Redux - why or why not?
-	- Testing is E@E same as integration testing?
-	- Accessibility - should we add ability to turn on high contract colours and chnage text size (have controls on UI)
-	
-## Section 7
-	- Stack - please explain wht these are - wht they do - FluentAssertions, FluentValidation, Serilog. Is Serlog free to use?
-	- Patterns - explain the Strategy and Pipleine pattern in general and also how it is applied for this solution with examples.
-	- Swaager - explain what swahbuckle is and why we use it and how it helps this project.
-	
-## Section 8 
-	- We will use Postgres only (we will use Render platfomr for all asspects)
-	- Do we need to specify the relationships, inexes, constraints (FK) and ERD
-	- What is the need for the content hash ( for idempotency as stated) - explain what this and why we do this
+* A **.NET/.NET Core Web API** that accepts a block of text, **extracts specified data**, and **computes sales tax + total excl. tax** given a tax-inclusive `<total>`.
+* **Failure handling**: reject messages with **unbalanced tags**; reject when **missing `<total>`**; **default `<cost_centre>` to `UNKNOWN`** if not present.
+* A **simple React UI**: paste text; submit to service; show parsed JSON; show validation errors; include one **E2E test** if possible. 
 
-## Section 13
-    - Are there other BDD scenarios we can add to cover the examples and rules we have for core and some edge cases?
+**Your spec delivers these**:
 
-## Section 15
-    - What's prometehus? Do we need it? is it free?
+* **Endpoint** `POST /api/v1/parse`, returning normalized JSON with **classification**, **expense**, and **errors**; **400** on validation issues. **Sales tax** and **total_excl_tax** computed from **inclusive** total; **`UNKNOWN`** for missing cost centre; **unclosed tag** → **400**. All match the brief. 
+* React UI: textarea + submit/clear, JSON viewer, clear error surfacing, and Playwright E2E scenarios for happy path + failure paths — all called out. 
 
-## sECTION 16
-    - let stik to one platform to keep things simple and use Render - It has postgress and web service - use free tier - check put the lmitation there so we document it in the README.md for the reiewer. We will use Render Github Integration and Blueprint for simple deployment
-    - Environment - just have one Render environme for Prod which will like to main branch. For Dev we will run locally.
+**Verdict:** ✅ You’re aligned with the brief on core behavior, error modes, UI shape, and test approach. The spec also adds sensible production hygiene (CORS, API key, metrics), which is fine as long as scope creep doesn’t delay core delivery. 
 
-## Section 17 - Answer to Open Questions (for Product/Tech Decisions)
+# Incorporation of your feedback
 
-1. **Default tax rate & currency**: Assume NZ GST 0.15 and `NZD`? Yes
-2. **Reservation processing**: For Phase 2, which fields constitute MVP (vendor/date/time/party_size)? We do not need to consider Phase 2
-3. **Auth**: Should Prod require an **API key** header from day one? What implication does this have and what does it deomstrate. Explain why we need it and what it would entail and why it would be good to have (or otherwise why not needed).
-4. **P99 Targets**: Any explicit latency targets and payload size ceilings? State reasonable ones for objective of this demo app.
-5. **XSD**: Turn on by default for `<expense>` island, or keep off initially? Yes.
-6. **Storage**: OK with Neon Postgres for Prod, SQLite for Dev? Just Postgres only, no SQLite. We will deploy whole stack to Render.
-7. **Versioning**: URI-only or also support media-type header versioning? What is most practical. explain what these two options are.
-8. **Logging retention**: Any specific policy (days or size)? Set app wide config value for 30 days default.
+* **Document history table**: Added.
+* **API-key middleware**: Included with a pragmatic dev/production switch.
+* **M0 “Scaffold & Echo”** milestone (“Processed receipt Input: …”) to prove end-to-end wiring early: Added.
+* **“All included – yay?”** → From what I can see, **all the specific edits you requested are in place**. 🎉 
 
-## Section 20.3 
--  we can ignore these as we only need to deliver phase 1. Esnuire we scope things accordingly.
+# Strengths of the current spec
+
+* **Hexagonal/CQRS-lite boundaries** keep parsing/normalization/testability clean; ports/adapters make it easy to add a future “Reservation” processor without touching transport/storage. 
+* **Security-aware XML** handling (DTD disabled, resolver null, size/time guards) addresses common XXE pitfalls. Optional **XSD** for `<expense>` is a good “toggleable strictness” story. 
+* **Clear error model** (`{ error: { code, message, details }, correlation_id }`) and **400** rationale are solid. 
+* **Observability & DevEx**: Serilog + correlation IDs, optional Prometheus metrics, Swagger/OpenAPI, ADRs, and a tidy repo layout — excellent for handover. 
+* **UI accessibility nits** (labels, focus, high-contrast/text-size toggles) are thoughtful but lightweight. 
+
+# Gaps / divergences / things to tighten
+
+1. **SQLite vs Postgres decision drift**
+
+* Your earlier **requirements-analysis.md** listed **SQLite** (quick bring-up), while the PRD locks to **Postgres on Render** for dev+prod. I agree with **one engine across envs** for consistency, but do consider: **SQLite for unit/integration tests only** (fast, hermetic) and **Postgres for dev/prod**. Update the doc to state this explicitly so it doesn’t look like a reversal.  
+
+2. **Tag integrity rules: “overlap” vs “nesting”**
+
+* You’ve specified **balanced & properly nested** tags. Call out that **overlapping** tags like `<a><b></a></b>` are **invalid** (common parser gotcha) and will be rejected with `UNCLOSED_TAGS`. Add a test vector for this. 
+
+3. **Multiple `<total>` tags precedence**
+
+* You do define precedence: prefer `<expense>` island total, else first global `<total>`. Make sure this is **tested** with cases where both appear and values differ; include commas/currency symbols and decimal rounding edge cases (e.g., 2dp, bankers vs away-from-zero). You’ve referenced number normalization and a BDD case; I’d add a **rounding policy statement** (e.g., “Round **half away from zero** at presentation boundaries”). 
+
+4. **Time parsing scope**
+
+* The brief only needs date/tax; you note `HH:mm` if present. Good to keep minimal. Add a **rule to ignore ambiguous times** (e.g., “7.30pm”, “19:30”) if not reliably detectable, or define the accepted set to avoid brittle regexes. Keep this out of v1 parsing complexity. 
+
+5. **API response minimalism**
+
+* Returning both the `expense` block and an `other` block for the same payload is fine for demo, but the brief doesn’t require storing/returning unrelated tags. Consider **omitting `other` on expense-classified responses** in v1 to keep output lean, or flag it behind a query param (`?includeOther=true`) to demonstrate API discipline. 
+
+6. **Rate limiting**
+
+* Mentioned at a high level. If time permits, add a simple **token-bucket** (per IP or per API-key) and one test to assert `429` behavior. Otherwise, keep it as a backlog note. 
+
+7. **Tax rate source of truth**
+
+* You default to **GST 0.15** with an override in request. That’s perfect for demo. Add one sentence: “**Request taxRate wins over config**; if absent, use config; if both absent, fail with `MISSING_TAXRATE` or fallback to 0.15.” Then test both. 
+
+8. **Swagger examples**
+
+* Include concrete **request/response examples** (happy path + each failure) baked into Swagger (via `SwaggerExample` or XML comments) so reviewers can try it instantly. You’ve called out Swagger usage — add the examples snippet to the doc to lock it in. 
+
+9. **Playwright E2E test coverage**
+
+* You already list the three crucial E2E flows. Add one **copy-paste of the exact sample email from the brief** to ensure parity with the scenario (i.e., the combined XML island + inline tags).  
+
+10. **README: reviewer path**
+
+* The brief emphasizes a clean repo + README. Your PRD promises it; ensure the README has a **two-minute path**:
+
+  * `make dev` or `docker compose up` starts API+UI+DB
+  * URL for UI and for Swagger
+  * “Paste this sample text” and “expect this JSON” section (copy from brief + your example). 
+
+# Risk & scope guardrails (recommended)
+
+* **Strictly prioritize M0→M2** (echo → API v1) **before** UI candy or deployment niceties. The test values **simple, testable code** higher than bells/whistles. Keep Render deploy if it doesn’t slow you down. 
+* **Keep reservation parsing out of v1 logic paths** beyond “store as other.” No fuzzy NER or date/time extras right now. 
+* **Golden tests**: Lock sample inputs/outputs (from brief) as **fixtures** to deter regressions. 
+
+# Concrete implementation tweaks
+
+* **Testing matrix** (add these if missing):
+
+  * Overlapping tag invalidation `<a><b></a></b>` → 400 `UNCLOSED_TAGS`.
+  * Large number with currency: `<total>$35,000.00</total>` → `35000.00`.
+  * Two totals (global + island) with different values → island wins.
+  * Missing `<cost_centre>` → `UNKNOWN`.
+  * Empty text → 400 `EMPTY_TEXT`. 
+* **Rounding**: Decide and document rounding mode; test a half-case (e.g., 100.005). 
+* **SQLite note**: Amend “Data & Persistence” section to explicitly say “**SQLite for unit/integration tests only**; Postgres for dev/prod,” or, if you prefer, “**Postgres everywhere**” — but then mention **Testcontainers** for integration tests to keep tests fast and faithful.  
+
+# Delivery plan sanity check
+
+Your milestone ladder (M0→M6) is excellent and now includes the **Scaffold & Echo** step you requested. If time crunch hits, ship by **M3 (UI v1)** with **M2 tests** green and a short README; M4+ are “bonus points.” 
+
+# Final recommendations (short list)
+
+1. **Lock tests first** (domain + integration + 2–3 E2E), derived from the brief’s exact sample. 
+2. **Clarify the SQLite/Postgres note** to avoid reviewer confusion. 
+3. **Add Swagger examples** (happy & failure). 
+4. **Explicit rounding rule**; add a half-case test. 
+5. **Tighten tag rules** to explicitly call out **overlap** as invalid; add a test vector. 
+
+If you want, I can patch the spec text to incorporate the clarifications above (rounding policy, overlap rule, SQLite-for-tests sentence, Swagger examples block, and the optional `includeOther` flag) in one pass.
 
 
-
-
-
-
+Medical References:
+1. None — DOI: file-62ePQmajsGXfK21wQqSifb
+2. None — DOI: file-FmbwfWFcQ3NCmLs2zvoyxG
+3. None — DOI: file-B5ZHveL65vSRtiDm6WSN2e
