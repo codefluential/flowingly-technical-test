@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Flowingly.ParsingService.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d6dee5efba7a1ac4047991b53a2a50cad9df04b0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+df270d39f81153708e455684252eb8b34171b4b0")]
 [assembly: System.Reflection.AssemblyProductAttribute("Flowingly.ParsingService.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Flowingly.ParsingService.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
