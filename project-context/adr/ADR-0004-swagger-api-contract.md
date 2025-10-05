@@ -291,28 +291,91 @@ public record ParseRequest
 5. **Tests endpoint**: Clicks "Try it out", enters sample text, sees response
 6. **Validates error handling**: Tests invalid input, sees 400 error with clear error code
 
-## Future Enhancements
+## M0→M2 Scope Guardrails
 
-1. **Client Generation**: Generate TypeScript client for React:
-   ```bash
-   npx @openapitools/openapi-generator-cli generate \
-     -i https://localhost:5001/swagger/v1/swagger.json \
-     -g typescript-fetch \
-     -o ./client/src/api
-   ```
+Per PRD v0.3 (Section 7, Section 18), the **M0→M2 scope** for Swagger is:
+- ✅ **Basic Swagger UI**: Interactive endpoint exploration at `/swagger`
+- ✅ **OpenAPI JSON Spec**: Generated at `/swagger/v1/swagger.json`
+- ✅ **DTO Annotations**: XML comments on request/response models
+- ✅ **Endpoint Documentation**: Summary, description, and response codes
 
-2. **Authentication in Production**: If Swagger enabled in prod, add JWT auth:
-   ```csharp
-   options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme { ... });
-   ```
+**Out of Scope for M0→M2** (deferred to M3+ backlog):
+- ❌ **Enhanced Swagger Examples**: Detailed example requests/responses for every scenario
+- ❌ **Client Generation**: TypeScript client for React app
+- ❌ **Multiple API Versions**: v1/v2 side-by-side documentation
+- ❌ **ReDoc UI**: Alternative UI styling
 
-3. **Multiple Versions**: Document v1 and v2 side-by-side when API evolves
+**Rationale**: Basic Swagger UI provides sufficient documentation for core delivery (M0→M2). Enhanced examples and client generation are valuable enhancements but not critical for MVP validation. Focus on core functionality first, polish later.
 
-4. **ReDoc Alternative UI**: Replace Swagger UI with ReDoc for cleaner visuals
+## Future Enhancements (Post M0→M2)
+
+### 1. Enhanced Swagger Examples
+
+Add rich examples for every scenario:
+```csharp
+options.SwaggerDoc("v1", new OpenApiInfo
+{
+    // ... existing config
+});
+
+// Add example schemas
+options.ExampleFilters();
+options.OperationFilter<ExampleOperationFilter>();
+```
+
+**Example Response Documentation**:
+```csharp
+[SwaggerResponse(200, "Expense parsed successfully", typeof(ExpenseResponse),
+    Example = @"{
+        'classification': 'expense',
+        'expense': {
+            'vendor': 'Mojo Coffee',
+            'total': 120.50,
+            'totalExclTax': 104.78,
+            'salesTax': 15.72
+        }
+    }")]
+```
+
+**Priority**: M3+ (nice-to-have, not critical for core functionality)
+
+### 2. Client Generation
+
+Generate TypeScript client for React:
+```bash
+npx @openapitools/openapi-generator-cli generate \
+  -i https://localhost:5001/swagger/v1/swagger.json \
+  -g typescript-fetch \
+  -o ./client/src/api
+```
+
+**Priority**: M3+ (manual fetch calls sufficient for MVP)
+
+### 3. Authentication in Production
+
+If Swagger enabled in prod, add JWT auth:
+```csharp
+options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme { ... });
+```
+
+**Priority**: M4+ (production hardening, not needed for local dev/demo)
+
+### 4. Multiple Versions
+
+Document v1 and v2 side-by-side when API evolves.
+
+**Priority**: M5+ (only needed if API versioning becomes necessary)
+
+### 5. ReDoc Alternative UI
+
+Replace Swagger UI with ReDoc for cleaner visuals.
+
+**Priority**: M3+ (aesthetic improvement, not functional requirement)
 
 ## References
 
-- PRD + Technical Specification (v0.1), Section 7: Swagger (OpenAPI) — What & Why
+- PRD + Technical Specification v0.3, Section 7: Swagger (OpenAPI) — What & Why
+- PRD v0.3, Section 18: M0→M2 Priority Guardrails (Swagger examples deferred)
 - Swashbuckle.AspNetCore: https://github.com/domaindrivendev/Swashbuckle.AspNetCore
 - OpenAPI Specification: https://swagger.io/specification/
 - Swagger UI: https://swagger.io/tools/swagger-ui/
