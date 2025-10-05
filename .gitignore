@@ -33,6 +33,9 @@ appsettings.Development.json
 appsettings.*.json
 !appsettings.json
 
+# MCP Server state files
+.serena/
+
 # specific files and folders
 # Zone.Identifier files (Windows/WSL metadata)
 *:Zone.Identifier
