@@ -1,0 +1,14 @@
+{
+  "name": "flowingly-parsing-service",
+  "version": "1.0.0",
+  "description": "Text parsing service for structured data extraction",
+  "scripts": {
+    "dev": "./scripts/dev.sh",
+    "test": "./scripts/test.sh",
+    "build": "./scripts/build.sh",
+    "clean": "./scripts/clean.sh"
+  },
+  "keywords": ["parsing", "expense", "dotnet", "react"],
+  "author": "",
+  "license": "MIT"
+}
