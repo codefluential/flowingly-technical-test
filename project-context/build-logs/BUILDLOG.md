@@ -128,6 +128,112 @@ N/A - No code implementation yet.
 
 ---
 
+## 2025-10-06 18:30 - ADR Alignment and Documentation Updates
+
+**Changes**:
+- Updated ADR-0001-v2: SQLite for local/test, Postgres for deployment
+- Created ADR-0007: Response Contract Design (expense XOR other, never both)
+- Created ADR-0008: Parsing and Validation Rules (stack-based tag validation)
+- Created ADR-0009: Tax Calculation with Banker's Rounding (MidpointRounding.ToEven)
+- Created ADR-0010: Test Strategy and Coverage (45+ tests: unit, contract, E2E)
+- Updated ADR-0003: Clarified response contract (expense OR other)
+- Updated ADR-0004: Scoped Swagger to M0→M2 with guardrails
+- Updated ADR README with complete index
+
+**Rationale**:
+Comprehensive ADR coverage ensures all critical architectural decisions are documented. ADR-0008 (stack-based validation) and ADR-0009 (Banker's Rounding) address core parsing requirements from test brief. ADR-0007 establishes type-safe response contract. ADR-0010 defines comprehensive test coverage strategy aligned with TDD/BDD approach.
+
+**Issues/Blockers**:
+None. All ADRs aligned with PRD v0.3.
+
+**Testing**:
+ADR-0010 defines test strategy: 30+ unit tests, 10+ contract tests, 5+ E2E tests.
+
+**Deployment**:
+ADR-0001-v2 establishes dual storage strategy (SQLite local, Postgres production).
+
+---
+
+## 2025-10-06 20:15 - Delivery Planning and Optimization
+
+**Changes**:
+- Created initial delivery plan with milestone breakdown
+- Performed gap analysis: v0.2 plan vs. PRD v0.3 + test brief requirements
+- Created optimized delivery plan focused on fastest path to submission
+- Reordered milestones to prioritize M0→M3 (2.5 days) over optional features
+- Archived planning documents and gap analysis
+
+**Rationale**:
+Original delivery plan would take 5 days to reach submittable state. Optimization analysis identified M0-M3 as core requirements (2.5 days), with M4-M6 as polish/stretch goals. Reordering ensures fastest path to meeting all test brief requirements with working, well-tested code.
+
+**Issues/Blockers**:
+None. Delivery plan optimized for test requirements.
+
+**Testing**:
+Delivery plan includes TDD approach with test gates at each milestone.
+
+**Deployment**:
+M0 designed for minimal reviewer setup (no Docker, direct `dotnet run` + `npm run dev`).
+
+---
+
+## 2025-10-06 22:00 - Agent Resourcing and Project Context
+
+**Changes**:
+- Updated agent library README with 90 agents across 16 categories
+- Created agent resourcing plan mapping optimal agent teams to milestones
+- Created comprehensive project context documentation index
+- Configured gitignore to track agent library README while ignoring individual agents
+
+**Rationale**:
+Agent resourcing plan ensures right expertise per task (e.g., tdd-london-swarm for M1 tests, production-validator for M3 E2E). Project context README provides navigation hub for all documentation. Agent library serves as recruitment pool with clear categorization.
+
+**Issues/Blockers**:
+None. Resource planning complete.
+
+**Testing**:
+Agent plan includes tester, tdd-london-swarm, code-analyzer, quality-assurance-engineer, and production-validator for comprehensive test coverage.
+
+**Deployment**:
+Agent plan includes devops-deployment-architect and ops-cicd-github for M5 production deployment.
+
+---
+
+## 2025-10-06 23:45 - Task Decomposition and Implementation System
+
+**Changes**:
+- Created master task orchestration (tasks.json) with 50 Phase 1 tasks
+- Defined 5 parallel execution groups (15+ tasks can run concurrently)
+- Created self-contained task files with complete context:
+  - task_001: M0 solution structure with Clean Architecture context
+  - task_014: M1 tag validation tests (TDD RED) with ADR-0008 stack-based validation
+  - task_019: M1 Banker's Rounding tests (TDD RED) with ADR-0009 MidpointRounding.ToEven
+  - task_031: M2 DTOs with ADR-0007 XOR response contract
+- Created task system documentation (README, status tracking)
+- Created comprehensive Phase 1 implementation guide
+- Copied 20 required agents from library to `.claude/agents/`
+
+**Rationale**:
+Task decomposition enables autonomous agent execution with full context embedded in each task. No hunting for requirements—each task includes PRD sections, test brief pages, ADR excerpts, business rules, code examples, and acceptance criteria. Parallel execution groups enable concurrent work on independent components. Agent copy ensures all required agents available for task execution per resourcing plan.
+
+**Issues/Blockers**:
+None. Task system complete and ready for implementation.
+
+**Testing**:
+Task graph enforces TDD discipline (RED→GREEN→REFACTOR) with strict dependencies. 8 TDD task pairs ensure tests written before implementation.
+
+**Deployment**:
+N/A - No code implementation yet. Task system ready to guide implementation.
+
+**Next Steps**:
+1. Execute task_001: Create .NET solution structure following Clean Architecture
+2. Follow task sequence through M0→M1→M2→M3
+3. Use parallel execution groups where safe (15+ tasks can run concurrently)
+4. Verify milestone DoD gates before proceeding (tasks 010, 030, 040, 050)
+5. Achieve submittable product after task_050 (45+ tests green, clone→run→verify <5 min)
+
+---
+
 ## 2025-10-05 21:30 - Project Setup and Specification Phase
 
 **Changes**:
