@@ -8,5 +8,10 @@ public sealed record ParseRequest
     /// <summary>
     /// Raw text content to parse (e.g., email body)
     /// </summary>
-    public required string Content { get; init; }
+    public required string Text { get; init; }
+
+    /// <summary>
+    /// Optional tax rate (defaults to 0.15 / NZ GST if not provided)
+    /// </summary>
+    public decimal? TaxRate { get; init; }
 }

@@ -19,19 +19,32 @@ public static class ParseEndpoint
             // Generate correlation ID for traceability
             var correlationId = Guid.NewGuid().ToString();
 
-            // Echo flow for M0: return the input as "other" content
-            // Will be replaced with actual parsing logic in M1
-            var response = new ParseResponse
+            // M0 Echo Flow: Return mock expense response to verify frontend-backend integration
+            // This will be replaced with actual parsing logic in M1
+            var mockResponse = new
             {
-                CorrelationId = correlationId,
-                Expense = null,
-                Other = new OtherData
+                classification = "expense",
+                expense = new
                 {
-                    RawContent = request.Content
+                    vendor = "Mock Vendor",
+                    description = "Sample expense for M0 testing",
+                    total = 120.50m,
+                    totalExclTax = 104.78m,
+                    salesTax = 15.72m,
+                    costCentre = "UNKNOWN",
+                    date = DateTime.Now.ToString("yyyy-MM-dd"),
+                    time = (string?)null,
+                    taxRate = 0.15m
+                },
+                meta = new
+                {
+                    correlationId,
+                    processingTimeMs = 10,
+                    warnings = new[] { "M0 echo flow - full parsing implemented in M1" }
                 }
             };
 
-            return Results.Ok(response);
+            return Results.Ok(mockResponse);
         })
         .WithName("Parse")
         .WithTags("Parsing")
