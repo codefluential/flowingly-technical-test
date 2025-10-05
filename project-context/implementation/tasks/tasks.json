@@ -7,6 +7,23 @@
   "aadf_compliant": true,
   "tdd_approach": true,
 
+  "progress_tracking": {
+    "last_updated": "2025-10-06T03:17:00Z",
+    "current_milestone": "M0",
+    "current_task": "task_001",
+    "tasks_completed": 0,
+    "tasks_in_progress": 0,
+    "tasks_pending": 50,
+    "tasks_blocked": 0,
+    "tests_passing": {
+      "unit": 0,
+      "contract": 0,
+      "e2e": 0,
+      "total": 0
+    },
+    "milestones_completed": []
+  },
+
   "global_context": {
     "primary_spec": "project-context/specifications/prd-technical_spec.md",
     "test_brief": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
@@ -99,7 +116,10 @@
       "agent": "base-template-generator",
       "duration": "30min",
       "dependencies": [],
-      "parallel_group": null
+      "parallel_group": null,
+      "status": "pending",
+      "completed_at": null,
+      "started_at": null
     },
     {
       "id": "task_002",
