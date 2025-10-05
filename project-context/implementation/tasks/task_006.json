@@ -1,0 +1,163 @@
+{
+  "task_id": "task_006",
+  "milestone": "M0",
+  "name": "Build Minimal UI Components",
+  "description": "Create React components for the parsing service UI: textarea for input, submit/clear buttons, and result display area. Integrates with API client (task_005) to enable basic parsing workflow.",
+
+  "agent": {
+    "primary": "frontend-design-expert",
+    "role": "React component implementation and UI/UX design"
+  },
+
+  "duration": "45min",
+  "priority": "critical",
+  "dependencies": ["task_005"],
+  "parallel_group": null,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 6: Frontend (React) — UI Features",
+        "Section 14: UI/UX Requirements - Simple textarea input and formatted output",
+        "Section 6: Frontend — Accessibility (labels, focus management, keyboard friendly)"
+      ],
+      "requirements": [
+        "Textarea for pasting raw text input",
+        "Submit and Clear buttons",
+        "JSON viewer displays either expense details OR other/unprocessed details",
+        "Error banner showing error.code and friendly message",
+        "Footer with correlation ID for support",
+        "Minimal state management (no Redux needed)",
+        "Labels for inputs, focus management on error, keyboard friendly",
+        "Optional: high-contrast mode and text size controls (persisted in localStorage)"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 1,
+      "requirement": "Create simple, functional UI that accepts text and displays parsed results",
+      "grading_criteria": "UI functionality and user experience are graded components"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0007-response-contract-design.md",
+        "decision": "Classification-Specific Response (Expense XOR Other)",
+        "relevance": "UI must handle discriminated union: display expense OR other based on classification",
+        "key_excerpt": "UI components use TypeScript discriminated union for type-safe conditional rendering"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M0 — Minimal Scaffold",
+      "sub_section": "UI Components",
+      "requirement": "Basic textarea input and result display components ready for echo flow (task_007)"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "client/src/components/ParseForm.tsx",
+      "description": "Form component with textarea, submit, and clear buttons",
+      "location": "client/src/components/",
+      "props": {
+        "onSubmit": "(text: string) => void",
+        "loading": "boolean",
+        "disabled": "boolean"
+      }
+    },
+    {
+      "item": "client/src/components/ResultDisplay.tsx",
+      "description": "Result display component handling expense XOR other responses",
+      "location": "client/src/components/",
+      "props": {
+        "result": "ParseResponse | null",
+        "renderExpense": "Formatted expense details",
+        "renderOther": "Formatted other/unprocessed data"
+      }
+    },
+    {
+      "item": "client/src/components/ErrorBanner.tsx",
+      "description": "Error display component with error code and message",
+      "location": "client/src/components/",
+      "props": {
+        "error": "ApiError | null",
+        "onDismiss": "() => void"
+      }
+    },
+    {
+      "item": "client/src/App.tsx (updated)",
+      "description": "Main app component integrating ParseForm, ResultDisplay, ErrorBanner with API client",
+      "location": "client/src/",
+      "state": {
+        "inputText": "string",
+        "result": "ParseResponse | null",
+        "error": "ApiError | null",
+        "loading": "boolean"
+      }
+    },
+    {
+      "item": "client/src/App.css (updated)",
+      "description": "Basic styling for layout and components",
+      "location": "client/src/"
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ ParseForm component with textarea, submit, clear buttons created",
+    "✅ ResultDisplay component handles expense XOR other responses",
+    "✅ ErrorBanner component shows error code and message",
+    "✅ App.tsx integrates all components with parseText() API client",
+    "✅ Submit button calls parseText() and handles response",
+    "✅ Clear button resets form and clears results/errors",
+    "✅ Loading state disables form during API calls",
+    "✅ Error state displays error banner with dismissal",
+    "✅ Success state displays parsed result (expense or other)",
+    "✅ TypeScript compilation succeeds with strict mode",
+    "✅ UI renders in browser (localhost:5173) without console errors",
+    "✅ Keyboard accessible (tab navigation, enter to submit)"
+  ],
+
+  "business_rules": [
+    "Display expense OR other based on classification (never both)",
+    "Expense display: vendor, description, total, tax breakdown, cost centre, date, time",
+    "Other display: raw tags as key-value pairs",
+    "Error banner shows error.code (e.g., UNCLOSED_TAGS, MISSING_TOTAL)",
+    "Correlation ID displayed in footer for support (from meta.correlationId)",
+    "Loading state prevents multiple simultaneous submissions",
+    "Clear button resets all state (input, result, error)",
+    "Form validation: textarea must not be empty before submit",
+    "Accessibility: labels for inputs, focus management, keyboard navigation",
+    "No Redux needed (simple useState for local component state)"
+  ],
+
+  "technical_notes": {
+    "react_hooks": "useState for local state, useCallback for memoized handlers",
+    "styling": "Basic CSS (no CSS-in-JS libraries for M0, can enhance in M3)",
+    "accessibility": "aria-labels, role attributes, focus management on errors",
+    "error_handling": "Use try-catch with parseText(), display ApiError in ErrorBanner",
+    "loading_state": "Disable submit button and show loading indicator during API call",
+    "result_display": "Conditional rendering based on classification discriminator"
+  },
+
+  "code_examples": {
+    "app_tsx": "import { useState } from 'react';\nimport { parseText, ApiError } from './api/parseClient';\nimport type { ParseResponse } from './types/api';\nimport ParseForm from './components/ParseForm';\nimport ResultDisplay from './components/ResultDisplay';\nimport ErrorBanner from './components/ErrorBanner';\nimport './App.css';\n\nfunction App() {\n  const [inputText, setInputText] = useState('');\n  const [result, setResult] = useState<ParseResponse | null>(null);\n  const [error, setError] = useState<ApiError | null>(null);\n  const [loading, setLoading] = useState(false);\n\n  const handleSubmit = async (text: string) => {\n    setError(null);\n    setResult(null);\n    setLoading(true);\n\n    try {\n      const response = await parseText(text);\n      setResult(response);\n    } catch (err) {\n      if (err instanceof ApiError) {\n        setError(err);\n      } else {\n        setError(new ApiError('Unknown error occurred', 'UNKNOWN_ERROR'));\n      }\n    } finally {\n      setLoading(false);\n    }\n  };\n\n  const handleClear = () => {\n    setInputText('');\n    setResult(null);\n    setError(null);\n  };\n\n  return (\n    <div className=\"app-container\">\n      <header>\n        <h1>Flowingly Parsing Service</h1>\n        <p>Extract structured expense data from free-form text</p>\n      </header>\n\n      <main>\n        <ParseForm\n          value={inputText}\n          onChange={setInputText}\n          onSubmit={() => handleSubmit(inputText)}\n          onClear={handleClear}\n          loading={loading}\n          disabled={loading}\n        />\n\n        {error && (\n          <ErrorBanner\n            error={error}\n            onDismiss={() => setError(null)}\n          />\n        )}\n\n        {result && <ResultDisplay result={result} />}\n      </main>\n\n      <footer>\n        {result && (\n          <p>Correlation ID: {result.meta.correlationId}</p>\n        )}\n      </footer>\n    </div>\n  );\n}\n\nexport default App;",
+    "parse_form": "interface ParseFormProps {\n  value: string;\n  onChange: (value: string) => void;\n  onSubmit: () => void;\n  onClear: () => void;\n  loading: boolean;\n  disabled: boolean;\n}\n\nexport default function ParseForm({\n  value,\n  onChange,\n  onSubmit,\n  onClear,\n  loading,\n  disabled,\n}: ParseFormProps) {\n  const handleSubmit = (e: React.FormEvent) => {\n    e.preventDefault();\n    if (value.trim()) {\n      onSubmit();\n    }\n  };\n\n  return (\n    <form onSubmit={handleSubmit} className=\"parse-form\">\n      <label htmlFor=\"input-text\">\n        Enter text to parse:\n      </label>\n      <textarea\n        id=\"input-text\"\n        value={value}\n        onChange={(e) => onChange(e.target.value)}\n        placeholder=\"Paste email content here...\"\n        rows={10}\n        disabled={disabled}\n        aria-label=\"Text input for parsing\"\n      />\n\n      <div className=\"form-actions\">\n        <button\n          type=\"submit\"\n          disabled={disabled || !value.trim()}\n        >\n          {loading ? 'Parsing...' : 'Parse'}\n        </button>\n        <button\n          type=\"button\"\n          onClick={onClear}\n          disabled={disabled}\n        >\n          Clear\n        </button>\n      </div>\n    </form>\n  );\n}",
+    "result_display": "import type { ParseResponse } from '../types/api';\n\ninterface ResultDisplayProps {\n  result: ParseResponse;\n}\n\nexport default function ResultDisplay({ result }: ResultDisplayProps) {\n  if (result.classification === 'expense') {\n    const { expense } = result;\n    return (\n      <div className=\"result-display expense-result\">\n        <h2>Expense Data</h2>\n        <dl>\n          <dt>Vendor:</dt>\n          <dd>{expense.vendor}</dd>\n\n          <dt>Description:</dt>\n          <dd>{expense.description}</dd>\n\n          <dt>Total (incl. tax):</dt>\n          <dd>${expense.total.toFixed(2)}</dd>\n\n          <dt>Tax ({(expense.taxRate * 100).toFixed(0)}%):</dt>\n          <dd>${expense.salesTax.toFixed(2)}</dd>\n\n          <dt>Total (excl. tax):</dt>\n          <dd>${expense.totalExclTax.toFixed(2)}</dd>\n\n          <dt>Cost Centre:</dt>\n          <dd>{expense.costCentre}</dd>\n\n          <dt>Date:</dt>\n          <dd>{expense.date}</dd>\n\n          {expense.time && (\n            <>\n              <dt>Time:</dt>\n              <dd>{expense.time}</dd>\n            </>\n          )}\n        </dl>\n      </div>\n    );\n  } else {\n    const { other } = result;\n    return (\n      <div className=\"result-display other-result\">\n        <h2>Other/Unprocessed Data</h2>\n        <p>The following tags were found but did not match expense patterns:</p>\n        <dl>\n          {Object.entries(other.rawTags).map(([key, value]) => (\n            <div key={key}>\n              <dt>{key}:</dt>\n              <dd>{value}</dd>\n            </div>\n          ))}\n        </dl>\n      </div>\n    );\n  }\n}",
+    "error_banner": "import type { ApiError } from '../api/parseClient';\n\ninterface ErrorBannerProps {\n  error: ApiError;\n  onDismiss: () => void;\n}\n\nexport default function ErrorBanner({ error, onDismiss }: ErrorBannerProps) {\n  return (\n    <div className=\"error-banner\" role=\"alert\">\n      <div className=\"error-content\">\n        <strong>Error {error.code}:</strong> {error.message}\n        {error.correlationId && (\n          <p className=\"correlation-id\">\n            Correlation ID: {error.correlationId}\n          </p>\n        )}\n      </div>\n      <button\n        onClick={onDismiss}\n        aria-label=\"Dismiss error\"\n      >\n        ×\n      </button>\n    </div>\n  );\n}"
+  },
+
+  "validation": {
+    "commands": [
+      "cd client && npm run build",
+      "cd client && npm run dev"
+    ],
+    "expected_output": "Build succeeds, dev server runs on localhost:5173, UI renders with form and handles interactions"
+  },
+
+  "next_task": {
+    "id": "task_007",
+    "name": "Wire Echo Flow",
+    "why": "UI components ready, now connect to backend API to enable actual parsing (echo flow for M0 testing)"
+  }
+}
