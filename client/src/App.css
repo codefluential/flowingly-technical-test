@@ -1,42 +1,232 @@
-#root {
-  max-width: 1280px;
+/* Flowingly Parsing Service - Basic UI Styling */
+
+.app-container {
+  max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+}
+
+header {
   text-align: center;
+  margin-bottom: 2rem;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+header h1 {
+  color: #646cff;
+  margin-bottom: 0.5rem;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
+header p {
   color: #888;
+  font-size: 1.1rem;
+}
+
+main {
+  margin-bottom: 2rem;
+}
+
+/* Parse Form */
+.parse-form {
+  margin-bottom: 2rem;
+}
+
+.parse-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.parse-form textarea {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.95rem;
+  resize: vertical;
+  margin-bottom: 1rem;
+  transition: border-color 0.2s;
+}
+
+.parse-form textarea:focus {
+  outline: none;
+  border-color: #646cff;
+}
+
+.parse-form textarea:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.form-actions button {
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.form-actions button[type="submit"] {
+  background-color: #646cff;
+  color: white;
+}
+
+.form-actions button[type="submit"]:hover:not(:disabled) {
+  background-color: #535bf2;
+}
+
+.form-actions button[type="button"] {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.form-actions button[type="button"]:hover:not(:disabled) {
+  background-color: #d0d0d0;
+}
+
+.form-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Error Banner */
+.error-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background-color: #fee;
+  border: 2px solid #fcc;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  color: #c33;
+}
+
+.error-content {
+  flex: 1;
+  text-align: left;
+}
+
+.error-content strong {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.error-content .correlation-id {
+  font-size: 0.85rem;
+  color: #999;
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+}
+
+.error-banner button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #c33;
+  padding: 0 0.5rem;
+  line-height: 1;
+}
+
+.error-banner button:hover {
+  color: #a00;
+}
+
+/* Result Display */
+.result-display {
+  background-color: #f8f8f8;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.result-display h2 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.result-display dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem 1.5rem;
+  margin: 0;
+}
+
+.result-display dt {
+  font-weight: 600;
+  color: #555;
+}
+
+.result-display dd {
+  margin: 0;
+  color: #333;
+}
+
+.expense-result {
+  border-left: 4px solid #4caf50;
+}
+
+.other-result {
+  border-left: 4px solid #ff9800;
+}
+
+.other-result p {
+  margin-top: 0;
+  color: #666;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 1rem;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+footer p {
+  margin: 0;
+}
+
+/* Accessibility: Focus Indicators */
+button:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #646cff;
+  outline-offset: 2px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .app-container {
+    padding: 1rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions button {
+    width: 100%;
+  }
+
+  .result-display dl {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .result-display dt {
+    font-weight: 600;
+    margin-top: 0.5rem;
+  }
 }

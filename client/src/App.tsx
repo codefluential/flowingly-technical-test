@@ -1,35 +1,76 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from 'react';
+import { parseText, ApiError } from './api/parseClient';
+import type { ParseResponse } from './types/api';
+import ParseForm from './components/ParseForm';
+import ResultDisplay from './components/ResultDisplay';
+import ErrorBanner from './components/ErrorBanner';
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [inputText, setInputText] = useState('');
+  const [result, setResult] = useState<ParseResponse | null>(null);
+  const [error, setError] = useState<ApiError | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (text: string) => {
+    setError(null);
+    setResult(null);
+    setLoading(true);
+
+    try {
+      const response = await parseText(text);
+      setResult(response);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err);
+      } else {
+        setError(new ApiError('Unknown error occurred', 'UNKNOWN_ERROR'));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClear = () => {
+    setInputText('');
+    setResult(null);
+    setError(null);
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="app-container">
+      <header>
+        <h1>Flowingly Parsing Service</h1>
+        <p>Extract structured expense data from free-form text</p>
+      </header>
+
+      <main>
+        <ParseForm
+          value={inputText}
+          onChange={setInputText}
+          onSubmit={() => handleSubmit(inputText)}
+          onClear={handleClear}
+          loading={loading}
+          disabled={loading}
+        />
+
+        {error && (
+          <ErrorBanner
+            error={error}
+            onDismiss={() => setError(null)}
+          />
+        )}
+
+        {result && <ResultDisplay result={result} />}
+      </main>
+
+      <footer>
+        {result && (
+          <p>Correlation ID: {result.meta.correlationId}</p>
+        )}
+      </footer>
+    </div>
+  );
 }
 
-export default App
+export default App;
