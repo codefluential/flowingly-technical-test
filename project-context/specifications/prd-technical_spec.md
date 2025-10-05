@@ -1,16 +1,13 @@
-# Flowingly Parsing Service — PRD + Technical Specification (v0.1)
-
-
+# Flowingly Parsing Service — PRD + Technical Specification (v0.2)
 
 > Combined PRD + Tech Spec to implement a modular text-ingestion and parsing service with an initial **Expense Claim** processor and a holding path for **Other/Unprocessed** items (e.g., Restaurant Reservation). Designed for clarity, maintainability, and easy handover.
 
----
-## Verision History
+## Document History
 
-| Version | Date | Changes | Updated by |
-| --- | --- | --- | --- |
-| 0.1 | 5 Oct 2025 | Initial Specification drafted. | Adarsh |
-
+| Version  | Date       | Summary                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| -------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **v0.2** | 2025-10-05 | Added this history; expanded **Section 3** (Hexagonal, parsing vs normalization, CQRS-lite vs event sourcing, Ports/Adapters & DI); clarified **Section 4** (HTTP 400 rationale); hardened **Section 4.2** (secure XML, dates vs UTC); expanded **Section 5** (CORS; latency p50/p95/p99); updated **Section 6** (Redux decision, E2E vs integration, accessibility controls); enriched **Section 7** (FluentAssertions/FluentValidation/Serilog, Strategy & Pipeline examples, Swashbuckle) and added **API-key middleware**; refined **Section 8** (Postgres-only on Render, FKs/indexes/ERD, idempotency via content hash); added BDD cases in **Section 13**; added **Prometheus** note (**Section 15**); consolidated **Render-only** deployment with GitHub Integration + Blueprint and documented free-tier limits (**Section 16**); finalized **Section 17** answers; added **M0 Scaffold & Echo** milestone (**Section 18**); tightened scope in **Section 20.3**. |
+| **v0.1** | 2025-10-05 | Initial combined PRD + Technical Specification.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 
 ---
 
@@ -94,6 +91,39 @@ flowchart LR
 * **Command/Query** separation at handler level (no event sourcing in v1).
 * **Ports/Adapters**: Repositories/Parsers/Processors are interfaces with DI-backed implementations.
 
+**Hexagonal (Ports & Adapters) in a nutshell.** The core **Domain** holds the business rules (parsing, normalization, tax logic). It talks to the outside world through **ports** (interfaces). **Adapters** implement those ports for specific technologies (e.g., EF Core repository for Postgres, web controller for HTTP). This decouples domain logic from frameworks and I/O.
+
+**Why chosen**
+
+* Keeps business logic independent of infrastructure (easier to test and swap implementations).
+* Clear seams for **Dependency Injection (DI)** and mocking in tests.
+* Supports adding new processors (e.g., a reservation module) without touching transport/storage details.
+
+**Alternatives considered**
+
+* **Layered (N‑tier):** simple, but tends to leak infra concerns into the domain over time.
+* **Microservices:** overkill for a single bounded context in v1; adds ops complexity.
+* **Event‑sourced service:** strong audit trail but higher operational/cognitive overhead than needed here.
+
+**Parsing vs Normalization**
+
+* **Parsing** = extract structure from raw text (e.g., find `<total>` and read it as a decimal).
+* **Normalization** = clean/standardize parsed values (strip commas/`$`, parse dates → ISO, compute tax breakdown, format time as `HH:mm`).
+
+**Command/Query (CQRS‑lite)**
+
+* We separate **commands** (state‑changing operations like “parse & store”) from **queries** (reads). In v1, commands run synchronously and we don’t split read/write models or databases.
+
+**Event Sourcing (not used in v1)**
+
+* Event sourcing stores an append‑only log of domain events (e.g., `MessageParsed`, `ExpenseComputed`) and rebuilds state from them. Pros: auditability and temporal queries; Cons: projections, replay, and idempotency complexity. Our needs are met by straightforward persistence + logs for now.
+
+**Ports/Adapters & DI‑backed implementations**
+
+* **Ports** = interfaces the domain depends on (e.g., `IMessageRepository`, `IExpenseProcessor`).
+* **Adapters** = concrete tech implementations (EF Core repo, HTTP controller) that plug into ports.
+* **DI‑backed** = adapters are registered in the DI container; the app wires them at runtime and tests can inject fakes/mocks.
+
 ---
 
 ## 4. Functional Specification
@@ -143,17 +173,23 @@ flowchart LR
     * `MISSING_TOTAL` { details: {} }
     * `EMPTY_TEXT` { details: {} }
 
+**Why 400 (Bad Request)?** These validation failures are **client‑side issues** (malformed/unbalanced tags, missing required fields). The server is healthy and understood the request format, but the **request content is invalid**, so we return **HTTP 400** with a machine‑readable error.
+
 ### 4.2 Parsing & Validation Rules
 
 * **Tag Integrity**: stack-based scan over `<name>` and `</name>`; must be balanced & properly nested.
-* **XML Islands**: extract `<expense>...</expense>` blocks and parse with secure XML settings (no DTD/XXE).
+* **XML Islands**: extract `<expense>...</expense>` blocks and parse with **secure XML settings** to prevent **XXE** and related attacks:
+
+  * Use a hardened parser: `DtdProcessing = Prohibit`, `XmlResolver = null`.
+  * Bound input sizes and timeouts; only parse the delimited island content.
+  * Optionally validate against **Expense.xsd** (config‑toggle) to enforce required elements and types.
 * **Inline Tags**: allow `vendor|description|date|total|cost_centre|payment_method` (extensible via config).
 * **Precedence**: prefer `<total>` within `<expense>` island; else first global `<total>`.
 * **Normalization**:
 
   * Numbers: strip commas/currency symbols, parse as decimal, 2‑dp rounding at business boundaries.
   * Date: attempt ISO and common natural formats → `yyyy-MM-dd`.
-  * Time: if present, output `HH:mm`.
+  * Time: if present, output `HH:mm`. **Dates vs UTC.** Business dates (like reservation/receipt dates) are **calendar dates**, not instants; we store them as date‑only. Audit fields (e.g., `received_at`) are stored in **UTC** (`TIMESTAMPTZ`) so server/DB clocks are consistent.
 
 ---
 
@@ -165,6 +201,10 @@ flowchart LR
 * **Observability**: Structured logging w/ Correlation ID; minimal prometheus-friendly metrics (requests, failures, durations).
 * **Config**: App‑wide and per‑module settings via `appsettings*.json` + environment variables; hot reload in dev.
 * **Docs & Handover**: README, ADR log, Dev Onboarding, API docs (Swagger), and Test How‑To.
+
+**CORS (Cross‑Origin Resource Sharing).** Browsers block JS calls across origins unless the server opts in. We **restrict allowed origins** to our UI domain(s) so random sites can’t call our API via a user’s browser.
+
+**Latency terminology.** “**200 ms p50**” means median requests finish in ≤200 ms. We’ll watch **p95/p99** tails to ensure acceptable worst‑case latencies.
 
 ---
 
@@ -183,6 +223,7 @@ flowchart LR
 
 * Minimal state with React Query or fetch wrapper.
 * `.env` for API base URL.
+* **Redux?** Not needed in v1; the app has a single form/result flow. Redux adds ceremony without benefit here.
 
 **Testing**
 
@@ -192,16 +233,24 @@ flowchart LR
   * Happy path parses expense.
   * Unclosed tag shows error.
   * Missing total shows error.
+* **E2E vs Integration:** E2E drives a real browser against the running API (full flow). Backend **integration tests** run the API in‑process and assert endpoint behavior without a real browser.
 
 **Accessibility**
 
 * Labels for inputs; focus management on error; keyboard friendly.
+* **User controls:** optional toggles for **high‑contrast mode** and **text size** (normal/large/x‑large), persisted in `localStorage`.
 
 ---
 
 ## 7. Backend (ASP.NET Core) — Design & Implementation
 
 **Stack**: .NET 8, Minimal API/Controllers, xUnit, FluentAssertions, FluentValidation, Serilog, EF Core.
+
+**Library notes**
+
+* **FluentAssertions**: expressive, readable test assertions (e.g., `result.Should().BeEquivalentTo(expected)`).
+* **FluentValidation**: declarative validators for DTOs (e.g., `RuleFor(x => x.Text).NotEmpty()`).
+* **Serilog**: structured, enriched logging (free & open‑source) with many sinks (console, Seq, etc.).
 
 **Layering**
 
@@ -228,10 +277,10 @@ flowchart LR
 
 **Patterns**
 
-* **Strategy** for processor selection per classification.
-* **Pipeline** inside each processor (Validate → Extract → Normalize → Persist → BuildResponse).
+* **Strategy** for processor selection per classification. *Example:* `IProcessor` with concrete `ExpenseProcessor`, `OtherProcessor`; router picks the strategy.
+* **Pipeline** inside each processor: `Validate → Extract → Normalize → Persist → BuildResponse`. Steps are small/testable; we can insert XSD validation via config.
 * **Repository** for data persistence isolation.
-* **CQRS-lite**: command handler `ParseMessageCommandHandler`, query handlers for retrieval (future).
+* **CQRS‑lite**: command handler `ParseMessageCommandHandler`, query handlers for retrieval (future).
 * **Factory** for extracting the right parser chain by content type.
 
 **Swagger (OpenAPI)** — *What & Why*
@@ -243,16 +292,46 @@ flowchart LR
   * **Single source of truth** for request/response contracts.
   * Enables **client SDK generation** and API diffing/versioning.
   * Improves onboarding: new devs see the API surface instantly.
-* **How**: Add Swashbuckle; annotate endpoints & schemas; host at `/swagger` in dev.
+* **How**: Add `Swashbuckle.AspNetCore`, call `AddEndpointsApiExplorer()` + `AddSwaggerGen()`, and use `UseSwagger()` + `UseSwaggerUI()` in Development.
+
+**API key middleware (Prod)**
+
+```csharp
+app.Use(async (context, next) =>
+{
+    // Skip in Development
+    var env = context.RequestServices.GetRequiredService<IHostEnvironment>();
+    if (env.IsDevelopment()) { await next(); return; }
+
+    var configuredKey = context.RequestServices
+        .GetRequiredService<IConfiguration>()
+        ["Security:ApiKey"];
+
+    var provided = context.Request.Headers["X-API-Key"].FirstOrDefault();
+    if (string.IsNullOrWhiteSpace(configuredKey) || provided == configuredKey)
+    {
+        await next();
+    }
+    else
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        await context.Response.WriteAsJsonAsync(new { error = new { code = "UNAUTHORIZED", message = "Invalid API key." } });
+    }
+});
+```
 
 ---
 
 ## 8. Data Model & Persistence
 
-**Storage Options**
+**Storage Decision (updated)**
 
-* **Dev**: SQLite (simple, file-based, great local DX).
-* **Prod**: Serverless Postgres (e.g., **Neon**, **Render Postgres free**, **Fly Postgres Lite**) for durability.
+* **Single database: PostgreSQL on Render** for **Dev and Prod**. No SQLite.
+* Benefits: one engine across environments, managed backups, easy connection rotation, and Render-native operations.
+
+**Render Postgres Notes**
+
+* Managed PostgreSQL with versions **13–17** available for new instances; connection URLs exposed via dashboard. (See Render docs.)
 
 **Schema (initial)**
 
@@ -304,13 +383,27 @@ CREATE TABLE processing_logs (
 
 **Indexes**
 
-* `messages(content_hash)` for idempotency.
+* `messages(content_hash)` for idempotency (recommend unique index to dedupe inserts).
 * `expenses(message_id)`.
 * `processing_logs(message_id, created_at)`.
 
+**Relationships & Constraints**
+
+* `expenses.message_id` → `messages.id` (FK, `ON DELETE CASCADE`).
+* `other_payloads.message_id` → `messages.id` (FK).
+* `processing_logs.message_id` → `messages.id` (FK).
+
+**ERD**
+
+* Add a simple diagram in README (Mermaid/dbdiagram) showing `messages` 1→1 `expenses` and 1→N `processing_logs`/`other_payloads`.
+
+**Idempotency via content hash**
+
+* We compute a stable hash (e.g., SHA‑256) of inbound `content`. On insert, use a **unique index** on `content_hash` to avoid duplicate processing and make retries safe.
+
 **Migrations**
 
-* EF Core migrations committed to repo; use `dotnet ef` in CI.
+* EF Core migrations committed to repo; `dotnet ef database update` targets **Render Postgres** using env var `ConnectionStrings__Default`.
 
 ---
 
@@ -351,7 +444,7 @@ CREATE TABLE processing_logs (
 ## 10. Validation: XML Schema (XSD) — Is it useful?
 
 * **For strict islands** like `<expense>...</expense>` XSD can enforce element presence/types (e.g., `<total>` required, numeric). Pros: strong validation, clearer errors. Cons: adds complexity, doesn’t help **inline** tag validation.
-* **Decision**: Adopt a **lightweight XSD** for the `<expense>` island only (optional switch). Keep inline tags governed by our integrity + regex rules. Provide `Expense.xsd` and enable via config (`Parsing.UseExpenseXsd = true`).
+* **Decision**: Adopt a **lightweight XSD** for the `<expense>` island only. **Enabled by default** for v1; toggle via config (`Parsing.UseExpenseXsd = false`) to disable if needed. Keep inline tags governed by our integrity + regex rules. Provide `Expense.xsd`.
 
 ---
 
@@ -424,6 +517,33 @@ Feature: Parse expense text
     When I POST it to /api/v1/parse
     Then the response status is 400
     And the error code is "MISSING_TOTAL"
+
+  Scenario: Unclosed tag should error
+    Given text with "<vendor>Seaside" and no closing tag
+    When I POST it to /api/v1/parse
+    Then the response status is 400
+    And the error code is "UNCLOSED_TAGS"
+
+  Scenario: Missing cost_centre defaults to UNKNOWN
+    Given text with <expense><total>35000</total></expense>
+    When I POST it to /api/v1/parse
+    Then the response status is 200
+    And the expense.cost_centre is "UNKNOWN"
+
+  Scenario: Total precedence prefers island value
+    Given text with <total>100</total> and <expense><total>115</total></expense>
+    When I POST it to /api/v1/parse
+    Then expense.total_incl_tax is 115.00
+
+  Scenario: Number normalization handles commas
+    Given text with <expense><total>35,000</total></expense>
+    When I POST it
+    Then expense.total_incl_tax is 35000.00
+
+  Scenario: Date normalization
+    Given text with <date>27 April 2022</date>
+    When I POST it
+    Then reservation.date_iso is "2022-04-27"
 ```
 
 ---
@@ -432,11 +552,12 @@ Feature: Parse expense text
 
 * **ADRs** under `/docs/adr/` as numbered markdown files.
 
-  * ADR‑0001: Storage choice (SQLite dev / Postgres prod)
+  * ADR‑0001: **Storage choice → Single Postgres on Render (Dev & Prod)**
   * ADR‑0002: Architecture style (Clean+CQRS‑lite)
   * ADR‑0003: Processor Strategy pattern
   * ADR‑0004: Swagger for API contract & onboarding
   * ADR‑0005: Versioning via URI
+  * ADR‑0006: **Platform choice → Render for API (Docker), UI (Static Site), and DB (Postgres)**
 * **Build Log** under `/docs/logs/BUILDLOG.md` (date, change summary, rationale).
 
 ---
@@ -447,53 +568,66 @@ Feature: Parse expense text
 * **Metrics**: ASP.NET meters (requests/sec, p50/p95 latency, error rate). Optional Prometheus exporter.
 * **Error Model**: `{ error: { code, message, details }, correlation_id }` → FE shows code + human message.
 
+**Prometheus (optional).** A **free, open‑source** metrics system/time‑series DB. Apps expose a `/metrics` endpoint; Prometheus scrapes it and you can visualize with Grafana. Not required for the demo but easy to add later.
+
 ---
 
 ## 16. Deployment & DevOps
 
-**Recommended Free/Low-Cost Stack**
+**Platform Decision (updated)**
 
-* **API**: Fly.io or Render free tier (containerized .NET 8). Fly often offers always-on small VMs.
-* **DB**: **Neon** (serverless Postgres free) for persistent prod storage.
-* **UI**: Netlify (React build) or Vercel.
+* Use **Render** for **all layers**:
 
-**CI/CD (GitHub Actions)**
+  * **API**: Render **Web Service** using **Docker** for ASP.NET Core.
+  * **UI**: Render **Static Site** (Vite React) served via CDN.
+  * **DB**: **Render PostgreSQL** (single database for Prod). Dev runs locally against Postgres.
 
-* Triggers: PR → build & test (no deploy); merge to `main` → deploy **Dev**; tag `v*` → deploy **Prod**.
-* Jobs:
+**Why Render works for this stack**
 
-  1. **Backend**: setup .NET, restore, build, test, publish; docker build & push; deploy via `flyctl` or Render YAML.
-  2. **Frontend**: node install, typecheck, test, build; deploy to Netlify/Vercel with token.
-  3. **DB**: run EF migrations against Neon (Dev/Prod) via connection strings in environment secrets.
+* .NET/ASP.NET Core is supported via Dockerized Web Services; React builds as a Static Site; managed Postgres with versions 13–17.
+
+**Deployment model**
+
+* **Prod only** in Render, linked to the `main` branch.
+* **Dev** runs **locally** (Docker Compose optional) for rapid iteration.
+* Use **Render GitHub Integration** and a **Blueprint (**``**)** for simple, declarative deploys.
+* Document **free‑tier limits** in README (build minutes, instance sleep, bandwidth, Postgres storage) to set expectations for reviewers.
+
+**Render Service Config (example)**
+
+* `render.yaml` to declare services:
+
+  * web service `flowingly-api` (Dockerfile, env `ConnectionStrings__Default`, `ASPNETCORE_URLS`)
+  * static site `flowingly-ui` (build: `npm ci && npm run build`, publish: `dist`)
+  * postgres `flowingly-db` (provisioned in dashboard; expose connection URL as secret)
 
 **Environments**
 
-* **Dev**: public but rate-limited; permissive CORS to localhost.
-* **Prod**: CORS locked; API key required; logging at info; debug off.
-
----
+* **Local Dev**: permissive CORS to `http://localhost:5173`, Swagger enabled, API key disabled.
+* **Prod (Render)**: CORS locked to UI domain; API key required; health checks enabled; minimal logs.
 
 ## 17. Open Questions (for Product/Tech Decisions)
 
-1. **Default tax rate & currency**: Assume NZ GST 0.15 and `NZD`?
-2. **Reservation processing**: For Phase 2, which fields constitute MVP (vendor/date/time/party_size)?
-3. **Auth**: Should Prod require an **API key** header from day one?
-4. **P99 Targets**: Any explicit latency targets and payload size ceilings?
-5. **XSD**: Turn on by default for `<expense>` island, or keep off initially?
-6. **Storage**: OK with Neon Postgres for Prod, SQLite for Dev?
-7. **Versioning**: URI-only or also support media-type header versioning?
-8. **Logging retention**: Any specific policy (days or size)?
+**Answers (v1)**
 
----
+1. **Tax/Currency:** Default **GST 0.15**, **NZD**.
+2. **Reservation Phase 2:** Out‑of‑scope for v1; stored as `other` only.
+3. **Prod Auth (API key):** **Enabled.** Demonstrates production hygiene (prevents casual misuse; enables per‑key rate limiting). Entails: generate secret key (env), check `X-API-Key` in middleware, return 401 on fail.
+4. **Latency & payload ceilings:** Target **p50 ≤ 200 ms**, **p95 ≤ 500 ms**, **p99 ≤ 800 ms** for payloads ≤ **256 KB**.
+5. **XSD:** **Enabled by default** for `<expense>` island; toggle via config.
+6. **Storage:** **Postgres only**; Dev local, Prod Render.
+7. **Versioning:** Prefer **URI versioning** (`/api/v1`) for simplicity and readability. (Media‑type versioning uses `Accept: application/vnd.app.v1+json`—flexible but heavier for this demo.)
+8. **Logging retention:** default **30 days** (configurable at `Logging:RetentionDays`).
 
 ## 18. Delivery Plan (Milestones)
 
+* **M0 (Scaffold & Echo)**: Minimal end‑to‑end scaffold. A basic UI can send text; backend stores it and echoes `"Processed receipt Input: [text]"`. Establishes Docker, configs, DI, EF migration, health checks.
 * **M1 (Skeleton & Tests)**: Repo structure, CI on PRs, Domain tests for validator/parser/calculator.
 * **M2 (API v1)**: `/api/v1/parse` implemented, integration tests green, Swagger docs.
-* **M3 (UI v1)**: React SPA wired to Dev API, Playwright happy/error paths.
-* **M4 (Persistence)**: EF schema + migrations; store messages/expenses/logs.
-* **M5 (Ops)**: Deploy Dev (API/UI/DB), smoke tests, add rate limiting.
-* **M6 (Prod)**: Harden config, API key, deploy Prod, tag `v1.0.0`.
+* **M3 (UI v1)**: React SPA wired to local API, Playwright happy/error paths.
+* **M4 (Persistence)**: Postgres schema + migrations; store messages/expenses/logs.
+* **M5 (Ops)**: Prod deploy to Render, smoke tests, add rate limiting, API key.
+* **M6 (Release)**: Harden config, finalize docs, tag `v1.0.0`.
 
 ---
 
@@ -518,6 +652,4 @@ Feature: Parse expense text
 
 ### 20.3 Future Enhancements
 
-* Additional processors: Reservation, Travel, Purchase Orders.
-* Async ingestion via queue; webhook callbacks.
-* SDKs generated from OpenAPI (TS/C#).
+We intentionally **de‑scope Phase 2** items (reservation processing, webhooks, SDKs) to focus v1 on Expense and the modular processor framework.
