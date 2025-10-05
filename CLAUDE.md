@@ -11,12 +11,15 @@ Accept raw text (e.g., email bodies), validate tag integrity, extract expense da
 
 ### Current Project State
 **Phase**: Specification and planning complete, **ready for implementation**.
-- All ADRs documented (6 total)
+- All ADRs documented (10 total)
 - PRD v0.3 finalized with external review incorporated
 - Delivery plan with milestone breakdown completed
+- Task decomposition complete (50 tasks across M0-M3)
+- Progress tracking system deployed (3-file integrated system)
+- 20 agents copied to `.claude/agents/` for task execution
 - No code implementation exists yet (no .NET solution, no React app)
 
-Refer to `project-context/build-logs/BUILDLOG.md` for detailed progress history.
+Refer to `project-context/build-logs/BUILDLOG.md` for detailed progress history and `project-context/implementation/PROGRESS.md` for current status.
 
 ## Common Development Commands
 
@@ -57,6 +60,38 @@ npx playwright test path/to/test.spec.ts
 
 **Note**: These commands will be available once project scaffolding is complete. Currently no implementation exists.
 
+### Progress Tracking
+```bash
+# Start a task (updates tasks.json, PROGRESS.md)
+./scripts/update-progress.sh task_001 in_progress
+
+# Complete a task
+./scripts/update-progress.sh task_001 completed
+
+# Complete with test counts
+./scripts/update-progress.sh task_014 completed unit 7
+
+# Block a task
+./scripts/update-progress.sh task_015 blocked
+
+# Query current status
+jq '.progress_tracking' project-context/implementation/tasks/tasks.json
+
+# Check milestone progress
+jq '.progress_tracking.milestones_completed' project-context/implementation/tasks/tasks.json
+
+# View progress dashboard
+cat project-context/implementation/PROGRESS.md
+```
+
+**Workflow**: Use `update-progress.sh` before/after each task. Script automatically:
+- Updates `tasks.json` with status and timestamps
+- Updates `PROGRESS.md` checkboxes and metrics
+- Appends to `BUILDLOG.md` for milestone gates (task_010, 030, 040, 050)
+- Suggests commit messages
+
+See `project-context/implementation/TRACKING-WORKFLOW.md` for complete workflow documentation.
+
 ## Architecture
 
 **Style**: Clean/Hexagonal Architecture with CQRS-lite approach
@@ -92,6 +127,47 @@ npx playwright test path/to/test.spec.ts
 - `IContentRouter`: Routes content to appropriate processor
 - `ITaxCalculator`: Computes GST (tax-inclusive to exclusive conversion)
 - `INormalizer`: Number/date/time normalization
+
+## Implementation Workflow
+
+### Task-Based Execution System
+The project uses a **50-task decomposition system** with 4 milestone gates (M0, M1, M2, M3):
+
+**Milestone Structure**:
+- **M0: Minimal Scaffold** (10 tasks, 4 hours) - Solution structure, echo flow, README
+- **M1: Core Parsing & Validation** (20 tasks, 1 day) - TDD cycles for parsers, 30+ unit tests
+- **M2: API Contracts** (10 tasks, 4 hours) - DTOs, validation, error handling, 10+ contract tests
+- **M3: UI & E2E Tests** (10 tasks, 4 hours) - Enhanced UI, 5+ E2E tests, **SUBMITTABLE**
+
+**Task Execution Flow**:
+1. Check `project-context/implementation/tasks/tasks.json` for task dependencies
+2. Read individual task file (e.g., `tasks/task_001.json`) for full context
+3. Mark task in-progress: `./scripts/update-progress.sh task_001 in_progress`
+4. Execute task following acceptance criteria
+5. Mark completed: `./scripts/update-progress.sh task_001 completed [test_type] [count]`
+6. Commit implementation, then commit progress files separately
+7. Move to next task in sequence
+
+**Parallel Execution Groups**: 15+ tasks can run concurrently (defined in tasks.json). Respect dependencies.
+
+**Milestone Gates (DoD Tasks)**: task_010, task_030, task_040, task_050 verify milestone completion and auto-update BUILDLOG.
+
+### TDD Workflow
+**M1 uses strict TDD cycles** (RED → GREEN → REFACTOR):
+- Tag Validation: task_014 (RED) → task_015 (GREEN) → task_016 (REFACTOR)
+- Number Normalization: task_017 (RED) → task_018 (GREEN)
+- Banker's Rounding: task_019 (RED) → task_020 (GREEN)
+- Tax Calculator: task_021 (RED) → task_022 (GREEN)
+- Time Parser: task_023 (RED) → task_024 (GREEN)
+- XML Extractor: task_025 (RED) → task_026 (GREEN)
+- Content Router: task_027 (RED) → task_028 (GREEN)
+- Expense Processor: task_029 (RED) → task_030 (GREEN + M1 DoD)
+
+**Test Coverage Targets** (ADR-0010):
+- Unit tests: 30+ (M1)
+- Contract tests: 10+ (M2)
+- E2E tests: 5+ (M3)
+- **Total: 45+ tests** for submission
 
 ## Development Methodology
 
@@ -133,20 +209,31 @@ npx playwright test path/to/test.spec.ts
 Balance between markdown guides and code comments—choose the most maintainable option for each context.
 
 ### Required Documentation
-1. **ADRs** at `project-context/adr/`
+1. **ADRs** at `project-context/adr/` (10 total)
    - ADR-0001: Storage choice (SQLite local dev, Postgres production)
    - ADR-0002: Architecture style (Clean/Hexagonal + CQRS-lite)
    - ADR-0003: Processor Strategy pattern
    - ADR-0004: Swagger for API contract
    - ADR-0005: Versioning via URI
    - ADR-0006: API key authentication
+   - ADR-0007: Response Contract Design (expense XOR other)
+   - ADR-0008: Parsing and Validation Rules (stack-based tag validation)
+   - ADR-0009: Tax Calculation with Banker's Rounding (MidpointRounding.ToEven)
+   - ADR-0010: Test Strategy and Coverage (45+ tests: unit, contract, E2E)
 
 2. **Build Log** at `project-context/build-logs/BUILDLOG.md`
+   - Chronological order (oldest→newest), append new entries to end
    - Date, changes made, rationale, issues, testing notes
 
 3. **Specification Documents** at `project-context/specifications/`
    - Primary: `prd-technical_spec.md` (v0.3 - current)
    - Requirements: `project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf`
+
+4. **Implementation System** at `project-context/implementation/`
+   - `tasks/tasks.json`: 50-task orchestration with dependencies
+   - `PROGRESS.md`: Real-time progress dashboard
+   - `TRACKING-WORKFLOW.md`: Tracking system documentation
+   - Individual task files: Self-contained context for agent execution
 
 **These are the key documents** — always reference these before planning or implementing tasks.
 
@@ -198,9 +285,11 @@ Before implementing:
 4. Ensure alignment: DB schema ↔ domain models ↔ DTOs ↔ TypeScript types
 
 When completing work:
-1. Update `BUILDLOG.md` with changes, rationale, testing notes
-2. Create/update ADRs for architectural decisions
-3. Run tests and verify type safety end-to-end
+1. Update progress: `./scripts/update-progress.sh <task_id> completed`
+2. Update `BUILDLOG.md` with changes, rationale, testing notes
+3. Create/update ADRs for architectural decisions
+4. Run tests and verify type safety end-to-end
+5. Commit implementation and progress files separately
 
 ## Framework-Specific Guidelines
 
