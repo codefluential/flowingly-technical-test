@@ -13,4 +13,9 @@
 
 # Project context working files
 project-context/general-notes.md
-project-context/agents/
+
+# Ignore agents directory except the library README
+project-context/agents/*
+!project-context/agents/all-agents-library/
+project-context/agents/all-agents-library/*
+!project-context/agents/all-agents-library/README.md
