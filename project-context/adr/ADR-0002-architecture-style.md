@@ -68,6 +68,66 @@ The test requirements emphasize demonstrating "broad coding capabilities" and un
 4. **Independence of Database**: Domain uses repository interfaces; swapping Postgres is possible
 5. **Business Rules Isolation**: Tax calculation, validation, normalization live in Domain
 
+## Terminology & Concepts
+
+### Hexagonal Architecture (Ports & Adapters) in a Nutshell
+
+The core **Domain** holds the business rules (parsing, normalization, tax logic). It talks to the outside world through **ports** (interfaces). **Adapters** implement those ports for specific technologies (e.g., EF Core repository for Postgres, HTTP controller for API endpoints). This decouples domain logic from frameworks and I/O.
+
+**Why This Matters**:
+- Business logic is independent of infrastructure (easier to test and swap implementations)
+- Clear seams for **Dependency Injection (DI)** and mocking in tests
+- Supports adding new processors (e.g., reservation module) without touching transport/storage details
+
+### Parsing vs Normalization
+
+- **Parsing**: Extract structure from raw text (e.g., find `<total>` tag and read its content as a decimal value)
+- **Normalization**: Clean and standardize parsed values:
+  - Strip commas, currency symbols (`$35,000.00` → `35000.00`)
+  - Parse dates into ISO format (`27 April 2022` → `2022-04-27`)
+  - Compute tax breakdown (total inclusive → exclusive + sales tax)
+  - Format time as `HH:mm`
+
+### CQRS-lite (Command/Query Separation)
+
+We separate **commands** (state-changing operations like "parse & store") from **queries** (read-only operations). In v1:
+- Commands run synchronously
+- No split read/write models or separate databases (that's "full CQRS")
+- Queries are future additions (e.g., `GetExpenseByIdQuery`)
+
+**Why "Lite"**: We get the organizational benefits (clear separation of reads/writes) without the operational complexity of separate data stores or eventual consistency.
+
+### Event Sourcing (Not Used in v1)
+
+**What It Is**: Event sourcing stores an append-only log of domain events (e.g., `MessageParsed`, `ExpenseComputed`, `TaxCalculated`) and rebuilds application state by replaying those events.
+
+**Pros**:
+- Complete audit trail (know exactly what happened and when)
+- Temporal queries (view state at any point in history)
+- Event-driven architecture enables complex workflows
+
+**Cons**:
+- Projections complexity (rebuild read models from events)
+- Replay logic and versioning overhead
+- Idempotency and ordering challenges
+
+**Why Not Used**: Our needs are met by straightforward persistence + processing logs for auditability. Event sourcing would add significant operational and cognitive overhead without commensurate benefit for Phase 1 MVP.
+
+### Ports, Adapters & DI-Backed Implementations
+
+- **Ports**: Interfaces the domain depends on (e.g., `IMessageRepository`, `IExpenseProcessor`, `ITaxCalculator`)
+  - Defined in `Domain/Interfaces/`
+  - Represent capabilities the domain needs from the outside world
+
+- **Adapters**: Concrete technology implementations that plug into ports
+  - Implemented in `Infrastructure/` (e.g., `PostgresMessageRepository`, `TaxCalculator`)
+  - Or in `Api/` (e.g., HTTP controllers adapting HTTP requests to domain commands)
+
+- **DI-Backed**: Adapters are registered in the Dependency Injection container
+  - App wires them at runtime via `Program.cs`: `services.AddScoped<IMessageRepository, PostgresMessageRepository>()`
+  - Tests inject fakes/mocks: `new ParseHandler(mockRepository.Object)`
+  - Domain code only depends on interfaces, never concrete implementations
+
 ## Consequences
 
 ### Positive

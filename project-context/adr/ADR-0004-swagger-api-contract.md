@@ -197,9 +197,15 @@ dotnet add package Swashbuckle.AspNetCore
 
 ### Configuration (Program.cs)
 
+**Key Methods**:
+1. **`AddEndpointsApiExplorer()`**: Enables API endpoint discovery for Minimal APIs (required for Swagger to find endpoints)
+2. **`AddSwaggerGen()`**: Configures OpenAPI document generation
+3. **`UseSwagger()`**: Serves OpenAPI JSON at `/swagger/v1/swagger.json`
+4. **`UseSwaggerUI()`**: Serves interactive Swagger UI at `/swagger`
+
 ```csharp
 // Add Swagger services
-builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddEndpointsApiExplorer(); // Required for Minimal API endpoint discovery
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo

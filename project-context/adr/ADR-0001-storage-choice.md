@@ -27,9 +27,16 @@ The original PRD proposed **SQLite for dev** and **Postgres for prod**, but this
 **Use PostgreSQL for all environments (development and production).**
 
 Specifically:
-- **Local Development**: PostgreSQL via Docker container or local installation
-- **Production**: Render Postgres (free tier)
+- **Local Development**: PostgreSQL via Docker container or local installation (self-managed)
+- **Production**: Render Managed Postgres (free tier, versions 13-17 available)
 - **No SQLite**: Remove SQLite from technology stack entirely
+
+### Render Postgres Details
+
+- **Managed Service**: Fully managed PostgreSQL with automated backups, high availability, and connection pooling
+- **Versions**: PostgreSQL 13-17 available for new instances (choose based on feature needs)
+- **Connection**: Connection URLs exposed via Render dashboard; inject as environment variable
+- **Benefits**: Native Render integration, managed backups, easy connection rotation, zero ops overhead
 
 ## Consequences
 
@@ -120,14 +127,57 @@ Specifically:
 
 ## Implementation Notes
 
-- Connection string format: `Host=localhost;Database=flowingly_dev;Username=postgres;Password=...`
-- Use EF Core migrations: `dotnet ef migrations add InitialCreate`
-- Render Postgres connection string provided via environment variable: `DATABASE_URL`
-- Local Docker Postgres: `docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=dev -e POSTGRES_DB=flowingly_dev postgres:16-alpine`
+### Connection Strings
+
+- **Local Dev**: `Host=localhost;Database=flowingly_dev;Username=postgres;Password=dev`
+- **Render Prod**: Provided via `DATABASE_URL` environment variable (format: `postgresql://user:pass@host:port/db`)
+
+### Schema Management
+
+- **Migrations**: Use EF Core migrations: `dotnet ef migrations add InitialCreate`
+- **Foreign Keys**: All relationships enforced with `REFERENCES ... ON DELETE CASCADE` constraints
+- **Indexes**: Create indexes on:
+  - `messages.content_hash` (unique index for idempotency)
+  - `expenses.message_id`
+  - `processing_logs(message_id, created_at)`
+- **ERD**: Document entity relationships in README using Mermaid or dbdiagram
+
+### Idempotency Strategy
+
+**Problem**: Duplicate processing of the same text content (e.g., retries, accidental resubmissions)
+
+**Solution**: Content hash-based deduplication
+- Compute SHA-256 hash of `content` field before insert
+- Store hash in `messages.content_hash` column
+- Create **unique index** on `content_hash`: `CREATE UNIQUE INDEX idx_messages_content_hash ON messages(content_hash);`
+- On duplicate insert attempt, Postgres returns unique constraint violation
+- Application catches exception and returns existing message ID (idempotent response)
+
+**Benefits**:
+- Safe retries (same input → same output, no duplicate records)
+- Prevents accidental duplicate expense entries
+- Simple implementation (database-enforced, no distributed locks needed)
+
+### Local Docker Setup
+
+```bash
+# Run Postgres 16 in Docker
+docker run -d \
+  --name flowingly-postgres \
+  -p 5432:5432 \
+  -e POSTGRES_PASSWORD=dev \
+  -e POSTGRES_DB=flowingly_dev \
+  postgres:16-alpine
+
+# Apply migrations
+dotnet ef database update
+```
 
 ## References
 
-- PRD + Technical Specification (v0.1), Section 8: Data Model & Persistence
+- PRD + Technical Specification (v0.2), Section 8: Data Model & Persistence
 - PRD Review Notes: Question 6 confirmed "Just Postgres only, no SQLite"
 - Render Postgres Documentation: https://render.com/docs/databases
+- Render Postgres Versions: https://render.com/docs/databases#postgresql-versions
 - EF Core Postgres Provider: https://www.npgsql.org/efcore/
+- Idempotency Patterns: https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/
