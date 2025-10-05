@@ -198,6 +198,3 @@ Based on project-context/specifications/prd-technical_spec.md (Flowingly Parsing
 * `/metrics` for Prometheus (requests, 4xx/5xx counts, latency).
 * Toggle `?includeOther=true` to include “other” block (default false).
 
----
-
-If you want, I can patch your spec + README now with: (a) the explicit rounding policy, (b) the tag-overlap sentence + test vectors, (c) the taxRate precedence line, (d) a decisive DB stance line, and (e) Swagger example payloads.
