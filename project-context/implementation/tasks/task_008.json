@@ -12,7 +12,7 @@
   "duration": "30min",
   "priority": "critical",
   "dependencies": ["task_007"],
-  "parallel_group": null,
+  "parallel_group": "M0_parallel_2",
 
   "context": {
     "prd_reference": {

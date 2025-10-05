@@ -232,7 +232,7 @@
       "dependencies": [
         "task_007"
       ],
-      "parallel_group": null
+      "parallel_group": "M0_parallel_2"
     },
     {
       "id": "task_009",
@@ -244,7 +244,7 @@
       "dependencies": [
         "task_007"
       ],
-      "parallel_group": null
+      "parallel_group": "M0_parallel_2"
     },
     {
       "id": "task_010",
