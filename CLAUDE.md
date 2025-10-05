@@ -9,6 +9,54 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Core Objective
 Accept raw text (e.g., email bodies), validate tag integrity, extract expense data, compute NZ GST tax breakdowns (from inclusive totals), and return normalized JSON. Non-expense content is stored as "Other/Unprocessed" for future processors.
 
+### Current Project State
+**Phase**: Specification and planning complete, **ready for implementation**.
+- All ADRs documented (6 total)
+- PRD v0.3 finalized with external review incorporated
+- Delivery plan with milestone breakdown completed
+- No code implementation exists yet (no .NET solution, no React app)
+
+Refer to `project-context/build-logs/BUILDLOG.md` for detailed progress history.
+
+## Common Development Commands
+
+### Backend (.NET 8)
+```bash
+# Build and run (once solution is created)
+dotnet build
+dotnet run --project src/Api
+
+# Run tests
+dotnet test
+
+# Run specific test
+dotnet test --filter "FullyQualifiedName~TestName"
+
+# Database migrations (EF Core)
+dotnet ef migrations add MigrationName --project src/Infrastructure
+dotnet ef database update --project src/Api
+```
+
+### Frontend (React + Vite)
+```bash
+# Install dependencies
+npm install
+
+# Run dev server
+npm run dev
+
+# Build for production
+npm run build
+
+# Run E2E tests (Playwright)
+npm run test:e2e
+
+# Run specific E2E test
+npx playwright test path/to/test.spec.ts
+```
+
+**Note**: These commands will be available once project scaffolding is complete. Currently no implementation exists.
+
 ## Architecture
 
 **Style**: Clean/Hexagonal Architecture with CQRS-lite approach
@@ -86,17 +134,18 @@ Balance between markdown guides and code comments—choose the most maintainable
 
 ### Required Documentation
 1. **ADRs** at `project-context/adr/`
-   - ADR-0001: Storage choice (Postgres only)
+   - ADR-0001: Storage choice (SQLite local dev, Postgres production)
    - ADR-0002: Architecture style (Clean/Hexagonal + CQRS-lite)
    - ADR-0003: Processor Strategy pattern
    - ADR-0004: Swagger for API contract
    - ADR-0005: Versioning via URI
+   - ADR-0006: API key authentication
 
 2. **Build Log** at `project-context/build-logs/BUILDLOG.md`
    - Date, changes made, rationale, issues, testing notes
 
 3. **Specification Documents** at `project-context/specifications/`
-   - Primary: `prd-technical_spec.md` (v0.1)   
+   - Primary: `prd-technical_spec.md` (v0.3 - current)
    - Requirements: `project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf`
 
 **These are the key documents** — always reference these before planning or implementing tasks.
@@ -143,9 +192,9 @@ This is a **Phase 1, minimal viable product** demonstrating:
 ## Key Verification Points
 
 Before implementing:
-1. Check specification: `project-context/specifications/prd-technical_spec.md`
-2. Review clarifications: `project-context/specifications/prd-tech-sepec-v1-review.md`
-3. Verify existing tests to understand current behavior
+1. Check specification: `project-context/specifications/prd-technical_spec.md` (v0.3)
+2. Review existing tests to understand current behavior
+3. Check BUILDLOG.md for implementation history and context
 4. Ensure alignment: DB schema ↔ domain models ↔ DTOs ↔ TypeScript types
 
 When completing work:
