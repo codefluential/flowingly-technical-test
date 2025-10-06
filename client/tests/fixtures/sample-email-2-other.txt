@@ -1,0 +1,1 @@
+Hi Yvaine, Please can you make a reservation at the <vendor>Viaduct Steakhouse</vendor> for <total>5</total> people.
