@@ -1,24 +1,24 @@
 {
   "project": "Flowingly Parsing Service",
-  "phase": "Phase 1 - Core Submission (M0\u2192M3)",
+  "phase": "Phase 1 - Core Submission (M0→M3)",
   "timeline": "2.5 days",
   "total_tasks": 51,
   "submittable_after": "task_050",
   "aadf_compliant": true,
   "tdd_approach": true,
   "progress_tracking": {
-    "last_updated": "2025-10-07T00:55:00+0000",
+    "last_updated": "2025-10-07T01:30:00+0000",
     "current_milestone": "M3",
     "current_task": "task_043",
     "tasks_completed": 43,
-    "tasks_in_progress": 0,
-    "tasks_pending": 9,
+    "tasks_in_progress": 2,
+    "tasks_pending": 7,
     "tasks_blocked": 0,
     "tests_passing": {
       "unit": 116,
       "contract": 13,
-      "e2e": 0,
-      "total": 129,
+      "e2e": 9,
+      "total": 138,
       "integration": 7
     },
     "milestones_completed": [
@@ -839,7 +839,9 @@
       "dependencies": [
         "task_042"
       ],
-      "parallel_group": null
+      "parallel_group": null,
+      "status": "in_progress",
+      "started_at": "2025-10-07T01:30:00+0000"
     },
     {
       "id": "task_044",
@@ -851,7 +853,9 @@
       "dependencies": [
         "task_002"
       ],
-      "parallel_group": "M3_parallel_0"
+      "parallel_group": "M3_parallel_0",
+      "status": "in_progress",
+      "started_at": "2025-10-07T01:24:12+13:00"
     },
     {
       "id": "task_045",
