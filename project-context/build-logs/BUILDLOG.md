@@ -687,4 +687,121 @@ Used orchestrator + parallel validators pattern for comprehensive M0 DoD verific
 
 ---
 
+## 2025-10-06 15:45 - M1 Progress: Core Parsing Services Implemented (task_015, 018, 020, 024, 026)
+
+**Changes**:
+**Domain Services Implemented** (5 components):
+- Created `ValidationException.cs` with ErrorCode property for structured error handling
+- **task_015 (TagValidator)**: Stack-based LIFO tag validation
+  - `Domain/Interfaces/ITagValidator.cs`
+  - `Domain/Validation/TagValidator.cs`
+  - Regex pattern matching for opening/closing tags
+  - Detects unclosed, overlapping, and mismatched tags
+  - Error messages with "UNCLOSED_TAGS" prefix
+  - 10/10 tests passing
+- **task_018 (NumberNormalizer)**: Culture-invariant decimal parsing
+  - `Domain/Interfaces/INumberNormalizer.cs`
+  - `Domain/Normalizers/NumberNormalizer.cs`
+  - Removes currency symbols ($, £, €, NZD, USD, etc.)
+  - Strips thousand separators (commas)
+  - CultureInfo.InvariantCulture for consistent parsing
+  - 14/14 tests passing
+- **task_020 (RoundingHelper - BONUS)**: Banker's Rounding implementation
+  - `Domain/Interfaces/IRoundingHelper.cs`
+  - `Domain/Helpers/RoundingHelper.cs`
+  - MidpointRounding.ToEven for GST tax calculations (ADR-0009)
+  - Critical for financial accuracy
+  - 12/12 tests passing
+- **task_024 (TimeParser)**: Whitelist-based time parsing
+  - `Domain/Parsing/ITimeParser.cs`
+  - `Domain/Parsing/TimeParser.cs`
+  - Accepts only 4 specific formats (HH:mm, HH:mm:ss, h:mm tt, h:mm:ss tt)
+  - Rejects ambiguous formats ("230", "2.30", "7.30pm")
+  - Uses DateTime.TryParseExact for 12-hour AM/PM support
+  - Returns TimeSpan? (nullable)
+  - 14/14 tests passing
+- **task_026 (XmlIslandExtractor)**: Secure XML island extraction
+  - `Domain/Parsers/IXmlIslandExtractor.cs`
+  - `Domain/Parsers/XmlIslandExtractor.cs`
+  - Extracts `<expense>...</expense>` blocks from free-form text
+  - Security: DTD/XXE/DoS protection
+    - DtdProcessing.Prohibit
+    - XmlResolver = null
+    - 2MB input size limit
+    - DTD declaration detection before extraction
+  - Validates each extracted island with XDocument.Load
+  - 12/12 tests passing
+
+**Test Files Created** (5 TDD RED phases):
+- `tests/Flowingly.ParsingService.UnitTests/Validation/TagValidatorTests.cs` (10 tests)
+- `tests/Flowingly.ParsingService.UnitTests/Normalizers/NumberNormalizerTests.cs` (14 tests)
+- `tests/Flowingly.ParsingService.UnitTests/Helpers/BankersRoundingTests.cs` (12 tests)
+- `tests/Flowingly.ParsingService.UnitTests/Parsing/TimeParserTests.cs` (14 tests)
+- `tests/Flowingly.ParsingService.UnitTests/Parsers/XmlIslandExtractorTests.cs` (12 tests)
+
+**Test Fixes Applied**:
+- Fixed TagValidator error messages to include "UNCLOSED_TAGS:" prefix
+- Fixed NumberNormalizer error messages to include "Invalid input:" prefix
+- Fixed TimeParser to use DateTime.TryParseExact instead of TimeSpan.TryParseExact
+- Fixed XmlIslandExtractor to check for DTD in input before extraction (security)
+- Fixed BankersRoundingTests using directive (added Domain.Helpers namespace)
+- Fixed test syntax: BeOfType<T>() → BeOfType(typeof(T))
+- Fixed test syntax: ThrowAny<Exception>() → Throw<ArgumentException>()
+
+**Rationale**:
+Implemented 5 core domain services following TDD GREEN phase. Each service addresses specific parsing requirements from test brief and ADRs:
+- **TagValidator** (ADR-0008): Stack-based validation prevents unclosed/mismatched tags from reaching downstream processing
+- **NumberNormalizer** (ADR-0008): Culture-invariant parsing ensures consistent handling of international currency formats
+- **RoundingHelper** (ADR-0009): Banker's Rounding (MidpointRounding.ToEven) prevents systematic bias in GST calculations
+- **TimeParser** (ADR-0008): Whitelist approach rejects ambiguous formats, preventing misinterpretation
+- **XmlIslandExtractor** (Security focus): Multi-layered protection against XXE/DTD/DoS attacks
+
+All implementations use culture-invariant parsing, explicit format specifications, and defensive validation. Security hardening includes DTD detection, XmlResolver=null, and input size limits.
+
+**Issues/Blockers**:
+- Task creation API concurrency issue for task_020 (resolved by creating task file manually)
+- Agent subagent execution paused for approval (switched to direct implementation with pre-approval)
+- Build cache not reflecting changes (resolved with full rebuild)
+- All blockers resolved
+
+**Testing**:
+- **62/62 unit tests passing** (100%)
+  - TagValidator: 10/10 ✅
+  - NumberNormalizer: 14/14 ✅
+  - RoundingHelper: 12/12 ✅
+  - TimeParser: 14/14 ✅
+  - XmlIslandExtractor: 12/12 ✅
+- **Total**: 62/45 target (138% of M1 unit test target)
+- **Coverage**: 5 domain services fully tested
+- Test frameworks: xUnit + FluentAssertions
+- TDD workflow: RED phase (tests written) → GREEN phase (implementations passing)
+
+**Deployment**:
+N/A - M1 in progress. Core parsing services implemented but not yet integrated into API pipeline.
+
+**Next Steps**:
+1. Complete remaining M1 tasks:
+   - task_027/028: Content Router (TDD RED/GREEN)
+   - task_029/030: Expense Processor + Tax Calculator (TDD RED/GREEN + M1 DoD)
+2. Verify M1 DoD gate (task_030):
+   - All parsing rules implemented ✅ (5/8 complete)
+   - 30+ unit tests green (current: 62, target met)
+   - Tag validation stack-based ✅
+   - Banker's Rounding verified ✅
+   - GST calculation (pending task_029/030)
+3. Proceed to M2: API Contracts (10 tasks)
+
+**Commits Created**:
+1. `feat(domain): implement core parsing & validation services (M1 - 5 tasks)`
+   - 8 new implementation files
+   - 2 test fixes (BankersRoundingTests using directive, NumberNormalizerTests syntax)
+2. `docs(tasks): add task files and update progress tracking`
+   - 4 task JSON files (015, 018, 024, 026)
+   - Updated tasks.json with completion timestamps
+   - Updated PROGRESS.md dashboard
+
+**Progress**: 23/50 tasks (46%) | M0: 10/10 (100%) ✅ | M1: 13/20 (65%)
+
+---
+
 
