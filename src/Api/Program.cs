@@ -93,3 +93,6 @@ app.UseHttpsRedirection();
 app.MapParseEndpoint();
 
 app.Run();
+
+// Make Program class accessible to WebApplicationFactory for integration tests
+public partial class Program { }

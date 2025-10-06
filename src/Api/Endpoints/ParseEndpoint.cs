@@ -86,8 +86,8 @@ public static class ParseEndpoint
 
             return operation;
         })
-        .Produces<ParseResponseBase>(StatusCodes.Status200OK, "application/json", "Successful parsing (expense or other)")
-        .Produces<ErrorResponse>(StatusCodes.Status400BadRequest, "application/json", "Validation error (MISSING_TOTAL, UNCLOSED_TAGS, MALFORMED_XML)")
-        .Produces<ErrorResponse>(StatusCodes.Status500InternalServerError, "application/json", "Internal server error");
+        .Produces<ParseResponseBase>(StatusCodes.Status200OK, "application/json")
+        .Produces<ErrorResponse>(StatusCodes.Status400BadRequest, "application/json")
+        .Produces<ErrorResponse>(StatusCodes.Status500InternalServerError, "application/json");
     }
 }
