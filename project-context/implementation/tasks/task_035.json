@@ -1,0 +1,194 @@
+{
+  "task_id": "task_035",
+  "milestone": "M2",
+  "name": "Create Parse Handler",
+  "description": "Implement CQRS command handler (ParseMessageCommandHandler) using MediatR to orchestrate the parse flow: validate request, route to appropriate processor (ExpenseProcessor or OtherProcessor), generate correlation ID, build response DTOs, and handle errors.",
+
+  "agent": {
+    "primary": "dev-backend-api",
+    "role": "CQRS Handler Implementation - Orchestration layer between API endpoint and domain processors"
+  },
+
+  "duration": "1h",
+  "priority": "critical",
+  "dependencies": ["task_031", "task_034"],
+  "parallel_group": null,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 3: High-Level Solution Architecture - Command/Query separation at handler level",
+        "Section 7: Backend Design - CQRS-lite (Commands run synchronously)",
+        "Section 4.1: API Response Contract - Classification-specific (expense XOR other)",
+        "Section 4.2: Parsing & Validation Rules - Orchestration flow"
+      ],
+      "requirements": [
+        "Commands: ParseMessageCommand → ParseMessageCommandHandler",
+        "Handler mutates state (creates messages, expenses, logs)",
+        "Returns success/failure with correlation ID",
+        "Route content via IContentRouter to appropriate processor",
+        "Generate ParseResponse (expense XOR other) based on classification",
+        "Include meta (correlationId, warnings, tagsFound) in all responses"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 3,
+      "requirement": "API must accept text, validate, parse, and return structured JSON with correlation ID",
+      "grading_criteria": "Application layer orchestration demonstrates CQRS understanding and clean architecture"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0002-architecture-style.md",
+        "decision": "Clean/Hexagonal Architecture with CQRS-lite",
+        "rationale": "Command/Query separation at handler level (not full event sourcing)",
+        "context": "Application layer orchestrates domain logic without containing business rules",
+        "key_excerpt": "Commands run synchronously. No CQRS infrastructure (no separate read/write stores). Application layer: Commands/Queries, Handlers, Validators",
+        "code_example": "public class ParseMessageCommandHandler : IRequestHandler<ParseMessageCommand, ParseMessageResult>\n{\n    private readonly IContentRouter _router;\n    // ... dependencies injected\n    public async Task<ParseMessageResult> Handle(ParseMessageCommand request, CancellationToken ct)\n    {\n        // Orchestration logic\n    }\n}"
+      },
+      {
+        "file": "project-context/adr/ADR-0007-response-contract-design.md",
+        "decision": "Classification-Specific Response (Expense XOR Other)",
+        "rationale": "Handler returns ExpenseParseResponse OR OtherParseResponse based on classification",
+        "context": "Handler must detect classification and build appropriate response type",
+        "key_excerpt": "return classification == \"expense\" ? new ExpenseParseResponse { ... } : new OtherParseResponse { ... };"
+      },
+      {
+        "file": "project-context/adr/ADR-0005-versioning-via-uri.md",
+        "decision": "URI path-based versioning /api/v1/",
+        "relevance": "Handler will be invoked by /api/v1/parse endpoint",
+        "context": "Include x-api-version header in responses"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M2 — API Contracts",
+      "sub_section": "Parse Handler",
+      "requirement": "MediatR command handler implementing orchestration logic"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "ParseMessageCommand.cs",
+      "description": "Command record containing request data (text, taxRate, currency)",
+      "location": "src/Application/Commands/ParseMessageCommand.cs",
+      "properties": {
+        "Text": "string (required)",
+        "TaxRate": "decimal? (optional)",
+        "Currency": "string? (optional)"
+      }
+    },
+    {
+      "item": "ParseMessageCommandHandler.cs",
+      "description": "MediatR handler orchestrating parse flow",
+      "location": "src/Application/Handlers/ParseMessageCommandHandler.cs",
+      "responsibilities": [
+        "Generate correlation ID (Guid)",
+        "Apply default tax rate if not provided (0.15 NZD)",
+        "Route content via IContentRouter to determine classification",
+        "Invoke appropriate processor (IExpenseProcessor or IOtherProcessor)",
+        "Map domain ProcessingResult to ParseResponse DTO (expense XOR other)",
+        "Populate meta (correlationId, warnings, tagsFound)",
+        "Return ParseResponse to API endpoint"
+      ],
+      "dependencies_injected": [
+        "IContentRouter",
+        "ILogger<ParseMessageCommandHandler>"
+      ]
+    },
+    {
+      "item": "Program.cs updates",
+      "description": "Register MediatR and handlers in DI container",
+      "location": "src/Api/Program.cs",
+      "change": "Add builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));"
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ ParseMessageCommand record created with Text, TaxRate, Currency properties",
+    "✅ ParseMessageCommandHandler implements IRequestHandler<ParseMessageCommand, ParseResponse>",
+    "✅ Handler generates correlation ID (Guid.NewGuid().ToString()) at start of execution",
+    "✅ Handler applies default tax rate (0.15) when request.TaxRate is null",
+    "✅ Handler injects and uses IContentRouter to determine classification (\"expense\" or \"other\")",
+    "✅ Handler returns ExpenseParseResponse when classification is \"expense\"",
+    "✅ Handler returns OtherParseResponse when classification is \"other\"",
+    "✅ Handler NEVER returns a response with both expense and other (XOR enforcement)",
+    "✅ Meta property populated with correlationId, warnings (empty array), tagsFound (from processor result)",
+    "✅ MediatR registered in Program.cs with Assembly.GetExecutingAssembly()",
+    "✅ Solution builds with 0 warnings",
+    "✅ Handler is async (returns Task<ParseResponse>)"
+  ],
+
+  "business_rules": [
+    "Correlation ID MUST be generated at handler level (not endpoint)",
+    "Default tax rate: 0.15 (NZ GST) when request.TaxRate is null",
+    "Classification determines response type (expense XOR other)",
+    "IContentRouter.RouteAsync(text) returns classification string (\"expense\" or \"other\")",
+    "ExpenseProcessor returns ProcessingResult with ExpenseData",
+    "OtherProcessor returns ProcessingResult with OtherData",
+    "Meta MUST be present in all successful responses",
+    "Warnings array starts empty (future feature for non-blocking issues)",
+    "TagsFound array extracted from processor result",
+    "Handler does NOT contain business logic (orchestration only)",
+    "Domain exceptions (ValidationException) propagate to ExceptionMappingMiddleware (task_034)",
+    "Handler runs synchronously (no async event publishing in v1)"
+  ],
+
+  "orchestration_flow": [
+    "1. Receive ParseMessageCommand from API endpoint",
+    "2. Generate correlationId = Guid.NewGuid().ToString()",
+    "3. Apply defaults: taxRate ??= 0.15m, currency ??= \"NZD\"",
+    "4. Call IContentRouter.RouteAsync(command.Text) → classification (\"expense\" or \"other\")",
+    "5. If classification == \"expense\": invoke IExpenseProcessor.ProcessAsync(text, taxRate, currency)",
+    "6. If classification == \"other\": invoke IOtherProcessor.ProcessAsync(text)",
+    "7. Receive ProcessingResult<T> from processor (T = ExpenseData or OtherData)",
+    "8. Map ProcessingResult to ParseResponse DTO:",
+    "   - If expense: new ExpenseParseResponse { Classification = \"expense\", Expense = result.Data, Meta = ... }",
+    "   - If other: new OtherParseResponse { Classification = \"other\", Other = result.Data, Meta = ... }",
+    "9. Populate Meta: { CorrelationId = correlationId, Warnings = [], TagsFound = result.TagsFound }",
+    "10. Return ParseResponse to API endpoint (middleware handles serialization)"
+  ],
+
+  "technical_notes": {
+    "mediatr_package": "MediatR and MediatR.Extensions.Microsoft.DependencyInjection NuGet packages",
+    "registration": "builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(ParseMessageCommandHandler).Assembly));",
+    "handler_interface": "IRequestHandler<ParseMessageCommand, ParseResponse>",
+    "async_pattern": "public async Task<ParseResponse> Handle(ParseMessageCommand request, CancellationToken cancellationToken)",
+    "dotnet_command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build",
+    "dependency_injection": "Constructor injection: IContentRouter, ILogger<ParseMessageCommandHandler>",
+    "future_processors": "When adding ReservationProcessor, router will return \"reservation\", handler adds new case"
+  },
+
+  "code_examples": {
+    "command": "public record ParseMessageCommand(string Text, decimal? TaxRate = null, string? Currency = null) : IRequest<ParseResponse>;",
+    "handler_signature": "public class ParseMessageCommandHandler : IRequestHandler<ParseMessageCommand, ParseResponse>\n{\n    private readonly IContentRouter _router;\n    private readonly ILogger<ParseMessageCommandHandler> _logger;\n\n    public ParseMessageCommandHandler(IContentRouter router, ILogger<ParseMessageCommandHandler> logger)\n    {\n        _router = router;\n        _logger = logger;\n    }\n\n    public async Task<ParseResponse> Handle(ParseMessageCommand request, CancellationToken cancellationToken)\n    {\n        // Implementation\n    }\n}",
+    "handler_implementation": "public async Task<ParseResponse> Handle(ParseMessageCommand request, CancellationToken cancellationToken)\n{\n    var correlationId = Guid.NewGuid().ToString();\n    var taxRate = request.TaxRate ?? 0.15m;\n    var currency = request.Currency ?? \"NZD\";\n\n    _logger.LogInformation(\"Processing parse request. CorrelationId: {CorrelationId}\", correlationId);\n\n    // Route to determine classification\n    var classification = await _router.RouteAsync(request.Text);\n\n    // Invoke appropriate processor and build response\n    if (classification == \"expense\")\n    {\n        var processor = _serviceProvider.GetRequiredService<IExpenseProcessor>();\n        var result = await processor.ProcessAsync(request.Text, taxRate, currency);\n        \n        return new ExpenseParseResponse\n        {\n            Classification = \"expense\",\n            Expense = result.Data,\n            Meta = new ResponseMeta\n            {\n                CorrelationId = correlationId,\n                Warnings = new List<string>(),\n                TagsFound = result.TagsFound\n            }\n        };\n    }\n    else\n    {\n        var processor = _serviceProvider.GetRequiredService<IOtherProcessor>();\n        var result = await processor.ProcessAsync(request.Text);\n        \n        return new OtherParseResponse\n        {\n            Classification = \"other\",\n            Other = result.Data,\n            Meta = new ResponseMeta\n            {\n                CorrelationId = correlationId,\n                Warnings = new List<string>(),\n                TagsFound = result.TagsFound\n            }\n        };\n    }\n}",
+    "program_registration": "// Program.cs\nbuilder.Services.AddMediatR(cfg => \n    cfg.RegisterServicesFromAssembly(typeof(ParseMessageCommandHandler).Assembly)\n);\n\n// Domain services\nbuilder.Services.AddScoped<IContentRouter, ContentRouter>();\nbuilder.Services.AddScoped<IExpenseProcessor, ExpenseProcessor>();\nbuilder.Services.AddScoped<IOtherProcessor, OtherProcessor>();"
+  },
+
+  "integration_with_api_endpoint": {
+    "endpoint_pattern": "app.MapPost(\"/api/v1/parse\", async (ParseRequest request, IMediator mediator) =>\n{\n    var command = new ParseMessageCommand(request.Text, request.TaxRate, request.Currency);\n    var response = await mediator.Send(command);\n    return Results.Ok(response);\n});",
+    "note": "Endpoint created in task_036 (Wire Dependency Injection)"
+  },
+
+  "processor_interfaces_needed": {
+    "note": "These interfaces should already exist from M1 (task_030)",
+    "IExpenseProcessor": "Task<ProcessingResult<ExpenseData>> ProcessAsync(string text, decimal taxRate, string currency)",
+    "IOtherProcessor": "Task<ProcessingResult<OtherData>> ProcessAsync(string text)"
+  },
+
+  "validation": {
+    "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build",
+    "expected_output": "Build succeeded. 0 Warning(s) 0 Error(s)",
+    "manual_test_preparation": "Handler is tested end-to-end in task_037 (API Contract Tests)"
+  },
+
+  "next_task": {
+    "id": "task_036",
+    "name": "Wire Dependency Injection",
+    "why": "Handler created; now register all services (processors, validators, middleware) in Program.cs and create API endpoint",
+    "dependency": "Endpoint needs handler to be registered via MediatR"
+  }
+}
