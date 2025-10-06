@@ -50,9 +50,9 @@ export async function parseText(
     if (!response.ok) {
       const errorData: ErrorResponse = await response.json();
       throw new ApiError(
-        errorData.Message,
-        errorData.ErrorCode,
-        errorData.CorrelationId
+        errorData.message,
+        errorData.errorCode,
+        errorData.correlationId
       );
     }
 
