@@ -1,0 +1,172 @@
+{
+  "task_id": "task_032",
+  "milestone": "M2",
+  "name": "Implement FluentValidation",
+  "description": "Implement FluentValidation rules for ParseRequest DTO to validate text (required, max length), taxRate (range 0-1), and other request constraints. Provides declarative validation before handler execution.",
+
+  "agent": {
+    "primary": "dev-backend-api",
+    "role": "Request Validation Implementation"
+  },
+
+  "duration": "30min",
+  "priority": "critical",
+  "dependencies": ["task_031"],
+  "parallel_group": null,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 4.1: API - Request validation (text required, taxRate optional)",
+        "Section 4.2: Parsing & Validation Rules - Input constraints",
+        "Section 11: Request/Response Contracts - ParseRequest schema"
+      ],
+      "requirements": [
+        "Text field is REQUIRED (cannot be empty or whitespace)",
+        "TaxRate is OPTIONAL (if provided, must be 0-1 range for valid percentage)",
+        "Payload size limit: 256KB max (from config MaxPayloadBytes)",
+        "Validation errors return 400 with clear error messages"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 3,
+      "requirement": "API must validate input and reject malformed requests",
+      "grading_criteria": "Input validation affects API contract quality grade"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0008-parsing-validation-rules.md",
+        "decision": "Tax Rate Precedence Chain with validation",
+        "rationale": "Request taxRate must be validated before precedence resolution",
+        "context": "TaxRate validation ensures range 0-1 (percentage) before processing",
+        "key_excerpt": "If requestTaxRate.HasValue, validate range before using it"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M2 — API Contracts",
+      "sub_section": "Request Validation",
+      "requirement": "Use FluentValidation for declarative request validation rules"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "ParseRequestValidator.cs",
+      "description": "FluentValidation validator for ParseRequest",
+      "location": "src/Application/Validators/ParseRequestValidator.cs",
+      "validation_rules": [
+        "Text: NotEmpty, MaxLength (from config or 256KB default)",
+        "TaxRate: Range(0, 1) if provided (nullable allowed)",
+        "Currency: MaxLength(3) if provided (ISO 4217 code)"
+      ]
+    },
+    {
+      "item": "ValidationBehavior.cs",
+      "description": "MediatR pipeline behavior to run validators automatically",
+      "location": "src/Application/Behaviors/ValidationBehavior.cs",
+      "purpose": "Intercepts commands before handler, runs validators, throws ValidationException on failure"
+    },
+    {
+      "item": "Program.cs (updated)",
+      "description": "Register FluentValidation and validation behavior in DI",
+      "location": "src/Api/Program.cs",
+      "registration_code": "builder.Services.AddValidatorsFromAssemblyContaining<ParseRequestValidator>();\nbuilder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));"
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ ParseRequestValidator created with FluentValidation rules",
+    "✅ Text validation: NotEmpty(), MaximumLength(262144) [256KB]",
+    "✅ TaxRate validation: InclusiveBetween(0, 1) when HasValue",
+    "✅ Currency validation: MaximumLength(3) when not null",
+    "✅ ValidationBehavior intercepts all commands in pipeline",
+    "✅ Validation failures throw ValidationException with error details",
+    "✅ FluentValidation registered in DI container",
+    "✅ All validators discovered via assembly scanning",
+    "✅ Validator tests pass (validate valid/invalid inputs)"
+  ],
+
+  "business_rules": [
+    "Text is MANDATORY - reject empty or whitespace-only text with 400",
+    "TaxRate range: 0.0 to 1.0 (percentage representation, e.g., 0.15 = 15%)",
+    "TaxRate is nullable (null allowed, but if present must be in range)",
+    "Currency code: 3-character ISO 4217 code (e.g., NZD, USD, EUR)",
+    "Max payload size: 262144 bytes (256KB) to prevent DOS attacks",
+    "Validation runs BEFORE handler execution (fail fast)",
+    "Validation errors include field names and human-readable messages",
+    "Multiple validation errors collected and returned together"
+  ],
+
+  "technical_notes": {
+    "nuget_package": "FluentValidation.AspNetCore (already installed from M0)",
+    "validator_pattern": "AbstractValidator<T> with RuleFor(x => x.Property)",
+    "pipeline_behavior": "IPipelineBehavior<TRequest, TResponse> for MediatR",
+    "validation_exception": "Throw ValidationException (from Domain) with aggregated errors",
+    "assembly_scanning": "AddValidatorsFromAssemblyContaining<T>() finds all validators"
+  },
+
+  "code_examples": {
+    "validator": "public class ParseRequestValidator : AbstractValidator<ParseRequest>\n{\n    public ParseRequestValidator(IConfiguration config)\n    {\n        RuleFor(x => x.Text)\n            .NotEmpty().WithMessage(\"Text is required\")\n            .MaximumLength(config.GetValue<int>(\"Parsing:MaxPayloadBytes\", 262144))\n            .WithMessage(\"Text exceeds maximum length\");\n\n        RuleFor(x => x.TaxRate)\n            .InclusiveBetween(0m, 1m)\n            .When(x => x.TaxRate.HasValue)\n            .WithMessage(\"Tax rate must be between 0 and 1\");\n\n        RuleFor(x => x.Currency)\n            .MaximumLength(3)\n            .When(x => !string.IsNullOrEmpty(x.Currency))\n            .WithMessage(\"Currency must be 3-character ISO code\");\n    }\n}",
+    "pipeline_behavior": "public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>\n    where TRequest : IRequest<TResponse>\n{\n    private readonly IEnumerable<IValidator<TRequest>> _validators;\n\n    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken ct)\n    {\n        if (_validators.Any())\n        {\n            var context = new ValidationContext<TRequest>(request);\n            var failures = _validators\n                .Select(v => v.Validate(context))\n                .SelectMany(result => result.Errors)\n                .Where(f => f != null)\n                .ToList();\n\n            if (failures.Any())\n                throw new ValidationException(failures);\n        }\n\n        return await next();\n    }\n}",
+    "di_registration": "// In Program.cs\nbuilder.Services.AddValidatorsFromAssemblyContaining<ParseRequestValidator>();\nbuilder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));"
+  },
+
+  "validation_scenarios": [
+    {
+      "scenario": "Valid request with all fields",
+      "input": "{ Text: 'sample', TaxRate: 0.15, Currency: 'NZD' }",
+      "expected": "Validation passes, handler executes"
+    },
+    {
+      "scenario": "Valid request with minimal fields",
+      "input": "{ Text: 'sample', TaxRate: null, Currency: null }",
+      "expected": "Validation passes (nullable fields allowed)"
+    },
+    {
+      "scenario": "Empty text",
+      "input": "{ Text: '', TaxRate: 0.15 }",
+      "expected": "ValidationException: 'Text is required'"
+    },
+    {
+      "scenario": "Whitespace-only text",
+      "input": "{ Text: '   ', TaxRate: 0.15 }",
+      "expected": "ValidationException: 'Text is required'"
+    },
+    {
+      "scenario": "TaxRate out of range (negative)",
+      "input": "{ Text: 'sample', TaxRate: -0.1 }",
+      "expected": "ValidationException: 'Tax rate must be between 0 and 1'"
+    },
+    {
+      "scenario": "TaxRate out of range (>1)",
+      "input": "{ Text: 'sample', TaxRate: 1.5 }",
+      "expected": "ValidationException: 'Tax rate must be between 0 and 1'"
+    },
+    {
+      "scenario": "Currency code too long",
+      "input": "{ Text: 'sample', Currency: 'NZDD' }",
+      "expected": "ValidationException: 'Currency must be 3-character ISO code'"
+    },
+    {
+      "scenario": "Text exceeds max length",
+      "input": "{ Text: '<300KB string>', TaxRate: 0.15 }",
+      "expected": "ValidationException: 'Text exceeds maximum length'"
+    }
+  ],
+
+  "validation": {
+    "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build",
+    "expected_output": "Build succeeded. 0 Warning(s) 0 Error(s)",
+    "manual_test": "POST request with empty text returns 400 with validation error"
+  },
+
+  "next_task": {
+    "id": "task_033",
+    "name": "Create Error Codes & Models",
+    "why": "Validation throws exceptions; need error codes and models for API error responses",
+    "dependency": "Error codes (UNCLOSED_TAGS, MISSING_TOTAL, INVALID_REQUEST, etc.) needed for error mapping"
+  }
+}

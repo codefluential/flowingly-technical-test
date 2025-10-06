@@ -1,0 +1,208 @@
+{
+  "task_id": "task_033",
+  "milestone": "M2",
+  "name": "Create Error Codes & Models",
+  "description": "Define error code constants and error response models for consistent API error handling. Maps domain/validation exceptions to HTTP 400 responses with machine-readable codes and human-friendly messages.",
+
+  "agent": {
+    "primary": "dev-backend-api",
+    "role": "Error Contract Definition"
+  },
+
+  "duration": "30min",
+  "priority": "critical",
+  "dependencies": ["task_031"],
+  "parallel_group": null,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 4.1: API - Error Responses (400 with error codes)",
+        "Section 4.2: Parsing & Validation Rules - Error triggers",
+        "Section 20.2: Error Codes - Complete catalog"
+      ],
+      "requirements": [
+        "Error response format: { error: { code, message, details }, correlationId }",
+        "HTTP 400 for client errors: UNCLOSED_TAGS, MISSING_TOTAL, EMPTY_TEXT, INVALID_REQUEST",
+        "HTTP 500 for server errors: INTERNAL_ERROR",
+        "Error codes are machine-readable (uppercase snake_case)",
+        "Error messages are human-friendly for debugging"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 2,
+      "requirement": "Validation errors must return clear error codes",
+      "grading_criteria": "Error handling clarity affects API design grade"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0008-parsing-validation-rules.md",
+        "decision": "Stack-based Tag Validation (Not Regex Balance)",
+        "rationale": "Specific error codes for tag validation failures",
+        "context": "Tag validation triggers specific errors",
+        "key_errors": [
+          "UNCLOSED_TAGS - when tags are not properly closed",
+          "MALFORMED_TAGS - when tags overlap (e.g., <a><b></a></b>)",
+          "UNEXPECTED_CLOSING_TAG - when closing tag appears without opening"
+        ],
+        "key_excerpt": "Stack-based parser returns specific error when closing tag doesn't match: 'Expected </b>, found </a>'"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M2 — API Contracts",
+      "sub_section": "Error Handling",
+      "requirement": "Standardized error response with codes, messages, and correlation IDs"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "ErrorCodes.cs",
+      "description": "Static class with error code constants",
+      "location": "src/Domain/Constants/ErrorCodes.cs",
+      "error_codes": [
+        "UNCLOSED_TAGS",
+        "MALFORMED_TAGS",
+        "MISSING_TOTAL",
+        "EMPTY_TEXT",
+        "INVALID_REQUEST",
+        "MISSING_TAXRATE",
+        "INTERNAL_ERROR"
+      ]
+    },
+    {
+      "item": "ErrorResponse.cs",
+      "description": "API error response DTO (already in task_031, may need updates)",
+      "location": "contracts/ErrorResponse.cs",
+      "properties": {
+        "Error": "ErrorDetail",
+        "CorrelationId": "Guid"
+      }
+    },
+    {
+      "item": "ErrorDetail.cs",
+      "description": "Error detail DTO (already in task_031, may need updates)",
+      "location": "contracts/ErrorDetail.cs",
+      "properties": {
+        "Code": "string (from ErrorCodes constants)",
+        "Message": "string (human-readable)",
+        "Details": "object? (additional context, e.g., unclosed tag names)"
+      }
+    },
+    {
+      "item": "ErrorMessages.cs",
+      "description": "Static class mapping error codes to human-friendly messages",
+      "location": "src/Domain/Constants/ErrorMessages.cs",
+      "purpose": "Centralized message templates for consistent error responses"
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ ErrorCodes.cs created with all required error code constants",
+    "✅ All error codes are uppercase snake_case (e.g., UNCLOSED_TAGS)",
+    "✅ ErrorResponse and ErrorDetail DTOs defined (or verified from task_031)",
+    "✅ ErrorMessages.cs maps codes to human-friendly messages",
+    "✅ Error codes match PRD Section 20.2 catalog",
+    "✅ Details field allows dynamic error context (e.g., list of unclosed tags)",
+    "✅ CorrelationId included in all error responses",
+    "✅ Error models are serializable to JSON with camelCase",
+    "✅ XML documentation comments on all error code constants"
+  ],
+
+  "business_rules": [
+    "Error codes are IMMUTABLE constants (uppercase snake_case)",
+    "Error messages are HUMAN-READABLE (not technical stack traces)",
+    "Details field contains ACTIONABLE information (e.g., which tags are unclosed)",
+    "CorrelationId is REQUIRED for all error responses (traceability)",
+    "HTTP 400 for CLIENT errors (validation, missing data, malformed input)",
+    "HTTP 500 for SERVER errors (unexpected exceptions, infrastructure failures)",
+    "Error responses follow same JSON structure as success responses (consistent API)",
+    "Error codes never change (API contract stability)"
+  ],
+
+  "error_catalog": [
+    {
+      "code": "UNCLOSED_TAGS",
+      "http_status": 400,
+      "trigger": "Tag validation detects unclosed tags",
+      "message": "Input contains unclosed tags",
+      "details_example": "{ unclosedTags: ['vendor', 'total'] }"
+    },
+    {
+      "code": "MALFORMED_TAGS",
+      "http_status": 400,
+      "trigger": "Tag validation detects overlapping/improperly nested tags",
+      "message": "Input contains malformed tags",
+      "details_example": "{ expected: '</b>', found: '</a>', position: 45 }"
+    },
+    {
+      "code": "MISSING_TOTAL",
+      "http_status": 400,
+      "trigger": "Expense processing requires <total> but not found",
+      "message": "Expense requires a total amount",
+      "details_example": "{ requiredTag: 'total' }"
+    },
+    {
+      "code": "EMPTY_TEXT",
+      "http_status": 400,
+      "trigger": "ParseRequest.Text is null, empty, or whitespace",
+      "message": "Text content is required",
+      "details_example": null
+    },
+    {
+      "code": "INVALID_REQUEST",
+      "http_status": 400,
+      "trigger": "FluentValidation failures (taxRate out of range, etc.)",
+      "message": "Request validation failed",
+      "details_example": "{ errors: [{ field: 'taxRate', message: 'Must be between 0 and 1' }] }"
+    },
+    {
+      "code": "MISSING_TAXRATE",
+      "http_status": 400,
+      "trigger": "StrictTaxRate=true and no taxRate provided (request or config)",
+      "message": "Tax rate is required in strict mode",
+      "details_example": "{ strictMode: true }"
+    },
+    {
+      "code": "INTERNAL_ERROR",
+      "http_status": 500,
+      "trigger": "Unhandled exceptions, infrastructure failures",
+      "message": "An unexpected error occurred",
+      "details_example": "{ reference: 'Contact support with correlation ID' }"
+    }
+  ],
+
+  "code_examples": {
+    "error_codes": "public static class ErrorCodes\n{\n    // Tag validation errors\n    public const string UNCLOSED_TAGS = \"UNCLOSED_TAGS\";\n    public const string MALFORMED_TAGS = \"MALFORMED_TAGS\";\n    public const string UNEXPECTED_CLOSING_TAG = \"UNEXPECTED_CLOSING_TAG\";\n\n    // Expense processing errors\n    public const string MISSING_TOTAL = \"MISSING_TOTAL\";\n    public const string MISSING_TAXRATE = \"MISSING_TAXRATE\";\n\n    // Request validation errors\n    public const string EMPTY_TEXT = \"EMPTY_TEXT\";\n    public const string INVALID_REQUEST = \"INVALID_REQUEST\";\n\n    // Server errors\n    public const string INTERNAL_ERROR = \"INTERNAL_ERROR\";\n}",
+    "error_messages": "public static class ErrorMessages\n{\n    private static readonly Dictionary<string, string> Messages = new()\n    {\n        { ErrorCodes.UNCLOSED_TAGS, \"Input contains unclosed tags. Please ensure all tags are properly closed.\" },\n        { ErrorCodes.MALFORMED_TAGS, \"Input contains malformed or overlapping tags. Please check tag nesting.\" },\n        { ErrorCodes.MISSING_TOTAL, \"Expense requires a total amount. Please include a <total> tag.\" },\n        { ErrorCodes.EMPTY_TEXT, \"Text content is required and cannot be empty.\" },\n        { ErrorCodes.INVALID_REQUEST, \"Request validation failed. Please check input parameters.\" },\n        { ErrorCodes.MISSING_TAXRATE, \"Tax rate is required in strict mode. Please provide a taxRate parameter.\" },\n        { ErrorCodes.INTERNAL_ERROR, \"An unexpected error occurred. Please contact support with the correlation ID.\" }\n    };\n\n    public static string GetMessage(string errorCode) => \n        Messages.TryGetValue(errorCode, out var message) ? message : \"Unknown error occurred\";\n}",
+    "error_response_usage": "// Building error response\nvar errorResponse = new ErrorResponse\n{\n    Error = new ErrorDetail\n    {\n        Code = ErrorCodes.UNCLOSED_TAGS,\n        Message = ErrorMessages.GetMessage(ErrorCodes.UNCLOSED_TAGS),\n        Details = new { unclosedTags = new[] { \"vendor\", \"total\" } }\n    },\n    CorrelationId = correlationId\n};\n\nreturn Results.BadRequest(errorResponse);"
+  },
+
+  "json_examples": {
+    "unclosed_tags_error": "{\n  \"error\": {\n    \"code\": \"UNCLOSED_TAGS\",\n    \"message\": \"Input contains unclosed tags. Please ensure all tags are properly closed.\",\n    \"details\": {\n      \"unclosedTags\": [\"vendor\", \"total\"]\n    }\n  },\n  \"correlationId\": \"550e8400-e29b-41d4-a716-446655440000\"\n}",
+    "missing_total_error": "{\n  \"error\": {\n    \"code\": \"MISSING_TOTAL\",\n    \"message\": \"Expense requires a total amount. Please include a <total> tag.\",\n    \"details\": {\n      \"requiredTag\": \"total\"\n    }\n  },\n  \"correlationId\": \"550e8400-e29b-41d4-a716-446655440001\"\n}",
+    "validation_error": "{\n  \"error\": {\n    \"code\": \"INVALID_REQUEST\",\n    \"message\": \"Request validation failed. Please check input parameters.\",\n    \"details\": {\n      \"errors\": [\n        {\n          \"field\": \"taxRate\",\n          \"message\": \"Must be between 0 and 1\"\n        }\n      ]\n    }\n  },\n  \"correlationId\": \"550e8400-e29b-41d4-a716-446655440002\"\n}"
+  },
+
+  "swagger_documentation": {
+    "requirement": "Document all error codes in Swagger UI",
+    "schema_example": "[SwaggerResponse(400, \"Validation error\", typeof(ErrorResponse))]\n[SwaggerResponseExample(400, typeof(UnclosedTagsErrorExample))]",
+    "note": "Error examples added in task_038 (Create Swagger Examples)"
+  },
+
+  "validation": {
+    "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build",
+    "expected_output": "Build succeeded. 0 Warning(s) 0 Error(s)",
+    "manual_check": "All error codes defined, messages mapped, DTOs complete"
+  },
+
+  "next_task": {
+    "id": "task_034",
+    "name": "Implement Error Mapping",
+    "why": "Error codes and models exist; now map domain/validation exceptions to error responses",
+    "dependency": "Need to convert ValidationException/DomainException to ErrorResponse with appropriate codes"
+  }
+}
