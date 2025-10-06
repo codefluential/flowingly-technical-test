@@ -1,8 +1,8 @@
 # Implementation Progress Tracker
 
-**Last Updated**: 2025-10-06 13:14
+**Last Updated**: 2025-10-06 13:37
 **Current Phase**: Planning Complete → Ready for Implementation
-**Overall Progress**: 11/50 tasks (22%)
+**Overall Progress**: 10/50 tasks (20%)
 
 ---
 
@@ -11,9 +11,9 @@
 | Metric | Status |
 |--------|--------|
 | **Phase** | Phase 1: Core Submission (M0→M3) |
-| **Current Milestone** | M0: Minimal Scaffold |
-| **Current Task** | task_010: Verify M0 DoD |
-| **Tasks Completed** | 11/50 (22%) |
+| **Current Milestone** | M1: Core Parsing & Validation |
+| **Current Task** | task_011: Create Test Fixtures from Brief |
+| **Tasks Completed** | 10/50 (20%) |
 | **Tests Passing** | 0/45 (0 unit, 0 contract, 0 E2E) |
 | **Blockers** | None |
 

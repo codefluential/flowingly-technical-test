@@ -208,6 +208,22 @@
             background: #fff3cd;
         }
 
+        .task.ready-to-start {
+            border-left-color: #28a745;
+            background: linear-gradient(90deg, #d4edda 0%, #e7f5e9 50%, #d4edda 100%);
+            background-size: 200% 100%;
+            animation: readyPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes readyPulse {
+            0%, 100% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
         .task-header {
             display: flex;
             justify-content: space-between;
@@ -269,6 +285,43 @@
         .badge.parallel {
             background: #17a2b8;
             color: white;
+        }
+
+        .badge.ready {
+            background: #28a745;
+            color: white;
+        }
+
+        .dependencies {
+            display: inline-flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-left: 8px;
+            align-items: center;
+        }
+
+        .dependencies-label {
+            font-size: 11px;
+            color: #666;
+            margin-right: 4px;
+        }
+
+        .dependencies-label.all-complete {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .dependency-tag {
+            background: #e9ecef;
+            padding: 2px 5px;
+            border-radius: 2px;
+            font-size: 10px;
+            font-family: monospace;
+        }
+
+        .dependency-tag.completed {
+            background: #d4edda;
+            color: #155724;
         }
 
         .dod-section {
@@ -435,12 +488,37 @@
         function renderTasks(tasks, parallelGroups) {
             let html = '';
 
+            // Create a lookup map for task status
+            const taskStatusMap = {};
+            tasks.forEach(t => {
+                taskStatusMap[t.id] = t.status || 'pending';
+            });
+
             tasks.forEach(task => {
                 const statusClass = task.status || 'pending';
                 const badges = [];
 
+                // Check if all dependencies are met
+                let allDepsComplete = false;
+                if (task.dependencies && task.dependencies.length > 0) {
+                    allDepsComplete = task.dependencies.every(depId => {
+                        return taskStatusMap[depId] === 'completed';
+                    });
+                } else {
+                    // No dependencies means ready to start
+                    allDepsComplete = true;
+                }
+
+                // Determine if task is ready to start
+                const isReadyToStart = statusClass === 'pending' && allDepsComplete;
+
                 // Status badge
                 badges.push(`<span class="badge ${statusClass}">${statusClass.replace('_', ' ')}</span>`);
+
+                // Ready badge
+                if (isReadyToStart) {
+                    badges.push(`<span class="badge ready">READY</span>`);
+                }
 
                 // TDD phase badge
                 if (task.tdd_phase) {
@@ -457,14 +535,36 @@
                     badges.push(`<span class="badge parallel">PARALLEL</span>`);
                 }
 
+                // Render dependencies inline
+                let dependenciesHtml = '';
+                if (task.dependencies && task.dependencies.length > 0) {
+                    const dependencyTags = task.dependencies.map(depId => {
+                        const depStatus = taskStatusMap[depId] || 'unknown';
+                        const depClass = depStatus === 'completed' ? 'completed' : '';
+                        return `<span class="dependency-tag ${depClass}">${depId}</span>`;
+                    }).join('');
+
+                    const labelClass = allDepsComplete ? 'all-complete' : '';
+
+                    dependenciesHtml = `
+                        <span class="dependencies">
+                            <span class="dependencies-label ${labelClass}">deps:</span>
+                            ${dependencyTags}
+                        </span>
+                    `;
+                }
+
+                // Add ready-to-start class if applicable
+                const readyClass = isReadyToStart ? 'ready-to-start' : '';
+
                 html += `
-                    <div class="task ${statusClass}">
+                    <div class="task ${statusClass} ${readyClass}">
                         <div class="task-header">
                             <div class="task-title">
                                 ${task.status === 'completed' ? '✅' :
                                   task.status === 'in_progress' ? '🔄' :
                                   task.status === 'blocked' ? '⚠️' : '⏳'}
-                                ${task.id}: ${task.name}
+                                ${task.id}: ${task.name}${dependenciesHtml}
                             </div>
                             <div class="task-meta">
                                 ${badges.join(' ')}
