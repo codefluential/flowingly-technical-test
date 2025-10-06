@@ -5,8 +5,11 @@ using Flowingly.ParsingService.Application.Behaviors;
 using Flowingly.ParsingService.Domain.Interfaces;
 using Flowingly.ParsingService.Domain.Services;
 using Flowingly.ParsingService.Domain.Validation;
+using Flowingly.ParsingService.Domain.Parsing;
 using Flowingly.ParsingService.Domain.Parsers;
 using Flowingly.ParsingService.Domain.Processors;
+using Flowingly.ParsingService.Domain.Normalizers;
+using Flowingly.ParsingService.Domain.Helpers;
 using Flowingly.ParsingService.Infrastructure.Repositories;
 using FluentValidation;
 using MediatR;
@@ -35,17 +38,24 @@ builder.Services.AddMediatR(cfg =>
     cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 });
 
-// Register Domain Services
+// Register Domain Services (Scoped - may have state during request processing)
 builder.Services.AddScoped<ITagValidator, TagValidator>();
 builder.Services.AddScoped<IXmlIslandExtractor, XmlIslandExtractor>();
 builder.Services.AddScoped<ITaxCalculator, TaxCalculator>();
+builder.Services.AddScoped<ITimeParser, TimeParser>();
+
+// Register Domain Helpers & Normalizers (Singleton - pure functions, stateless)
+builder.Services.AddSingleton<IRoundingHelper, RoundingHelper>();
+builder.Services.AddSingleton<NumberNormalizer>();
+
+// Register Content Router (Scoped - orchestrates processors per request)
 builder.Services.AddScoped<ContentRouter>();
 
-// Register Processors (for Strategy pattern)
+// Register Processors (Strategy pattern - both registered as IContentProcessor)
 builder.Services.AddScoped<IContentProcessor, ExpenseProcessor>();
 builder.Services.AddScoped<IContentProcessor, OtherProcessor>();
 
-// Register Repositories
+// Register Repositories (Scoped - per-request database context)
 builder.Services.AddScoped<IExpenseRepository, InMemoryExpenseRepository>();
 
 // Add CORS for local development

@@ -1,0 +1,224 @@
+{
+  "task_id": "task_038",
+  "milestone": "M2",
+  "name": "Create Swagger Examples",
+  "description": "Enhance Swagger/OpenAPI documentation with comprehensive examples for all request/response scenarios. Add example requests for happy path, validation errors, and edge cases. Include detailed response examples for successful expense parsing, error responses, and other/unprocessed content. Ensure Swagger UI provides clear, copy-pasteable examples for API consumers.",
+
+  "agent": {
+    "primary": "dev-backend-api",
+    "role": "Backend API development specialist for Swagger/OpenAPI documentation and examples"
+  },
+
+  "duration": "45min",
+  "priority": "high",
+  "dependencies": ["task_035"],
+  "parallel_group": "M2_parallel_1",
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 11: Request/Response Contracts",
+        "Section 11.2: Response Contract - Classification-Specific (Expense XOR Other)",
+        "Section 10: Parsing Rules - Tag validation, XML extraction",
+        "Section 13: BDD Scenarios - Example inputs and expected outputs"
+      ],
+      "requirements": [
+        "Request examples with inline tags and XML islands",
+        "Response examples for successful expense parsing",
+        "Response examples for validation errors (MISSING_TOTAL, UNCLOSED_TAGS, MALFORMED_XML)",
+        "Response examples for other/unprocessed content",
+        "Examples showing correlation ID in all responses",
+        "Examples showing GST calculation with Banker's Rounding"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 3,
+      "requirement": "API documentation with clear examples for testing and integration",
+      "grading_criteria": "Documentation quality and developer experience"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0004-swagger-api-contract.md",
+        "decision": "Swagger/OpenAPI for API documentation and contract specification",
+        "rationale": "Interactive documentation, single source of truth, review-friendly",
+        "context": "Swagger UI allows developers to test endpoints directly with example requests",
+        "key_excerpt": "Annotate API endpoints and DTOs with XML comments and attributes. Add example schemas using SwaggerOperation and SwaggerResponse attributes."
+      },
+      {
+        "file": "project-context/adr/ADR-0007-response-contract-design.md",
+        "decision": "Classification-Specific Response (Expense XOR Other)",
+        "context": "Response MUST be expense XOR other, never both",
+        "key_excerpt": "Example expense response and example other response show mutually exclusive structure"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M2 — API Contracts",
+      "sub_section": "Swagger Examples",
+      "requirement": "Comprehensive request/response examples for all scenarios in Swagger UI"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "ParseEndpoint.cs (enhanced)",
+      "description": "Add WithOpenApi() configuration with detailed examples",
+      "location": "src/Api/Endpoints/",
+      "examples": [
+        "Happy path expense parsing",
+        "Missing total error",
+        "Unclosed tags error",
+        "Malformed XML error",
+        "Other/unprocessed content"
+      ]
+    },
+    {
+      "item": "Program.cs (Swagger config enhanced)",
+      "description": "Add example filters and operation filters if needed",
+      "location": "src/Api/",
+      "optional": true
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ Request example with inline tags (e.g., <vendor>Mojo Coffee</vendor><total>120.50</total>)",
+    "✅ Request example with XML island (e.g., <expense><cost_centre>DEV002</cost_centre><total>1024.01</total></expense>)",
+    "✅ Response example for successful expense (classification: expense, with GST breakdown)",
+    "✅ Response example for MISSING_TOTAL error (400 status)",
+    "✅ Response example for UNCLOSED_TAGS error (400 status)",
+    "✅ Response example for MALFORMED_XML error (400 status)",
+    "✅ Response example for other/unprocessed content (classification: other)",
+    "✅ All examples show correlation ID field",
+    "✅ Expense examples show correct GST calculation with Banker's Rounding",
+    "✅ Examples are copy-pasteable from Swagger UI",
+    "✅ Swagger UI renders examples clearly under \"Example Value\" section",
+    "✅ Solution builds with 0 errors, 0 warnings",
+    "✅ PATH export included in all dotnet commands"
+  ],
+
+  "business_rules": [
+    "Response MUST be expense XOR other (never both) - examples reflect this",
+    "All responses MUST include correlation ID - show in all examples",
+    "Error responses use standard error codes: MISSING_TOTAL, UNCLOSED_TAGS, MALFORMED_XML",
+    "Expense examples MUST show GST calculation: total (inclusive) → excludingTax + salesTax",
+    "GST calculation uses Banker's Rounding (MidpointRounding.ToEven) - examples show correct rounding",
+    "Default tax rate: 0.15 (NZ GST) unless request specifies otherwise",
+    "Default currency: NZD unless request specifies otherwise",
+    "Tag validation examples show stack-based validation (reject overlapping tags)"
+  ],
+
+  "technical_notes": {
+    "dotnet_commands": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build && dotnet run --project src/Api",
+    "swagger_ui_access": "Navigate to http://localhost:5000/swagger to view examples",
+    "openapi_spec": "Generated at http://localhost:5000/swagger/v1/swagger.json",
+    "example_methods": [
+      "WithOpenApi() on endpoint mapping",
+      "SwaggerOperation attribute on handler methods",
+      "SwaggerResponse attribute for status codes",
+      "Example property on request/response DTOs"
+    ]
+  },
+
+  "code_examples": {
+    "endpoint_with_examples": ".WithOpenApi(operation => new(operation)\n{\n    Summary = \"Parse text content for expense claims\",\n    Description = \"Accepts free-form text with inline tags or XML islands...\",\n    RequestBody = new OpenApiRequestBody\n    {\n        Content = new Dictionary<string, OpenApiMediaType>\n        {\n            [\"application/json\"] = new OpenApiMediaType\n            {\n                Example = new OpenApiString(@\"\n                {\n                    'text': 'Hi Yvaine, Please create an expense claim. <vendor>Mojo Coffee</vendor><total>120.50</total><payment_method>personal card</payment_method>',\n                    'taxRate': 0.15,\n                    'currency': 'NZD'\n                }\")\n            }\n        }\n    },\n    Responses = new OpenApiResponses\n    {\n        [\"200\"] = new OpenApiResponse\n        {\n            Description = \"Success - Expense parsed\",\n            Content = new Dictionary<string, OpenApiMediaType>\n            {\n                [\"application/json\"] = new OpenApiMediaType\n                {\n                    Example = new OpenApiString(@\"\n                    {\n                        'correlationId': 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',\n                        'classification': 'expense',\n                        'expense': {\n                            'vendor': 'Mojo Coffee',\n                            'description': null,\n                            'date': null,\n                            'total': 120.50,\n                            'excludingTax': 104.78,\n                            'salesTax': 15.72,\n                            'costCentre': 'UNKNOWN',\n                            'paymentMethod': 'personal card'\n                        },\n                        'other': null\n                    }\")\n                }\n            }\n        },\n        [\"400\"] = new OpenApiResponse\n        {\n            Description = \"Validation Error\",\n            Content = new Dictionary<string, OpenApiMediaType>\n            {\n                [\"application/json\"] = new OpenApiMediaType\n                {\n                    Example = new OpenApiString(@\"\n                    {\n                        'correlationId': 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',\n                        'error': {\n                            'code': 'MISSING_TOTAL',\n                            'message': 'Expense claims must include a total amount',\n                            'details': null\n                        }\n                    }\")\n                }\n            }\n        }\n    }\n})",
+
+    "xml_island_example": "{\n  'text': 'Hi Yvaine, Please create an expense claim for the below. <expense><cost_centre>DEV002</cost_centre><total>1024.01</total><payment_method>personal card</payment_method></expense>',\n  'taxRate': 0.15,\n  'currency': 'NZD'\n}",
+
+    "error_example_unclosed_tags": "{\n  'correlationId': 'abc123...',\n  'error': {\n    'code': 'UNCLOSED_TAGS',\n    'message': 'Input contains unclosed or overlapping tags',\n    'details': 'Tag <expense> was not properly closed'\n  }\n}",
+
+    "error_example_missing_total": "{\n  'correlationId': 'abc123...',\n  'error': {\n    'code': 'MISSING_TOTAL',\n    'message': 'Expense claims must include a total amount',\n    'details': null\n  }\n}",
+
+    "other_content_example": "{\n  'correlationId': 'abc123...',\n  'classification': 'other',\n  'expense': null,\n  'other': {\n    'rawText': 'Please update the system settings for the dashboard.',\n    'contentType': 'unprocessed',\n    'reason': 'No expense-related content detected'\n  }\n}"
+  },
+
+  "example_scenarios": [
+    {
+      "name": "Happy Path - Inline Tags",
+      "request": {
+        "text": "Hi Yvaine, Please create an expense claim. <vendor>Mojo Coffee</vendor><total>120.50</total><payment_method>personal card</payment_method>",
+        "taxRate": 0.15,
+        "currency": "NZD"
+      },
+      "response": {
+        "status": 200,
+        "classification": "expense",
+        "vendor": "Mojo Coffee",
+        "total": 120.50,
+        "excludingTax": 104.78,
+        "salesTax": 15.72
+      }
+    },
+    {
+      "name": "Happy Path - XML Island",
+      "request": {
+        "text": "Hi Yvaine, Please create an expense claim for the below. <expense><cost_centre>DEV002</cost_centre><total>1024.01</total><payment_method>personal card</payment_method></expense>",
+        "taxRate": 0.15,
+        "currency": "NZD"
+      },
+      "response": {
+        "status": 200,
+        "classification": "expense",
+        "total": 1024.01,
+        "excludingTax": 890.44,
+        "salesTax": 133.57,
+        "costCentre": "DEV002"
+      }
+    },
+    {
+      "name": "Error - Missing Total",
+      "request": {
+        "text": "Hi, please create expense for <vendor>Acme Corp</vendor>",
+        "taxRate": 0.15
+      },
+      "response": {
+        "status": 400,
+        "error_code": "MISSING_TOTAL",
+        "message": "Expense claims must include a total amount"
+      }
+    },
+    {
+      "name": "Error - Unclosed Tags",
+      "request": {
+        "text": "Hi, <expense><total>100<payment_method>card</payment_method>",
+        "taxRate": 0.15
+      },
+      "response": {
+        "status": 400,
+        "error_code": "UNCLOSED_TAGS",
+        "message": "Input contains unclosed or overlapping tags"
+      }
+    },
+    {
+      "name": "Other - Unprocessed Content",
+      "request": {
+        "text": "Please update the dashboard settings and send report.",
+        "taxRate": 0.15
+      },
+      "response": {
+        "status": 200,
+        "classification": "other",
+        "contentType": "unprocessed"
+      }
+    }
+  ],
+
+  "validation": {
+    "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build && dotnet run --project src/Api",
+    "expected_output": "Build succeeded. Navigate to http://localhost:5000/swagger and verify examples appear in UI.",
+    "manual_check": [
+      "Open http://localhost:5000/swagger in browser",
+      "Expand POST /api/v1/parse endpoint",
+      "Verify 'Example Value' section shows request examples",
+      "Verify response examples for 200 and 400 status codes",
+      "Click 'Try it out' and paste examples - verify they work"
+    ]
+  },
+
+  "next_task": {
+    "id": "task_039",
+    "name": "Review API Contract",
+    "why": "Swagger examples complete, now comprehensive review of entire API contract before M2 DoD gate"
+  }
+}

@@ -1,0 +1,163 @@
+{
+  "task_id": "task_036",
+  "milestone": "M2",
+  "name": "Wire Dependency Injection",
+  "description": "Complete dependency injection registration in Program.cs for all Domain, Application, and Infrastructure services. Wire validators, handlers, parsers, calculators, processors, and repositories into the DI container with correct lifetimes. Ensure all dependencies resolve correctly and application builds successfully.",
+
+  "agent": {
+    "primary": "dev-backend-api",
+    "role": "Backend API development specialist for dependency injection configuration and service registration"
+  },
+
+  "duration": "30min",
+  "priority": "critical",
+  "dependencies": ["task_035"],
+  "parallel_group": null,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 7: Backend Design & Implementation - Layering and DI",
+        "Section 4: Technology Stack - ASP.NET Core with DI"
+      ],
+      "requirements": [
+        "Use ASP.NET Core dependency injection for all services",
+        "Register domain services (validators, parsers, calculators)",
+        "Register application handlers (MediatR)",
+        "Register infrastructure adapters (repositories)",
+        "Ensure proper service lifetimes (Scoped, Singleton, Transient)"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 1,
+      "requirement": "Demonstrate understanding of dependency injection and inversion of control",
+      "grading_criteria": "Architecture and design patterns implementation"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0002-architecture-style.md",
+        "decision": "Clean/Hexagonal Architecture with Ports and Adapters",
+        "rationale": "Domain depends on interfaces (Ports), Infrastructure implements adapters",
+        "context": "DI wires ports to adapters at runtime - domain never depends on concrete implementations",
+        "key_excerpt": "Adapters are registered in the Dependency Injection container. App wires them at runtime via Program.cs: services.AddScoped<IMessageRepository, PostgresMessageRepository>(). Tests inject fakes/mocks. Domain code only depends on interfaces."
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M2 — API Contracts",
+      "sub_section": "Dependency Injection Setup",
+      "requirement": "Wire all services into DI container, validate resolution"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "Program.cs (updated)",
+      "description": "Complete DI registration for all services with proper lifetimes",
+      "location": "src/Api/",
+      "sections": [
+        "Domain Services (ITagValidator, IXmlIslandExtractor, ITaxCalculator, ITimeParser, NumberNormalizer, ContentRouter, RoundingHelper)",
+        "Application Services (MediatR handlers, FluentValidation validators, ValidationBehavior)",
+        "Infrastructure Services (Repositories)",
+        "Processors (Strategy pattern - IContentProcessor implementations)"
+      ]
+    }
+  },
+
+  "acceptance_criteria": [
+    "✅ All domain services registered with correct lifetimes (Scoped for stateful, Singleton for stateless)",
+    "✅ ITimeParser registered and resolvable",
+    "✅ NumberNormalizer registered (no interface, direct class)",
+    "✅ RoundingHelper registered (no interface, direct class)",
+    "✅ ContentRouter registered (no interface, direct class)",
+    "✅ Both IContentProcessor implementations registered (ExpenseProcessor, OtherProcessor)",
+    "✅ MediatR handlers registered from Application assembly",
+    "✅ FluentValidation validators registered from Application assembly",
+    "✅ ValidationBehavior registered as MediatR pipeline",
+    "✅ All repositories registered (IExpenseRepository → InMemoryExpenseRepository)",
+    "✅ Solution builds with 0 errors, 0 warnings",
+    "✅ All dependencies resolve successfully (no runtime DI errors)",
+    "✅ Existing tests still pass (no regressions)",
+    "✅ PATH export included in all dotnet commands"
+  ],
+
+  "business_rules": [
+    "Service lifetimes MUST be correct: Scoped for DB access, Singleton for stateless utilities",
+    "All domain ports (interfaces) MUST be wired to concrete adapters",
+    "Strategy pattern processors MUST both be registered as IContentProcessor",
+    "MediatR MUST scan Application assembly for handlers",
+    "FluentValidation MUST scan Application assembly for validators",
+    "ValidationBehavior MUST be in MediatR pipeline before handlers execute",
+    "ContentRouter uses constructor injection to receive IEnumerable<IContentProcessor>",
+    "No hardcoded service instantiation - all via DI container"
+  ],
+
+  "technical_notes": {
+    "dotnet_commands": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build && dotnet run --project src/Api",
+    "service_lifetimes": {
+      "Scoped": "IExpenseRepository (per-request DB context)",
+      "Scoped": "ITagValidator, IXmlIslandExtractor, ITaxCalculator, ITimeParser (domain services with potential state)",
+      "Singleton": "NumberNormalizer, RoundingHelper (pure functions, no state)",
+      "Scoped": "ContentRouter (uses IEnumerable<IContentProcessor>, needs fresh per request)",
+      "Scoped": "IContentProcessor implementations (may have state during processing)"
+    },
+    "strategy_pattern_registration": "Register multiple IContentProcessor implementations - DI will provide IEnumerable<IContentProcessor> to ContentRouter",
+    "mediatr_assembly_scanning": "cfg.RegisterServicesFromAssemblyContaining<ParseRequestValidator>() scans Application assembly",
+    "validation_pipeline": "cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>)) adds validation before handlers"
+  },
+
+  "code_examples": {
+    "domain_services": "// Domain Services (Scoped - may have state)\nbuilder.Services.AddScoped<ITagValidator, TagValidator>();\nbuilder.Services.AddScoped<IXmlIslandExtractor, XmlIslandExtractor>();\nbuilder.Services.AddScoped<ITaxCalculator, TaxCalculator>();\nbuilder.Services.AddScoped<ITimeParser, TimeParser>();\n\n// Domain Utilities (Singleton - pure functions)\nbuilder.Services.AddSingleton<NumberNormalizer>();\nbuilder.Services.AddSingleton<RoundingHelper>();\n\n// Content Router (Scoped - orchestrates processors)\nbuilder.Services.AddScoped<ContentRouter>();",
+
+    "processors_strategy": "// Processors (Strategy pattern - both registered as IContentProcessor)\nbuilder.Services.AddScoped<IContentProcessor, ExpenseProcessor>();\nbuilder.Services.AddScoped<IContentProcessor, OtherProcessor>();\n\n// ContentRouter receives IEnumerable<IContentProcessor> via DI\n// public ContentRouter(IEnumerable<IContentProcessor> processors) { ... }",
+
+    "mediatr_setup": "// Add MediatR with validation pipeline\nbuilder.Services.AddMediatR(cfg =>\n{\n    cfg.RegisterServicesFromAssemblyContaining<ParseRequestValidator>();\n    cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));\n});",
+
+    "validation_setup": "// Add FluentValidation\nbuilder.Services.AddValidatorsFromAssemblyContaining<ParseRequestValidator>();",
+
+    "repositories": "// Register Repositories (Scoped - DB access)\nbuilder.Services.AddScoped<IExpenseRepository, InMemoryExpenseRepository>();"
+  },
+
+  "validation": {
+    "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build && dotnet test",
+    "expected_output": "Build succeeded. 0 Warning(s) 0 Error(s). All tests pass (18 unit tests)."
+  },
+
+  "services_checklist": {
+    "domain_interfaces": [
+      "ITagValidator → TagValidator",
+      "IXmlIslandExtractor → XmlIslandExtractor",
+      "ITaxCalculator → TaxCalculator",
+      "ITimeParser → TimeParser",
+      "IContentProcessor → ExpenseProcessor",
+      "IContentProcessor → OtherProcessor"
+    ],
+    "domain_classes": [
+      "NumberNormalizer (no interface)",
+      "RoundingHelper (no interface)",
+      "ContentRouter (no interface)"
+    ],
+    "infrastructure": [
+      "IExpenseRepository → InMemoryExpenseRepository"
+    ],
+    "application": [
+      "MediatR handlers (auto-scanned from Application assembly)",
+      "FluentValidation validators (auto-scanned from Application assembly)",
+      "ValidationBehavior (pipeline behavior)"
+    ]
+  },
+
+  "testing_notes": {
+    "existing_tests": "18 unit tests already passing - ensure no regressions",
+    "di_resolution_test": "Can add integration test to verify all services resolve correctly",
+    "manual_verification": "Run app, hit /api/v1/parse endpoint, verify no DI errors in logs"
+  },
+
+  "next_task": {
+    "id": "task_037",
+    "name": "Write API Contract Tests",
+    "why": "DI complete, now write integration tests to verify API contracts work end-to-end"
+  }
+}

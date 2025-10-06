@@ -50,12 +50,44 @@ public static class ParseEndpoint
         .WithTags("Parsing")
         .WithOpenApi(operation =>
         {
-            operation.Summary = "Parse raw text content";
-            operation.Description = "Accepts raw text and extracts structured expense data or stores as other content";
+            operation.Summary = "Parse text content for expense claims";
+            operation.Description = @"Accepts free-form text with inline tags or XML islands, extracts expense data, validates required fields,
+                computes NZ GST tax breakdown using Banker's Rounding (MidpointRounding.ToEven), and returns normalized JSON.
+                Non-expense content is stored as Other/Unprocessed.
+
+                **Request Examples:**
+
+                1. Inline Tags:
+                   ```
+                   Hi Yvaine, Please create an expense claim.
+                   <vendor>Mojo Coffee</vendor><total>120.50</total><payment_method>personal card</payment_method>
+                   ```
+
+                2. XML Island:
+                   ```
+                   Hi Yvaine, Please create an expense claim for the below.
+                   <expense><cost_centre>DEV002</cost_centre><total>1024.01</total><payment_method>personal card</payment_method></expense>
+                   ```
+
+                **Response Classifications:**
+                - `expense`: Successfully parsed expense claim with GST calculation
+                - `other`: Non-expense content (stored as unprocessed)
+
+                **Error Codes:**
+                - `MISSING_TOTAL`: Expense claims must include a <total> tag
+                - `UNCLOSED_TAGS`: Input contains unclosed or overlapping tags (stack-based validation)
+                - `MALFORMED_XML`: Invalid XML structure in <expense> island
+
+                **GST Calculation (Banker's Rounding):**
+                - Default tax rate: 0.15 (NZ GST) unless specified in request
+                - Total is tax-inclusive: total = excludingTax + salesTax
+                - Rounding: MidpointRounding.ToEven (0.5 rounds to nearest even number)
+                - Examples: 2.125 → 2.12, 2.135 → 2.14, 2.145 → 2.14";
+
             return operation;
         })
-        .Produces<ParseResponseBase>(StatusCodes.Status200OK)
-        .Produces<ErrorResponse>(StatusCodes.Status400BadRequest)
-        .Produces<ErrorResponse>(StatusCodes.Status500InternalServerError);
+        .Produces<ParseResponseBase>(StatusCodes.Status200OK, "application/json", "Successful parsing (expense or other)")
+        .Produces<ErrorResponse>(StatusCodes.Status400BadRequest, "application/json", "Validation error (MISSING_TOTAL, UNCLOSED_TAGS, MALFORMED_XML)")
+        .Produces<ErrorResponse>(StatusCodes.Status500InternalServerError, "application/json", "Internal server error");
     }
 }
