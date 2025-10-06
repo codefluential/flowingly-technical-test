@@ -54,7 +54,7 @@ public static class ParseEndpoint
             operation.Description = "Accepts raw text and extracts structured expense data or stores as other content";
             return operation;
         })
-        .Produces<ParseResponse>(StatusCodes.Status200OK)
+        .Produces<ParseResponseBase>(StatusCodes.Status200OK)
         .Produces<ErrorResponse>(StatusCodes.Status400BadRequest)
         .Produces<ErrorResponse>(StatusCodes.Status500InternalServerError);
     }

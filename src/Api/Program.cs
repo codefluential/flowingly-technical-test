@@ -2,6 +2,12 @@ using Api.Middleware;
 using Flowingly.ParsingService.Api.Endpoints;
 using Flowingly.ParsingService.Application.Validators;
 using Flowingly.ParsingService.Application.Behaviors;
+using Flowingly.ParsingService.Domain.Interfaces;
+using Flowingly.ParsingService.Domain.Services;
+using Flowingly.ParsingService.Domain.Validation;
+using Flowingly.ParsingService.Domain.Parsers;
+using Flowingly.ParsingService.Domain.Processors;
+using Flowingly.ParsingService.Infrastructure.Repositories;
 using FluentValidation;
 using MediatR;
 
@@ -28,6 +34,19 @@ builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssemblyContaining<ParseRequestValidator>();
     cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 });
+
+// Register Domain Services
+builder.Services.AddScoped<ITagValidator, TagValidator>();
+builder.Services.AddScoped<IXmlIslandExtractor, XmlIslandExtractor>();
+builder.Services.AddScoped<ITaxCalculator, TaxCalculator>();
+builder.Services.AddScoped<ContentRouter>();
+
+// Register Processors (for Strategy pattern)
+builder.Services.AddScoped<IContentProcessor, ExpenseProcessor>();
+builder.Services.AddScoped<IContentProcessor, OtherProcessor>();
+
+// Register Repositories
+builder.Services.AddScoped<IExpenseRepository, InMemoryExpenseRepository>();
 
 // Add CORS for local development
 builder.Services.AddCors(options =>
