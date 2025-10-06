@@ -169,8 +169,20 @@ with open("project-context/implementation/PROGRESS.md", "w") as f:
 
 PYTHON_SCRIPT
 
-# Add to BUILDLOG if milestone completed (only if not already logged)
+# Re-index Serena after significant code additions
+# Task_010 (M0), task_030 (M1), task_040 (M2), task_050 (M3)
 TASK_NUM=$(echo "$TASK_ID" | sed 's/task_//')
+if [ "$STATUS" == "completed" ] && ([ "$TASK_NUM" == "010" ] || [ "$TASK_NUM" == "030" ] || [ "$TASK_NUM" == "040" ] || [ "$TASK_NUM" == "050" ]); then
+    echo ""
+    echo "🔄 Re-indexing Serena MCP (major milestone completed)..."
+    if command -v uvx &> /dev/null; then
+        uvx --from git+https://github.com/oraios/serena serena project index || echo "⚠️  Serena re-indexing failed (non-critical)"
+    else
+        echo "⚠️  uvx not found, skipping Serena re-indexing"
+    fi
+fi
+
+# Add to BUILDLOG if milestone completed (only if not already logged)
 if [ "$STATUS" == "completed" ] && ([ "$TASK_NUM" == "010" ] || [ "$TASK_NUM" == "030" ] || [ "$TASK_NUM" == "040" ] || [ "$TASK_NUM" == "050" ]); then
     MILESTONE=""
     case "$TASK_NUM" in
