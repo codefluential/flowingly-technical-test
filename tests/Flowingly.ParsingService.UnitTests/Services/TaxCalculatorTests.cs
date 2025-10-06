@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Xunit;
+using Flowingly.ParsingService.Domain.Helpers;
 using Flowingly.ParsingService.Domain.Interfaces;
 using Flowingly.ParsingService.Domain.Services;
 
@@ -24,7 +25,7 @@ namespace Flowingly.ParsingService.UnitTests.Services;
 public class TaxCalculatorTests
 {
     // Interface under test - does not exist yet, tests will fail with compilation errors
-    private readonly ITaxCalculator _calculator = new TaxCalculator();
+    private readonly ITaxCalculator _calculator = new TaxCalculator(new RoundingHelper());
 
     #region Happy Path Tests
 

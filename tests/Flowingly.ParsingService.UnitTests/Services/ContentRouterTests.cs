@@ -1,13 +1,16 @@
 using FluentAssertions;
+using Flowingly.ParsingService.Domain.Interfaces;
+using Flowingly.ParsingService.Domain.Models;
+using Flowingly.ParsingService.Domain.Services;
 using Moq;
 using Xunit;
 
 namespace Flowingly.ParsingService.Tests.Services;
 
 /// <summary>
-/// TDD RED Phase: ContentRouter Tests
+/// TDD GREEN Phase: ContentRouter Tests
 /// Tests for content classification and processor selection using Strategy pattern.
-/// All tests MUST fail initially - implementation comes in task_028 (GREEN phase).
+/// Implementation completed in task_028 (GREEN phase).
 ///
 /// Router Algorithm:
 /// 1. Iterate registered IContentProcessor instances
@@ -22,68 +25,6 @@ namespace Flowingly.ParsingService.Tests.Services;
 /// </summary>
 public class ContentRouterTests
 {
-    #region Test Helper Models (will be moved to Domain in task_028)
-
-    /// <summary>
-    /// Represents parsed content with inline tags and XML islands
-    /// </summary>
-    public class ParsedContent
-    {
-        public Dictionary<string, string> InlineTags { get; init; } = new();
-        public List<XmlIsland> XmlIslands { get; init; } = new();
-        public string RawText { get; init; } = string.Empty;
-    }
-
-    /// <summary>
-    /// Represents an extracted XML island
-    /// </summary>
-    public class XmlIsland
-    {
-        public string Name { get; init; } = string.Empty;
-        public string Content { get; init; } = string.Empty;
-    }
-
-    /// <summary>
-    /// Result from content processing
-    /// </summary>
-    public class ProcessingResult
-    {
-        public string Classification { get; init; } = string.Empty;
-        public object? Data { get; init; }
-        public bool Success { get; init; }
-        public string ErrorCode { get; init; } = string.Empty;
-    }
-
-    /// <summary>
-    /// Strategy interface for content processors
-    /// </summary>
-    public interface IContentProcessor
-    {
-        string ContentType { get; }
-        bool CanProcess(ParsedContent content);
-        Task<ProcessingResult> ProcessAsync(ParsedContent content, CancellationToken ct);
-    }
-
-    /// <summary>
-    /// ContentRouter - routes parsed content to appropriate processor
-    /// </summary>
-    public class ContentRouter
-    {
-        private readonly IEnumerable<IContentProcessor> _processors;
-
-        public ContentRouter(IEnumerable<IContentProcessor> processors)
-        {
-            _processors = processors;
-        }
-
-        public async Task<ProcessingResult> RouteAsync(ParsedContent content, CancellationToken ct)
-        {
-            // Will be implemented in task_028 (GREEN phase)
-            throw new NotImplementedException("ContentRouter.RouteAsync not yet implemented");
-        }
-    }
-
-    #endregion
 
     [Fact]
     public async Task RouteAsync_WithTotalTag_ShouldRouteToExpenseProcessor()
