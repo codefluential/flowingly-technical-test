@@ -500,6 +500,35 @@
             // Calculate overall progress
             const overallPercent = Math.round((progress.tasks_completed / data.total_tasks) * 100);
 
+            // Calculate total actual duration for completed tasks
+            let totalActualMinutes = 0;
+            let totalEstimatedMinutes = 0;
+            let remainingEstimatedMinutes = 0;
+
+            tasks.forEach(task => {
+                // Parse estimated duration
+                const estMatch = task.duration.match(/(\d+(\.\d+)?)\s*(h|min)/);
+                if (estMatch) {
+                    const value = parseFloat(estMatch[1]);
+                    const unit = estMatch[3];
+                    const estMinutes = unit === 'h' ? value * 60 : value;
+                    totalEstimatedMinutes += estMinutes;
+
+                    if (task.status !== 'completed') {
+                        remainingEstimatedMinutes += estMinutes;
+                    }
+                }
+
+                // Calculate actual duration for completed tasks
+                if (task.status === 'completed' && task.started_at && task.completed_at) {
+                    const start = new Date(task.started_at);
+                    const end = new Date(task.completed_at);
+                    const durationMs = end - start;
+                    const durationMinutes = Math.round(durationMs / 60000);
+                    totalActualMinutes += durationMinutes;
+                }
+            });
+
             // Group tasks by milestone
             const tasksByMilestone = {};
             tasks.forEach(task => {
@@ -536,6 +565,18 @@
                                 <div class="stat-label">Tests Passing</div>
                                 <div class="stat-value">${progress.tests_passing.total}/45</div>
                             </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Time Spent</div>
+                                <div class="stat-value">${formatDuration(totalActualMinutes)}</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Est. Remaining</div>
+                                <div class="stat-value">${formatDuration(remainingEstimatedMinutes)}</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Total Est.</div>
+                                <div class="stat-value">${formatDuration(totalEstimatedMinutes)}</div>
+                            </div>
                         </div>
                         <div style="margin-top: 15px; font-size: 13px; color: #666; line-height: 1.8;">
                             <div>Unit: ${progress.tests_passing.unit}/30</div>
@@ -549,14 +590,15 @@
             // Start milestones section with tabs
             let milestonesHtml = '<div class="milestones-section">';
 
-            // Render tabs
+            // Render tabs - current milestone is default active
+            const currentMilestone = progress.current_milestone || 'M0';
             milestonesHtml += '<div class="milestone-tabs">';
             Object.keys(milestones).forEach(milestoneKey => {
                 const milestone = milestones[milestoneKey];
                 const milestoneTasks = tasksByMilestone[milestoneKey] || [];
                 const completedTasks = milestoneTasks.filter(t => t.status === 'completed').length;
                 const isCompleted = progress.milestones_completed.includes(milestoneKey);
-                const isActive = milestoneKey === progress.current_milestone;
+                const isActive = milestoneKey === currentMilestone;
 
                 milestonesHtml += `
                     <button class="milestone-tab ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}"
@@ -568,14 +610,14 @@
             });
             milestonesHtml += '</div>'; // end milestone-tabs
 
-            // Render tab contents
+            // Render tab contents - current milestone is default active
             Object.keys(milestones).forEach(milestoneKey => {
                 const milestone = milestones[milestoneKey];
                 const milestoneTasks = tasksByMilestone[milestoneKey] || [];
                 const completedTasks = milestoneTasks.filter(t => t.status === 'completed').length;
                 const milestonePercent = Math.round((completedTasks / milestoneTasks.length) * 100);
                 const isCompleted = progress.milestones_completed.includes(milestoneKey);
-                const isActive = milestoneKey === progress.current_milestone;
+                const isActive = milestoneKey === currentMilestone;
 
                 milestonesHtml += `
                     <div class="tab-content ${isActive ? 'active' : ''}" id="content-${milestoneKey}">
@@ -685,6 +727,26 @@
             });
         }
 
+        function calculateDuration(task) {
+            // Calculate duration from started_at and completed_at if available
+            if (task.started_at && task.completed_at) {
+                const start = new Date(task.started_at);
+                const end = new Date(task.completed_at);
+                const durationMs = end - start;
+                const durationMinutes = Math.round(durationMs / 60000);
+                return durationMinutes;
+            }
+            return null;
+        }
+
+        function formatDuration(minutes) {
+            if (minutes === null || minutes === undefined) return '';
+            if (minutes < 60) return `${minutes}m`;
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+        }
+
         function renderTasks(tasks, parallelGroups) {
             let html = '';
 
@@ -761,6 +823,12 @@
                 const isParallel = task.parallel_group ? 'true' : 'false';
                 const isReady = isReadyToStart ? 'true' : 'false';
 
+                // Calculate actual duration for completed tasks
+                const actualDuration = calculateDuration(task);
+                const durationDisplay = actualDuration !== null
+                    ? `<span title="Actual: ${formatDuration(actualDuration)} | Estimated: ${task.duration}">${formatDuration(actualDuration)} (est: ${task.duration})</span>`
+                    : `<span>${task.duration}</span>`;
+
                 html += `
                     <div class="task ${statusClass} ${readyClass}"
                          data-status="${statusClass}"
@@ -776,7 +844,7 @@
                             </div>
                             <div class="task-meta">
                                 ${badges.join(' ')}
-                                <span>${task.duration}</span>
+                                ${durationDisplay}
                             </div>
                         </div>
                     </div>

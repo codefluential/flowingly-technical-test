@@ -1,4 +1,8 @@
 using Flowingly.ParsingService.Api.Endpoints;
+using Flowingly.ParsingService.Application.Validators;
+using Flowingly.ParsingService.Application.Behaviors;
+using FluentValidation;
+using MediatR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +16,16 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1",
         Description = "Text ingestion and parsing service for extracting structured data from free-form text"
     });
+});
+
+// Add FluentValidation
+builder.Services.AddValidatorsFromAssemblyContaining<ParseRequestValidator>();
+
+// Add MediatR with validation pipeline
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssemblyContaining<ParseRequestValidator>();
+    cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 });
 
 // Add CORS for local development
