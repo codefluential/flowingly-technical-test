@@ -97,18 +97,10 @@
             flex: 1;
         }
 
-        .controls-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            gap: 20px;
-        }
-
         .milestone-tabs {
             display: flex;
             gap: 5px;
-            flex: 1;
+            margin-bottom: 20px;
             border-bottom: 2px solid #dee2e6;
         }
 
@@ -116,6 +108,10 @@
             display: flex;
             gap: 8px;
             align-items: center;
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            background: #f8f9fa;
+            border-radius: 4px;
         }
 
         .filter-label {
@@ -553,9 +549,6 @@
             // Start milestones section with tabs
             let milestonesHtml = '<div class="milestones-section">';
 
-            // Render controls bar with tabs and filters
-            milestonesHtml += '<div class="controls-bar">';
-
             // Render tabs
             milestonesHtml += '<div class="milestone-tabs">';
             Object.keys(milestones).forEach(milestoneKey => {
@@ -574,19 +567,6 @@
                 `;
             });
             milestonesHtml += '</div>'; // end milestone-tabs
-
-            // Render filter controls
-            milestonesHtml += `
-                <div class="filter-controls">
-                    <span class="filter-label">Filter:</span>
-                    <button class="filter-btn active" onclick="filterTasks('all')" id="filter-all">All</button>
-                    <button class="filter-btn" onclick="filterTasks('ready')" id="filter-ready">Ready</button>
-                    <button class="filter-btn" onclick="filterTasks('in_progress')" id="filter-in_progress">In Progress</button>
-                    <button class="filter-btn" onclick="filterTasks('parallel')" id="filter-parallel">Parallel</button>
-                </div>
-            `;
-
-            milestonesHtml += '</div>'; // end controls-bar
 
             // Render tab contents
             Object.keys(milestones).forEach(milestoneKey => {
@@ -607,6 +587,13 @@
                                 <span>${completedTasks}/${milestoneTasks.length} tasks</span>
                                 <span>${milestone.duration}</span>
                             </div>
+                        </div>
+                        <div class="filter-controls">
+                            <span class="filter-label">Show:</span>
+                            <button class="filter-btn active" onclick="filterTasks('all')">All</button>
+                            <button class="filter-btn" onclick="filterTasks('ready')">Ready</button>
+                            <button class="filter-btn" onclick="filterTasks('in_progress')">In Progress</button>
+                            <button class="filter-btn" onclick="filterTasks('parallel')">Parallel</button>
                         </div>
                         <div class="progress-bar" style="height: 20px; margin-bottom: 15px;">
                             <div class="progress-fill" style="width: ${milestonePercent}%">
@@ -657,14 +644,20 @@
         function filterTasks(filterType) {
             currentFilter = filterType;
 
-            // Update active filter button
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            document.getElementById(`filter-${filterType}`).classList.add('active');
+            // Get active tab content
+            const activeTab = document.querySelector('.tab-content.active');
+            if (!activeTab) return;
 
-            // Get all tasks
-            const tasks = document.querySelectorAll('.task');
+            // Update active filter button within active tab only
+            activeTab.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.toLowerCase() === filterType.replace('_', ' ')) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Get all tasks in active tab only
+            const tasks = activeTab.querySelectorAll('.task');
 
             tasks.forEach(task => {
                 let shouldShow = true;
