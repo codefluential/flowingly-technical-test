@@ -9,37 +9,73 @@ A modular text-ingestion and parsing service that extracts structured data from 
 ## Quick Start
 
 ### Prerequisites
-- .NET 8 SDK ([Download](https://dotnet.microsoft.com/download))
-- Node.js 18+ ([Download](https://nodejs.org/))
-- Git
 
-**Important**: If dotnet is not in your PATH, add this to your `~/.bashrc`:
-```bash
-export DOTNET_ROOT=$HOME/.dotnet
-export PATH="$DOTNET_ROOT:$PATH"
-```
+**Required Software**:
+- **[.NET 8 SDK](https://dotnet.microsoft.com/download)** - Cross-platform runtime (.NET CLI)
+- **[Node.js 18+](https://nodejs.org/)** - JavaScript runtime (includes npm)
+- **[Git](https://git-scm.com/downloads)** - Version control
 
-### 1. Clone and Setup
+**Platform Notes**:
+- ✅ **Windows**: Installers automatically configure PATH. No manual setup needed.
+- ✅ **macOS**: Installers automatically configure PATH. No manual setup needed.
+- ⚠️ **Linux**: If `dotnet` or `npm` commands not found after install, see [Manual PATH Configuration](#manual-path-configuration) (Appendix A).
+
+### 1. Clone Repository
+
 ```bash
 git clone <repository-url>
 cd flowingly-technical-test
 ```
 
-### 2. Run Backend API
-```bash
-# Ensure dotnet is in PATH (if needed)
-export PATH="$HOME/.dotnet:$PATH"
+> **Works on**: Windows (PowerShell/cmd/Git Bash), Linux, macOS
 
-# Build and run .NET API (runs on http://localhost:5000)
+---
+
+### 2. Run Backend API
+
+**Terminal 1 - Start Backend**:
+```bash
 dotnet run --project src/Api
 ```
 
-### 3. Run Frontend (in new terminal)
+**Expected Output**:
+```
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:5000
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+```
+
+**Verify**:
+- Open http://localhost:5000/swagger in browser
+- You should see Swagger UI with the `/api/v1/parse` endpoint
+
+> **Works on**: Windows, Linux, macOS (no PATH config needed if installers used)
+
+---
+
+### 3. Run Frontend
+
+**Terminal 2 - Start Frontend**:
 ```bash
 cd client
 npm install
-npm run dev  # Runs on http://localhost:5173
+npm run dev
 ```
+
+**Expected Output**:
+```
+  VITE v7.1.9  ready in 245 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+```
+
+**Verify**:
+- Open http://localhost:5173 in browser
+- You should see the parsing service UI with text input
+
+> **Works on**: Windows, Linux, macOS
 
 ### 4. Test the Application
 
@@ -168,10 +204,10 @@ See [ADR-0002](/project-context/adr/ADR-0002-architecture-style.md) for full arc
 ## Development Workflow
 
 ### Backend Commands
-```bash
-# Ensure dotnet is in PATH
-export PATH="$HOME/.dotnet:$PATH"
 
+**All commands work on Windows, Linux, and macOS**:
+
+```bash
 # Build solution
 dotnet build
 
@@ -193,7 +229,12 @@ dotnet ef migrations add MigrationName --project src/Infrastructure
 dotnet ef database update --project src/Api
 ```
 
+> **Note**: If `dotnet` command not found, see [Manual PATH Configuration](#manual-path-configuration) (Appendix A).
+
 ### Frontend Commands
+
+**All commands work on Windows, Linux, and macOS**:
+
 ```bash
 cd client
 
@@ -215,6 +256,8 @@ npm run test:e2e
 # Run specific E2E test (M3 milestone)
 npx playwright test path/to/test.spec.ts
 ```
+
+> **Note**: Commands work in PowerShell, cmd.exe, bash, zsh. For Git Bash on Windows, see [Appendix B](#appendix-b-git-bash-on-windows).
 
 ---
 
@@ -519,18 +562,203 @@ Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`, `style`
 ### Workflow
 1. Check task dependencies: `project-context/implementation/tasks/tasks.json`
 2. Create task file if missing: Follow `TASK_CREATION_GUIDE.md`
-3. Mark in-progress: `./scripts/update-progress.sh task_XXX in_progress`
+3. Mark in-progress: `./scripts/update-progress.sh task_XXX in_progress` (Unix/Git Bash/WSL)
 4. Implement following TDD cycles (for M1 tasks)
 5. Run tests and verify coverage
-6. Mark completed: `./scripts/update-progress.sh task_XXX completed [test_type] [count]`
+6. Mark completed: `./scripts/update-progress.sh task_XXX completed [test_type] [count]` (Unix/Git Bash/WSL)
 7. Commit with conventional commits
 8. Update BUILDLOG.md with changes and rationale
+
+> **Windows Users**: See [Appendix D](#appendix-d-development-scripts-unixlinuxmacos) for script compatibility options.
 
 ### Code Principles
 - Follow SOLID, DRY, KISS, YAGNI
 - Simple, maintainable, extensible over complex
 - Verify against specification before implementing
 - Ensure type safety: align database schema, application types, and TypeScript interfaces
+
+---
+
+## Appendix: Platform-Specific Notes
+
+### Appendix A: Manual PATH Configuration
+
+**Only needed if** you see `dotnet: command not found` or `npm: command not found` errors after installation.
+
+<details>
+<summary><b>Windows (PowerShell)</b> - Rare, installers handle this automatically</summary>
+
+If using a portable .NET installation (not recommended):
+
+```powershell
+$env:DOTNET_ROOT = "$env:USERPROFILE\.dotnet"
+$env:PATH = "$env:DOTNET_ROOT;$env:PATH"
+```
+
+To persist across sessions, add to PowerShell profile:
+```powershell
+notepad $PROFILE
+# Add the two lines above, save, restart PowerShell
+```
+
+**Recommended**: Use the official installer from https://dotnet.microsoft.com/download which configures PATH automatically.
+
+</details>
+
+<details>
+<summary><b>Linux (Bash)</b></summary>
+
+Add to `~/.bashrc`:
+
+```bash
+export DOTNET_ROOT=$HOME/.dotnet
+export PATH="$DOTNET_ROOT:$PATH"
+```
+
+Apply changes:
+```bash
+source ~/.bashrc
+```
+
+Verify:
+```bash
+dotnet --version
+# Should output: 8.0.xxx
+```
+
+</details>
+
+<details>
+<summary><b>macOS (Zsh)</b> - Default shell on macOS 10.15+</summary>
+
+Add to `~/.zshrc`:
+
+```zsh
+export DOTNET_ROOT=$HOME/.dotnet
+export PATH="$DOTNET_ROOT:$PATH"
+```
+
+Apply changes:
+```zsh
+source ~/.zshrc
+```
+
+**Note**: macOS installers typically configure PATH automatically. Only use this if `dotnet` command not found.
+
+</details>
+
+---
+
+### Appendix B: Git Bash on Windows
+
+**What is Git Bash?**
+- Unix-like bash shell included with Git for Windows
+- Provides Linux/macOS command compatibility on Windows
+- Recommended for Windows users familiar with bash
+
+**Advantages**:
+- ✅ All Linux/macOS commands work identically
+- ✅ Supports shell scripts (`./scripts/*.sh`)
+- ✅ Unix path separators work (`/home/user/`)
+- ✅ Bash features like `&&`, `||`, pipes
+
+**Installation**:
+1. Download Git for Windows: https://git-scm.com/download/win
+2. During install, select "Git Bash Here" context menu option
+3. Launch via Start Menu → "Git Bash"
+
+**Usage**:
+```bash
+# In Git Bash, all README commands work as-is
+git clone <url>
+cd flowingly-technical-test
+dotnet run --project src/Api
+```
+
+---
+
+### Appendix C: Shell-Specific Command Syntax
+
+<details>
+<summary><b>Windows cmd.exe Users</b></summary>
+
+**Chained Commands**:
+
+Most README examples use `&&` (bash/PowerShell):
+```bash
+cd client && npm run dev
+```
+
+In Windows cmd.exe, use single `&`:
+```cmd
+cd client & npm run dev
+```
+
+**Path Separators**:
+
+Both forward slashes and backslashes work in modern .NET:
+```cmd
+dotnet run --project src/Api
+dotnet run --project src\Api
+```
+Both commands are equivalent on Windows.
+
+</details>
+
+<details>
+<summary><b>PowerShell Users</b></summary>
+
+**PowerShell 7+** supports most bash syntax:
+- ✅ `&&` for chained commands
+- ✅ Forward slashes in paths
+- ✅ Most Unix-style commands
+
+**PowerShell 5.1** (Windows default):
+- Use `;` instead of `&&` for chained commands:
+  ```powershell
+  cd client; npm run dev
+  ```
+
+**Check PowerShell version**:
+```powershell
+$PSVersionTable.PSVersion
+```
+
+</details>
+
+---
+
+### Appendix D: Development Scripts (Unix/Linux/macOS)
+
+**Shell Scripts Location**: `scripts/`
+
+These bash scripts are for development workflow automation:
+
+```bash
+./scripts/update-progress.sh task_001 completed
+./scripts/reindex-serena.sh
+./scripts/verify-dod.sh M0
+```
+
+**Windows Users - Options**:
+
+1. **Use Git Bash** (Recommended):
+   ```bash
+   # Scripts work identically in Git Bash
+   ./scripts/update-progress.sh task_001 completed
+   ```
+
+2. **Use WSL (Windows Subsystem for Linux)**:
+   ```bash
+   # Run in WSL terminal
+   ./scripts/update-progress.sh task_001 completed
+   ```
+
+3. **Manual Execution**:
+   - View script contents to see underlying commands
+   - Execute commands manually in PowerShell/cmd.exe
+
+> **Note**: These scripts are for development workflow automation, **not required** to build and run the application. Core commands (`dotnet run`, `npm run dev`) work natively on Windows.
 
 ---
 
