@@ -7,12 +7,12 @@
   "aadf_compliant": true,
   "tdd_approach": true,
   "progress_tracking": {
-    "last_updated": "2025-10-06T18:40:42+13:00",
-    "current_milestone": "M1",
-    "current_task": "task_032",
+    "last_updated": "2025-10-06T18:56:22+13:00",
+    "current_milestone": "M2",
+    "current_task": "task_034",
     "tasks_completed": 33,
-    "tasks_in_progress": 0,
-    "tasks_pending": 17,
+    "tasks_in_progress": 1,
+    "tasks_pending": 16,
     "tasks_blocked": 0,
     "tests_passing": {
       "unit": 18,
@@ -630,7 +630,8 @@
       "parallel_group": null,
       "status": "completed",
       "started_at": "2025-10-06T18:34:03+13:00",
-      "completed_at": "2025-10-06T18:40:29+13:00"
+      "completed_at": "2025-10-06T18:40:29+13:00",
+      "duration_minutes": 6
     },
     {
       "id": "task_033",
@@ -645,7 +646,8 @@
       "parallel_group": null,
       "status": "completed",
       "started_at": "2025-10-06T18:30:26+13:00",
-      "completed_at": "2025-10-06T18:40:42+13:00"
+      "completed_at": "2025-10-06T18:40:42+13:00",
+      "duration_minutes": 10
     },
     {
       "id": "task_034",
@@ -657,7 +659,9 @@
       "dependencies": [
         "task_033"
       ],
-      "parallel_group": null
+      "parallel_group": null,
+      "status": "in_progress",
+      "started_at": "2025-10-06T18:56:22+13:00"
     },
     {
       "id": "task_035",
