@@ -1,0 +1,6 @@
+Hi Maria,
+
+Please create a reservation for 10 at the <vendor>Seaside Steakhouse</vendor> for our <description>development team's project end celebration</description> on <date>27 April 2022</date> at 7.30pm.
+
+Regards,
+William
