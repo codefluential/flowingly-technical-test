@@ -7,7 +7,7 @@
   "aadf_compliant": true,
   "tdd_approach": true,
   "progress_tracking": {
-    "last_updated": "2025-10-06T16:10:55+13:00",
+    "last_updated": "2025-10-06T16:12:33+13:00",
     "current_milestone": "M1",
     "current_task": "task_027",
     "tasks_completed": 26,
@@ -15,10 +15,10 @@
     "tasks_pending": 24,
     "tasks_blocked": 0,
     "tests_passing": {
-      "unit": 10,
+      "unit": 17,
       "contract": 0,
       "e2e": 0,
-      "total": 10
+      "total": 17
     },
     "milestones_completed": [
       "M0"
@@ -452,7 +452,7 @@
       "tdd_phase": "red",
       "status": "completed",
       "started_at": "2025-10-06T16:07:04+13:00",
-      "completed_at": "2025-10-06T16:10:49+13:00"
+      "completed_at": "2025-10-06T16:12:33+13:00"
     },
     {
       "id": "task_022",
