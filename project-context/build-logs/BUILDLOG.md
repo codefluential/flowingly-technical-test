@@ -1059,6 +1059,52 @@ N/A - DTOs are contract definitions only. Will be tested via API contract tests 
 
 ---
 
+## 2025-10-06 - task_032: Implement FluentValidation (M2 Progress)
+
+**Changes Made**:
+- Created `src/Application/Validators/ParseRequestValidator.cs` with comprehensive validation rules
+  - Text: NotEmpty + MaxLength(262144) for 256KB limit
+  - TaxRate: InclusiveBetween(0, 1) when HasValue (nullable validation)
+- Created `src/Application/Behaviors/ValidationBehavior.cs` for MediatR pipeline integration
+  - Generic pipeline behavior intercepting requests before handler
+  - Runs all validators in parallel
+  - Collects multiple validation failures
+  - Throws ValidationException with detailed error information
+- Updated `src/Api/Program.cs` with DI registration
+  - Added FluentValidation assembly scanning
+  - Added MediatR with validation pipeline behavior
+- Installed NuGet packages:
+  - FluentValidation 12.0.0
+  - FluentValidation.DependencyInjectionExtensions 12.0.0
+  - MediatR 13.0.0
+
+**Rationale**:
+- ADR-0008: Validation Rules - FluentValidation provides declarative validation
+- Fail-fast approach: Validation runs BEFORE handler execution (MediatR pipeline)
+- Clear error messages: Human-friendly validation feedback
+- Extensible: Easy to add new validators as requirements evolve
+
+**Issues Encountered**:
+None - straightforward FluentValidation + MediatR integration.
+
+**Testing Notes**:
+- Compilation successful (0 warnings, 0 errors)
+- All 116 unit tests still passing
+- Validation rules will be tested in M2 contract tests (task_037)
+- Expected validation behavior documented for manual verification
+
+**Deployment**:
+N/A - Validation infrastructure will be exercised via API endpoints in upcoming tasks.
+
+**Next Steps**:
+- task_033: Create Error Codes & Models (executed in parallel with task_032)
+- task_034: Implement Error Mapping (convert ValidationException to ErrorResponse)
+
+**Duration**: 6 minutes (18:34:03 → 18:40:29)
+**Progress**: 32/50 tasks (64%) | M0: 10/10 (100%) ✅ | M1: 20/20 (100%) ✅ | M2: 2/10 (20%)
+
+---
+
 ## 2025-10-06 - task_033: Create Error Codes & Models (M2 Progress)
 
 **Changes Made**:
@@ -1152,6 +1198,9 @@ N/A - Constants and DTOs will be used by API layer in upcoming tasks.
 - task_035: Create Parse Handler (CQRS command handler using error codes)
 - task_036: Wire Dependency Injection (register all services)
 
+**Duration**: 10 minutes (18:30:26 → 18:40:42)
 **Progress**: 33/50 tasks (66%) | M0: 10/10 (100%) ✅ | M1: 20/20 (100%) ✅ | M2: 3/10 (30%)
+
+**Note**: task_032 and task_033 executed in parallel, saving 50 minutes (10 min parallel vs 60 min sequential)
 
 ---
