@@ -97,11 +97,54 @@
             flex: 1;
         }
 
+        .controls-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 20px;
+        }
+
         .milestone-tabs {
             display: flex;
             gap: 5px;
-            margin-bottom: 20px;
+            flex: 1;
             border-bottom: 2px solid #dee2e6;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .filter-label {
+            font-size: 13px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .filter-btn {
+            padding: 6px 12px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            background: #e9ecef;
+            border-color: #adb5bd;
+        }
+
+        .filter-btn.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
         }
 
         .milestone-tab {
@@ -231,6 +274,11 @@
             background: #f8f9fa;
             border-radius: 4px;
             border-left: 4px solid #6c757d;
+            transition: opacity 0.3s, max-height 0.3s;
+        }
+
+        .task.filtered-out {
+            display: none;
         }
 
         .task.completed {
@@ -505,6 +553,9 @@
             // Start milestones section with tabs
             let milestonesHtml = '<div class="milestones-section">';
 
+            // Render controls bar with tabs and filters
+            milestonesHtml += '<div class="controls-bar">';
+
             // Render tabs
             milestonesHtml += '<div class="milestone-tabs">';
             Object.keys(milestones).forEach(milestoneKey => {
@@ -522,7 +573,20 @@
                     </button>
                 `;
             });
-            milestonesHtml += '</div>';
+            milestonesHtml += '</div>'; // end milestone-tabs
+
+            // Render filter controls
+            milestonesHtml += `
+                <div class="filter-controls">
+                    <span class="filter-label">Filter:</span>
+                    <button class="filter-btn active" onclick="filterTasks('all')" id="filter-all">All</button>
+                    <button class="filter-btn" onclick="filterTasks('ready')" id="filter-ready">Ready</button>
+                    <button class="filter-btn" onclick="filterTasks('in_progress')" id="filter-in_progress">In Progress</button>
+                    <button class="filter-btn" onclick="filterTasks('parallel')" id="filter-parallel">Parallel</button>
+                </div>
+            `;
+
+            milestonesHtml += '</div>'; // end controls-bar
 
             // Render tab contents
             Object.keys(milestones).forEach(milestoneKey => {
@@ -586,6 +650,46 @@
 
             // Activate selected tab
             document.getElementById(`tab-${milestoneKey}`).classList.add('active');
+        }
+
+        let currentFilter = 'all';
+
+        function filterTasks(filterType) {
+            currentFilter = filterType;
+
+            // Update active filter button
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`filter-${filterType}`).classList.add('active');
+
+            // Get all tasks
+            const tasks = document.querySelectorAll('.task');
+
+            tasks.forEach(task => {
+                let shouldShow = true;
+
+                switch(filterType) {
+                    case 'all':
+                        shouldShow = true;
+                        break;
+                    case 'ready':
+                        shouldShow = task.dataset.ready === 'true';
+                        break;
+                    case 'in_progress':
+                        shouldShow = task.dataset.status === 'in_progress';
+                        break;
+                    case 'parallel':
+                        shouldShow = task.dataset.parallel === 'true';
+                        break;
+                }
+
+                if (shouldShow) {
+                    task.classList.remove('filtered-out');
+                } else {
+                    task.classList.add('filtered-out');
+                }
+            });
         }
 
         function renderTasks(tasks, parallelGroups) {
@@ -660,8 +764,15 @@
                 // Add ready-to-start class if applicable
                 const readyClass = isReadyToStart ? 'ready-to-start' : '';
 
+                // Add data attributes for filtering
+                const isParallel = task.parallel_group ? 'true' : 'false';
+                const isReady = isReadyToStart ? 'true' : 'false';
+
                 html += `
-                    <div class="task ${statusClass} ${readyClass}">
+                    <div class="task ${statusClass} ${readyClass}"
+                         data-status="${statusClass}"
+                         data-parallel="${isParallel}"
+                         data-ready="${isReady}">
                         <div class="task-header">
                             <div class="task-title">
                                 ${task.status === 'completed' ? '✅' :
