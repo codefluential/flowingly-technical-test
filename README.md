@@ -209,10 +209,10 @@ npm run build
 # Preview production build
 npm run preview
 
-# Run E2E tests (requires both servers running)
+# Run E2E tests (M3 milestone - not yet implemented)
 npm run test:e2e
 
-# Run specific E2E test
+# Run specific E2E test (M3 milestone)
 npx playwright test path/to/test.spec.ts
 ```
 
@@ -240,16 +240,16 @@ dotnet test --filter Category=Unit
 dotnet test --filter Category=Contract
 ```
 
-**Frontend E2E Tests** (requires both servers running):
+**Frontend E2E Tests** (M3 milestone - requires both servers running):
 ```bash
 cd client
-npm run test:e2e
+npm run test:e2e  # Not yet implemented - planned for M3
 ```
 
 **All Tests**:
 ```bash
-dotnet test  # Backend
-cd client && npm run test:e2e  # Frontend
+dotnet test  # Backend (129 tests currently)
+cd client && npm run test:e2e  # Frontend E2E (M3 - not yet implemented)
 ```
 
 ### Test-Driven Development (TDD)
@@ -395,10 +395,10 @@ flowingly-technical-test/
 - **Swashbuckle** (Swagger/OpenAPI documentation)
 
 ### Frontend
-- **React 18**
+- **React 19**
 - **Vite** (Build tool)
 - **TypeScript** (Type safety)
-- **Playwright** (E2E testing)
+- **Playwright** (E2E testing - M3 milestone)
 
 ### Deployment
 - **Platform**: Render (free tier)
