@@ -19,12 +19,25 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             background: white;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             padding: 30px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
         }
 
         header {
@@ -67,11 +80,21 @@
             transform: scale(0.98);
         }
 
+        .sidebar {
+            position: sticky;
+            top: 20px;
+            align-self: start;
+        }
+
         .phase-overview {
             background: #f8f9fa;
             padding: 20px;
             border-radius: 6px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+        }
+
+        .milestones-section {
+            flex: 1;
         }
 
         .phase-title {
@@ -83,8 +106,8 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+            grid-template-columns: 1fr;
+            gap: 12px;
             margin-top: 15px;
         }
 
@@ -405,40 +428,45 @@
                 tasksByMilestone[task.milestone].push(task);
             });
 
-            // Render content
-            let html = `
-                <div class="phase-overview">
-                    <div class="phase-title">📊 ${data.phase}</div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${overallPercent}%">
-                            ${overallPercent}%
+            // Render sidebar
+            let sidebarHtml = `
+                <div class="sidebar">
+                    <div class="phase-overview">
+                        <div class="phase-title">📊 ${data.phase}</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${overallPercent}%">
+                                ${overallPercent}%
+                            </div>
                         </div>
-                    </div>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">Tasks Complete</div>
-                            <div class="stat-value">${progress.tasks_completed}/${data.total_tasks}</div>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-label">Tasks Complete</div>
+                                <div class="stat-value">${progress.tasks_completed}/${data.total_tasks}</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">In Progress</div>
+                                <div class="stat-value">${progress.tasks_in_progress}</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Blocked</div>
+                                <div class="stat-value">${progress.tasks_blocked}</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Tests Passing</div>
+                                <div class="stat-value">${progress.tests_passing.total}/45</div>
+                            </div>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-label">In Progress</div>
-                            <div class="stat-value">${progress.tasks_in_progress}</div>
+                        <div style="margin-top: 15px; font-size: 13px; color: #666; line-height: 1.8;">
+                            <div>Unit: ${progress.tests_passing.unit}/30</div>
+                            <div>Contract: ${progress.tests_passing.contract}/10</div>
+                            <div>E2E: ${progress.tests_passing.e2e}/5</div>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Blocked</div>
-                            <div class="stat-value">${progress.tasks_blocked}</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Tests Passing</div>
-                            <div class="stat-value">${progress.tests_passing.total}/45</div>
-                        </div>
-                    </div>
-                    <div style="margin-top: 15px; font-size: 14px; color: #666;">
-                        Unit: ${progress.tests_passing.unit}/30 |
-                        Contract: ${progress.tests_passing.contract}/10 |
-                        E2E: ${progress.tests_passing.e2e}/5
                     </div>
                 </div>
             `;
+
+            // Start milestones section
+            let milestonesHtml = '<div class="milestones-section">';
 
             // Render each milestone
             Object.keys(milestones).forEach(milestoneKey => {
@@ -448,7 +476,7 @@
                 const milestonePercent = Math.round((completedTasks / milestoneTasks.length) * 100);
                 const isCompleted = progress.milestones_completed.includes(milestoneKey);
 
-                html += `
+                milestonesHtml += `
                     <div class="milestone" id="milestone-${milestoneKey}">
                         <div class="milestone-header" onclick="toggleMilestone('${milestoneKey}')">
                             <div>
@@ -477,7 +505,17 @@
                 `;
             });
 
-            document.getElementById('content').innerHTML = html;
+            milestonesHtml += '</div>';
+
+            // Combine sidebar and milestones in main-content grid
+            const mainContentHtml = `
+                <div class="main-content">
+                    ${sidebarHtml}
+                    ${milestonesHtml}
+                </div>
+            `;
+
+            document.getElementById('content').innerHTML = mainContentHtml;
 
             // Auto-expand current milestone
             if (progress.current_milestone) {
