@@ -60,7 +60,8 @@
       "section": "M3 — UI & E2E Tests",
       "sub_section": "E2E Happy Path Tests",
       "requirement": "Write E2E tests for valid expense scenarios using Playwright against running app"
-    }
+    },
+    "execution_plan": "project-context/implementation/M3_EXECUTION_PLAN.md"
   },
 
   "deliverables": [

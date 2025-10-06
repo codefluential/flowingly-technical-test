@@ -49,7 +49,8 @@
       "section": "M3 — UI & E2E Tests",
       "sub_section": "TypeScript Integration",
       "requirement": "Add TypeScript types matching backend DTOs for type-safe API consumption"
-    }
+    },
+    "execution_plan": "project-context/implementation/M3_EXECUTION_PLAN.md"
   },
 
   "deliverables": [

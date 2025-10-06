@@ -66,7 +66,8 @@
       "section": "M3 — UI & E2E Tests",
       "sub_section": "Error Handling UI",
       "requirement": "Implement error display component with user-friendly messages and correlation ID visibility"
-    }
+    },
+    "execution_plan": "project-context/implementation/M3_EXECUTION_PLAN.md"
   },
 
   "deliverables": [

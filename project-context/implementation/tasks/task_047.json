@@ -1,0 +1,298 @@
+{
+  "task_id": "task_047",
+  "milestone": "M3",
+  "name": "Write E2E GST Verification",
+  "description": "Create end-to-end Playwright tests that verify GST (Goods and Services Tax) calculation correctness in the UI, focusing on Banker's Rounding (MidpointRounding.ToEven) accuracy. This task validates that the frontend correctly displays tax breakdowns computed by the backend, ensuring the critical 120.50 @ 15% = 104.78 + 15.72 calculation (not 104.77 + 15.73) is visible to users. Tests run against the real API + UI to verify full integration.",
+
+  "agent": {
+    "primary": "production-validator",
+    "role": "E2E GST calculation verification and Banker's Rounding validation specialist"
+  },
+
+  "duration": "45min",
+  "priority": "high",
+  "dependencies": ["task_044"],
+  "parallel_group": "M3_parallel_1",
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 12: Tax Calculation (Banker's Rounding, GST) - Default tax rate 0.15 (NZ GST)",
+        "Section 13: BDD Scenarios - 'Scenario: Rounding follows Banker's Rounding' - Validates 100.125 → 100.12 with tax calculations",
+        "Section 4.2: Parsing Rules - Banker's Rounding policy: Apply MidpointRounding.ToEven at business boundaries"
+      ],
+      "requirements": [
+        "Default tax rate: 0.15 (15% NZ GST)",
+        "Banker's Rounding (MidpointRounding.ToEven) for all monetary values",
+        "Tax-inclusive to tax-exclusive conversion formula: total_excl_tax = total_incl_tax / (1 + tax_rate)",
+        "Sales tax calculation: sales_tax = total_incl_tax - total_excl_tax",
+        "All monetary values displayed to 2 decimal places",
+        "Key test case: 120.50 @ 15% GST = 104.78 excl + 15.72 tax (Banker's Rounding)"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 2,
+      "requirement": "GST calculation must be accurate using Banker's Rounding, displayed in UI with proper tax breakdown",
+      "grading_criteria": "Correct tax calculation is a core graded component - incorrect rounding (e.g., 104.77 instead of 104.78) will be caught by reviewers",
+      "critical_test_case": "120.50 inclusive @ 15% = 104.78 exclusive + 15.72 tax (NOT 104.77 + 15.73 with standard rounding)"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0009-bankers-rounding.md",
+        "decision": "Use Banker's Rounding (MidpointRounding.ToEven) for all monetary values",
+        "rationale": "Statistically unbiased over many operations; matches IEEE 754 and financial standards; prevents cumulative rounding errors",
+        "context": "Tax calculations require rounding to 2 decimal places. Different rounding strategies (standard up, truncation, Banker's) introduce different biases. Banker's Rounding is statistically neutral.",
+        "key_excerpt": "Banker's Rounding Policy - Midpoint Rule: When rounding X.XX5, round to the nearest even digit. Examples: 2.125 → 2.12 (2 is even), 2.135 → 2.14 (4 is even), 2.145 → 2.14 (4 is even), 2.155 → 2.16 (6 is even)",
+        "formula": "total_excl_tax = total_incl_tax / (1 + tax_rate); Round using Math.Round(value, 2, MidpointRounding.ToEven); sales_tax = total_incl_tax - total_excl_tax; Round using Math.Round(value, 2, MidpointRounding.ToEven)",
+        "critical_example": "120.50 @ 15% GST: total_excl_tax = 120.50 / 1.15 = 104.78260869565... → 104.78 (Banker's Rounding); sales_tax = 120.50 - 104.78 = 15.72; Verification: 104.78 + 15.72 = 120.50 ✅",
+        "edge_case_warning": "Due to independent rounding, total_excl_tax + sales_tax may not exactly equal total_incl_tax (off by 0.01 in rare cases). This is acceptable and standard in financial systems.",
+        "test_scenarios": [
+          "[InlineData(120.50, 0.15, 104.78, 15.72)] // Critical Banker's Rounding test",
+          "[InlineData(100.00, 0.15, 86.96, 13.04)] // Even total",
+          "[InlineData(99.99, 0.15, 86.95, 13.04)] // Edge case",
+          "[InlineData(50.00, 0.15, 43.48, 6.52)] // Small amount"
+        ]
+      },
+      {
+        "file": "project-context/adr/ADR-0010-test-strategy-coverage.md",
+        "decision": "Three-tier testing strategy: Unit (30+), Integration (10+), E2E (5+)",
+        "e2e_test_requirement": "E2E tests validate critical user workflows against running application + database. GST verification is a critical workflow.",
+        "coverage_target": "Happy path + critical error scenarios (not exhaustive). GST calculation with Banker's Rounding is a happy path scenario."
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M3 — UI & E2E Tests",
+      "sub_section": "E2E Testing - GST Verification",
+      "requirement": "Verify Banker's Rounding in UI display: 120.50 @ 15% = 104.78 + 15.72 (not standard rounding 104.77 + 15.73)"
+    },
+    "execution_plan": "project-context/implementation/M3_EXECUTION_PLAN.md"
+  },
+
+  "deliverables": [
+    {
+      "item": "gst-verification.spec.ts",
+      "description": "Playwright E2E test file for GST calculation verification with Banker's Rounding validation",
+      "location": "client/tests/calculations/",
+      "test_count": "1+ test cases",
+      "properties": {
+        "primary_test_case": "120.50 @ 15% GST = 104.78 excl + 15.72 tax",
+        "validation_points": [
+          "total_incl_tax displayed correctly",
+          "total_excl_tax uses Banker's Rounding (104.78, NOT 104.77)",
+          "sales_tax uses Banker's Rounding (15.72, NOT 15.73)",
+          "tax_rate displayed correctly (0.15 or 15%)",
+          "All monetary values shown to 2 decimal places"
+        ]
+      }
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ 1+ E2E test case created for GST verification",
+    "✅ Test submits expense with total 120.50 and verifies 104.78 + 15.72 breakdown",
+    "✅ Test explicitly checks for Banker's Rounding (NOT standard rounding)",
+    "✅ Test verifies all three values displayed in UI: total_incl_tax, total_excl_tax, sales_tax",
+    "✅ Test runs against real API + UI (not mocked)",
+    "✅ Test passes when backend uses Banker's Rounding",
+    "✅ Test fails if backend uses standard rounding (104.77 instead of 104.78)",
+    "✅ Test file located in client/tests/calculations/ directory",
+    "✅ All tests pass when run via npm run test:e2e"
+  ],
+
+  "business_rules": [
+    "Default GST tax rate: 0.15 (15% NZ GST)",
+    "Banker's Rounding MANDATORY for all monetary calculations (not standard rounding)",
+    "Critical test case: 120.50 @ 15% = 104.78 excl + 15.72 tax (Banker's Rounding)",
+    "Standard rounding would produce 104.77 + 15.73 (INCORRECT - test must reject this)",
+    "All monetary values displayed to 2 decimal places",
+    "Tax calculation formula: total_excl_tax = total_incl_tax / (1 + tax_rate)",
+    "Sales tax formula: sales_tax = total_incl_tax - total_excl_tax",
+    "Both formulas apply Banker's Rounding independently",
+    "UI must display tax breakdown fields: total_incl_tax, total_excl_tax, sales_tax, tax_rate",
+    "E2E tests run against REAL application instances (not mocked)"
+  ],
+
+  "technical_notes": {
+    "test_framework": "Playwright (TypeScript)",
+    "test_directory": "client/tests/calculations/",
+    "base_url": "http://localhost:5173 (from playwright.config.ts)",
+    "test_pattern": "*.spec.ts",
+    "playwright_assertions": [
+      "await expect(page.locator('[data-testid=\"total-excl-tax\"]')).toContainText('104.78')",
+      "await expect(page.locator('[data-testid=\"sales-tax\"]')).toContainText('15.72')",
+      "await expect(page.locator('[data-testid=\"total-incl-tax\"]')).toContainText('120.50')"
+    ],
+    "sample_expense_input": "Hi Yvaine, Please create an expense claim for the below. Relevant details are:\n<expense><cost_centre>DEV002</cost_centre><total>120.50</total><payment_method>personal card</payment_method></expense>",
+    "expected_response_fields": {
+      "total_incl_tax": "120.50",
+      "total_excl_tax": "104.78",
+      "sales_tax": "15.72",
+      "tax_rate": "0.15"
+    },
+    "debugging_commands": [
+      "npm run test:e2e -- gst-verification.spec.ts (run this test only)",
+      "npm run test:e2e:headed -- gst-verification.spec.ts (see browser)",
+      "npm run test:e2e:debug -- gst-verification.spec.ts (step-through debugger)",
+      "npm run test:e2e:ui (interactive UI mode)"
+    ]
+  },
+
+  "code_examples": {
+    "test_structure": "import { test, expect } from '@playwright/test';\n\ntest.describe('GST Verification - Banker\\'s Rounding', () => {\n  test('120.50 @ 15% GST = 104.78 excl + 15.72 tax (Banker\\'s Rounding)', async ({ page }) => {\n    // Arrange: Navigate to app\n    await page.goto('/');\n\n    // Arrange: Prepare expense input with 120.50 total\n    const expenseText = `Hi Yvaine, Please create an expense claim for the below. Relevant details are:\n<expense><cost_centre>DEV002</cost_centre><total>120.50</total><payment_method>personal card</payment_method></expense>`;\n\n    // Act: Submit expense text\n    await page.fill('textarea[name=\"text\"]', expenseText);\n    await page.click('button:has-text(\"Parse\")');\n\n    // Wait for response\n    await page.waitForSelector('[data-testid=\"expense-result\"]');\n\n    // Assert: Verify Banker's Rounding applied\n    await expect(page.locator('[data-testid=\"total-incl-tax\"]')).toContainText('120.50');\n    await expect(page.locator('[data-testid=\"total-excl-tax\"]')).toContainText('104.78'); // NOT 104.77\n    await expect(page.locator('[data-testid=\"sales-tax\"]')).toContainText('15.72'); // NOT 15.73\n    await expect(page.locator('[data-testid=\"tax-rate\"]')).toContainText('0.15');\n  });\n});",
+    "playwright_config_reference": "// playwright.config.ts should have:\nuse: {\n  baseURL: 'http://localhost:5173',\n  screenshot: 'only-on-failure',\n  video: 'retain-on-failure',\n}",
+    "ui_data_testid_attributes": "// Ensure UI components have data-testid attributes:\n<div data-testid=\"expense-result\">\n  <div data-testid=\"total-incl-tax\">Total (Incl. Tax): $120.50</div>\n  <div data-testid=\"total-excl-tax\">Total (Excl. Tax): $104.78</div>\n  <div data-testid=\"sales-tax\">Sales Tax: $15.72</div>\n  <div data-testid=\"tax-rate\">Tax Rate: 0.15 (15%)</div>\n</div>",
+    "alternative_assertions": "// Alternative: Use regex for flexible matching\nawait expect(page.locator('[data-testid=\"total-excl-tax\"]')).toHaveText(/104\\.78/);\n\n// Alternative: Extract text and compare numerically\nconst exclTaxText = await page.locator('[data-testid=\"total-excl-tax\"]').textContent();\nconst exclTax = parseFloat(exclTaxText.replace(/[^0-9.]/g, ''));\nexpect(exclTax).toBe(104.78);"
+  },
+
+  "test_scenarios": [
+    {
+      "name": "Verify_120_50_GST_Calculation_With_Bankers_Rounding",
+      "input": "<expense><cost_centre>DEV002</cost_centre><total>120.50</total><payment_method>personal card</payment_method></expense>",
+      "tax_rate": "0.15 (default)",
+      "expected_total_incl_tax": "120.50",
+      "expected_total_excl_tax": "104.78",
+      "expected_sales_tax": "15.72",
+      "reason": "Critical Banker's Rounding test case from ADR-0009. Standard rounding would produce 104.77 + 15.73 (INCORRECT).",
+      "validation_points": [
+        "total_excl_tax = 120.50 / 1.15 = 104.78260869... → 104.78 (Banker's Rounding)",
+        "sales_tax = 120.50 - 104.78 = 15.72 (Banker's Rounding)",
+        "104.78 + 15.72 = 120.50 (verification)",
+        "UI displays all three values correctly"
+      ]
+    },
+    {
+      "name": "Verify_Tax_Breakdown_Displayed_In_UI",
+      "purpose": "Ensure all tax breakdown fields are visible to users",
+      "expected_ui_elements": [
+        "total_incl_tax label and value",
+        "total_excl_tax label and value",
+        "sales_tax label and value",
+        "tax_rate label and value (0.15 or 15%)"
+      ],
+      "reason": "Users need transparency to verify calculations; grading criteria checks for proper tax display"
+    }
+  ],
+
+  "validation": {
+    "command": "cd /home/adarsh/dev/codefluent/flowingly-technical-test/client && npm run test:e2e -- gst-verification.spec.ts",
+    "expected_output": "Running 1+ tests using 1 worker\n  ✓ GST Verification - Banker's Rounding > 120.50 @ 15% GST = 104.78 excl + 15.72 tax (Banker's Rounding)\n  1 passed",
+    "success_criteria": [
+      "1+ GST verification test passes",
+      "Test verifies 104.78 (not 104.77) for total_excl_tax",
+      "Test verifies 15.72 (not 15.73) for sales_tax",
+      "No screenshot/video artifacts (test passes cleanly)",
+      "Test runs in < 10 seconds (fast E2E test)"
+    ],
+    "failure_scenarios": [
+      "Test fails if backend uses standard rounding (104.77 instead of 104.78)",
+      "Test fails if UI doesn't display tax breakdown fields",
+      "Test fails if API returns incorrect GST calculation",
+      "Test fails if data-testid attributes missing in UI"
+    ]
+  },
+
+  "next_task": {
+    "id": "task_048",
+    "name": "Run Full Test Suite",
+    "why": "GST verification E2E tests complete (along with task_045, task_046), now run full test suite (unit + contract + E2E) to verify 45+ tests passing",
+    "dependencies": [
+      "task_030 (unit tests)",
+      "task_037 (contract tests)",
+      "task_045 (E2E happy path)",
+      "task_046 (E2E error tests)",
+      "task_047 (E2E GST verification)"
+    ]
+  },
+
+  "playwright_setup_requirements": {
+    "prerequisite_task": "task_044 (Setup Playwright)",
+    "required_config": "playwright.config.ts with baseURL http://localhost:5173",
+    "required_browsers": "chromium (primary for GST verification)",
+    "required_directory": "client/tests/calculations/",
+    "required_fixtures": "None (GST test uses inline expense text, not fixtures)",
+    "required_test_scripts": [
+      "test:e2e",
+      "test:e2e:ui",
+      "test:e2e:headed",
+      "test:e2e:debug"
+    ]
+  },
+
+  "ui_implementation_notes": {
+    "required_ui_elements": [
+      "Textarea for text input (name='text' or similar)",
+      "Parse button (text contains 'Parse')",
+      "Expense result container (data-testid='expense-result')",
+      "Total incl. tax display (data-testid='total-incl-tax')",
+      "Total excl. tax display (data-testid='total-excl-tax')",
+      "Sales tax display (data-testid='sales-tax')",
+      "Tax rate display (data-testid='tax-rate')"
+    ],
+    "data_testid_guidance": "Add data-testid attributes to all monetary fields for reliable E2E testing. Avoids brittle CSS selectors.",
+    "formatting_requirements": [
+      "All monetary values formatted to 2 decimal places (e.g., 104.78, not 104.7800000001)",
+      "Tax rate displayed as decimal (0.15) or percentage (15%) - both acceptable",
+      "Currency symbol optional but recommended (e.g., $104.78)"
+    ]
+  },
+
+  "debugging_guidance": {
+    "common_issues": [
+      {
+        "issue": "Test fails - total_excl_tax is 104.77 instead of 104.78",
+        "root_cause": "Backend using standard rounding (MidpointRounding.AwayFromZero) instead of Banker's Rounding (MidpointRounding.ToEven)",
+        "solution": "Check TaxCalculator implementation uses Math.Round(value, 2, MidpointRounding.ToEven)",
+        "verification": "Run unit tests for TaxCalculator - should have test case [InlineData(120.50, 0.15, 104.78, 15.72)]"
+      },
+      {
+        "issue": "Test fails - cannot find element with data-testid",
+        "root_cause": "UI components missing data-testid attributes",
+        "solution": "Add data-testid='total-excl-tax' to div displaying exclusive total",
+        "verification": "Inspect element in browser DevTools, verify data-testid attribute exists"
+      },
+      {
+        "issue": "Test fails - API not reachable",
+        "root_cause": "Backend API not running on port 5000 (or configured port)",
+        "solution": "Start API with: export PATH=\"$HOME/.dotnet:$PATH\" && dotnet run --project src/Api",
+        "verification": "curl http://localhost:5000/api/v1/parse should return 405 Method Not Allowed (POST required)"
+      },
+      {
+        "issue": "Test fails - tax_rate not displayed",
+        "root_cause": "API response missing tax_rate field or UI not displaying it",
+        "solution": "Verify API response includes tax_rate: 0.15 field; Update UI to display tax_rate",
+        "verification": "Check API contract test or Swagger docs for tax_rate in ExpenseResponse"
+      }
+    ],
+    "troubleshooting_steps": [
+      "1. Run test in headed mode: npm run test:e2e:headed -- gst-verification.spec.ts",
+      "2. Verify API response manually: curl -X POST http://localhost:5000/api/v1/parse -H 'Content-Type: application/json' -d '{\"text\":\"<expense><total>120.50</total></expense>\"}'",
+      "3. Check backend unit tests: export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter TaxCalculator",
+      "4. Inspect UI in browser: Navigate to http://localhost:5173, submit expense, verify tax fields visible",
+      "5. Check Playwright trace: npx playwright show-trace trace.zip (if test captured trace)"
+    ]
+  },
+
+  "grading_impact": {
+    "importance": "CRITICAL",
+    "grading_criteria_affected": [
+      "Tax calculation correctness (Banker's Rounding vs standard rounding)",
+      "E2E test coverage (45+ tests required)",
+      "Code quality (proper rounding implementation)",
+      "UX transparency (tax breakdown visible to users)"
+    ],
+    "reviewer_expectations": [
+      "Reviewer will test expense with total 120.50 and verify 104.78 + 15.72",
+      "Reviewer may test with other amounts to verify Banker's Rounding consistently applied",
+      "Reviewer expects E2E tests to catch incorrect rounding (e.g., 104.77 would fail test)",
+      "Reviewer expects UI to show full tax breakdown (not just total)"
+    ],
+    "failure_consequences": [
+      "Using standard rounding (104.77) instead of Banker's Rounding (104.78) will be noticed and penalized",
+      "Missing E2E test for GST verification reduces test coverage score",
+      "Hidden tax breakdown (not visible in UI) reduces UX score"
+    ]
+  }
+}

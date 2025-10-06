@@ -1,6 +1,8 @@
+using Flowingly.ParsingService.Application.Commands;
 using Flowingly.ParsingService.Contracts.Errors;
 using Flowingly.ParsingService.Contracts.Requests;
 using Flowingly.ParsingService.Contracts.Responses;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Flowingly.ParsingService.Api.Endpoints;
@@ -12,39 +14,19 @@ public static class ParseEndpoint
 {
     public static void MapParseEndpoint(this IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/v1/parse", (
+        app.MapPost("/api/v1/parse", async (
             [FromBody] ParseRequest request,
-            HttpContext httpContext) =>
+            IMediator mediator,
+            CancellationToken cancellationToken) =>
         {
-            // Generate correlation ID for traceability
-            var correlationId = Guid.NewGuid().ToString();
+            // Send command via MediatR to ParseMessageCommandHandler
+            var command = new ParseMessageCommand(
+                request.Text,
+                request.TaxRate
+            );
 
-            // M0 Echo Flow: Return mock expense response to verify frontend-backend integration
-            // This will be replaced with actual parsing logic in M1
-            var mockResponse = new
-            {
-                classification = "expense",
-                expense = new
-                {
-                    vendor = "Mock Vendor",
-                    description = "Sample expense for M0 testing",
-                    total = 120.50m,
-                    totalExclTax = 104.78m,
-                    salesTax = 15.72m,
-                    costCentre = "UNKNOWN",
-                    date = DateTime.Now.ToString("yyyy-MM-dd"),
-                    time = (string?)null,
-                    taxRate = 0.15m
-                },
-                meta = new
-                {
-                    correlationId,
-                    processingTimeMs = 10,
-                    warnings = new[] { "M0 echo flow - full parsing implemented in M1" }
-                }
-            };
-
-            return Results.Ok(mockResponse);
+            var response = await mediator.Send(command, cancellationToken);
+            return Results.Ok(response);
         })
         .WithName("Parse")
         .WithTags("Parsing")

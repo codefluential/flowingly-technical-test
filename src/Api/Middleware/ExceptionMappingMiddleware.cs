@@ -1,5 +1,4 @@
-using Api.Contracts;
-using Api.Extensions;
+using Flowingly.ParsingService.Contracts.Errors;
 using Flowingly.ParsingService.Domain.Exceptions;
 
 namespace Api.Middleware;
@@ -48,8 +47,8 @@ public class ExceptionMappingMiddleware
             exception.GetType().Name
         );
 
-        // Map exception to ErrorResponse using extension methods
-        var errorResponse = exception.ToErrorResponse(correlationId);
+        // Map exception to ErrorResponse
+        var errorResponse = MapToErrorResponse(exception, correlationId);
 
         // Write JSON error response
         context.Response.ContentType = "application/json";
@@ -69,6 +68,37 @@ public class ExceptionMappingMiddleware
 
             // Unhandled exceptions (internal server errors)
             _ => StatusCodes.Status500InternalServerError
+        };
+    }
+
+    private static ErrorResponse MapToErrorResponse(Exception exception, string correlationId)
+    {
+        return exception switch
+        {
+            ValidationException validationEx => new ErrorResponse
+            {
+                CorrelationId = correlationId,
+                ErrorCode = validationEx.ErrorCode,
+                Message = validationEx.Message,
+                Details = validationEx.Data.Count > 0
+                    ? validationEx.Data.Cast<System.Collections.DictionaryEntry>()
+                        .ToDictionary(e => e.Key.ToString()!, e => e.Value?.ToString() ?? "")
+                    : null
+            },
+            FluentValidation.ValidationException fluentEx => new ErrorResponse
+            {
+                CorrelationId = correlationId,
+                ErrorCode = "INVALID_REQUEST",
+                Message = "Validation failed for one or more fields",
+                Details = fluentEx.Errors.ToDictionary(e => e.PropertyName, e => e.ErrorMessage)
+            },
+            _ => new ErrorResponse
+            {
+                CorrelationId = correlationId,
+                ErrorCode = "INTERNAL_ERROR",
+                Message = "An unexpected error occurred",
+                Details = null
+            }
         };
     }
 }

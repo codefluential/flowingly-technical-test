@@ -72,6 +72,7 @@
         "Zero test failures or skips"
       ]
     },
+    "execution_plan": "project-context/implementation/M3_EXECUTION_PLAN.md",
     "dependency_context": {
       "task_030": "M1 DoD verified - 30+ unit tests green (Tag validation, number normalization, Banker's Rounding, tax calc, time parsing, XML extraction, content routing, expense processing)",
       "task_037": "API contract tests written and green (10+ integration tests for endpoint happy paths and error scenarios)",

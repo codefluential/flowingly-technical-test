@@ -143,15 +143,24 @@ public class ParseMessageCommandHandler : IRequestHandler<ParseMessageCommand, P
         else // classification == "other"
         {
             // OtherProcessor returns anonymous object with RawTags and Note
-            dynamic otherData = result.Data
+            var otherData = result.Data
                 ?? throw new InvalidOperationException("Expected data for other classification");
+
+            // Use reflection to extract RawTags and Note from anonymous type
+            var rawTagsProperty = otherData.GetType().GetProperty("RawTags");
+            var noteProperty = otherData.GetType().GetProperty("Note");
+
+            var rawTags = (Dictionary<string, string>)(rawTagsProperty?.GetValue(otherData)
+                ?? new Dictionary<string, string>());
+            var note = (string)(noteProperty?.GetValue(otherData)
+                ?? "Content stored for future processing");
 
             return new OtherParseResponse
             {
                 Other = new OtherData
                 {
-                    RawTags = otherData.RawTags,
-                    Note = otherData.Note
+                    RawTags = rawTags,
+                    Note = note
                 },
                 Meta = meta
             };

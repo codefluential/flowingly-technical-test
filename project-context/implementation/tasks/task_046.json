@@ -57,7 +57,8 @@
       "section": "M3 — UI & E2E Tests",
       "sub_section": "E2E Error Tests",
       "requirement": "Write Playwright tests for error scenarios - unclosed tags, missing total"
-    }
+    },
+    "execution_plan": "project-context/implementation/M3_EXECUTION_PLAN.md"
   },
 
   "test_scenarios": [

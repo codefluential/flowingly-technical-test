@@ -28,9 +28,14 @@ public class ExpenseProcessor : IContentProcessor
 
     public bool CanProcess(ParsedContent content)
     {
-        // Can process if <total> tag exists OR <expense> XML island exists
-        return content.InlineTags.ContainsKey("total")
-            || content.XmlIslands.Any(x => x.Name == "expense");
+        // Can process if any expense-related tags exist OR <expense> XML island exists
+        // Expense-related tags: total, vendor, cost_centre, payment_method, description, date, time
+        var expenseTags = new[] { "total", "vendor", "cost_centre", "payment_method", "description", "date", "time" };
+
+        bool hasExpenseTag = content.InlineTags.Keys.Any(tag => expenseTags.Contains(tag));
+        bool hasExpenseIsland = content.XmlIslands.Any(x => x.Name == "expense");
+
+        return hasExpenseTag || hasExpenseIsland;
     }
 
     public async Task<ProcessingResult> ProcessAsync(ParsedContent content, CancellationToken ct)

@@ -74,7 +74,8 @@
         "GST calculations are correct",
         "No console errors or warnings"
       ]
-    }
+    },
+    "execution_plan": "project-context/implementation/M3_EXECUTION_PLAN.md"
   },
 
   "deliverables": [

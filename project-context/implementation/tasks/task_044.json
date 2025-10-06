@@ -70,7 +70,8 @@
       "section": "M3 — UI & E2E Tests",
       "sub_section": "E2E Testing Infrastructure",
       "requirement": "Setup Playwright before writing 3 parallel E2E test tasks (task_045, task_046, task_047)"
-    }
+    },
+    "execution_plan": "project-context/implementation/M3_EXECUTION_PLAN.md"
   },
 
   "deliverables": [

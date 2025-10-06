@@ -19,6 +19,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{AD4E12D4
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flowingly.ParsingService.UnitTests", "tests\Flowingly.ParsingService.UnitTests\Flowingly.ParsingService.UnitTests.csproj", "{D6A3A2B6-07B5-43A7-84FC-726AFF06E7FE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flowingly.ParsingService.IntegrationTests", "tests\Flowingly.ParsingService.IntegrationTests\Flowingly.ParsingService.IntegrationTests.csproj", "{4D47FC0C-2C9B-4A8B-B22B-FE9F54B195D6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +54,10 @@ Global
 		{D6A3A2B6-07B5-43A7-84FC-726AFF06E7FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D6A3A2B6-07B5-43A7-84FC-726AFF06E7FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D6A3A2B6-07B5-43A7-84FC-726AFF06E7FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D47FC0C-2C9B-4A8B-B22B-FE9F54B195D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D47FC0C-2C9B-4A8B-B22B-FE9F54B195D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D47FC0C-2C9B-4A8B-B22B-FE9F54B195D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D47FC0C-2C9B-4A8B-B22B-FE9F54B195D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{BDCD3615-B560-4904-B3F6-359338FF03B5} = {4E5086C9-9263-4860-8063-A70A6D117882}
@@ -59,5 +65,6 @@ Global
 		{F04CFD2C-889A-4BF6-A8A1-179EDE74380C} = {4E5086C9-9263-4860-8063-A70A6D117882}
 		{56F88BC9-95FA-4395-82F8-4D64809AC54A} = {4E5086C9-9263-4860-8063-A70A6D117882}
 		{D6A3A2B6-07B5-43A7-84FC-726AFF06E7FE} = {AD4E12D4-009F-4E72-8E1A-2C19EED3C96C}
+		{4D47FC0C-2C9B-4A8B-B22B-FE9F54B195D6} = {AD4E12D4-009F-4E72-8E1A-2C19EED3C96C}
 	EndGlobalSection
 EndGlobal

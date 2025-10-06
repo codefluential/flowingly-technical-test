@@ -1,0 +1,240 @@
+{
+  "task_id": "task_041",
+  "milestone": "M3",
+  "name": "Enhance UI Components",
+  "description": "Enhance React UI components with improved visual design, accessibility features, responsive layout, and comprehensive expense/other data display following classification-specific response contract (expense XOR other).",
+
+  "agent": {
+    "primary": "frontend-design-expert",
+    "role": "React Component Enhancement with Accessibility & Responsive Design"
+  },
+
+  "duration": "1h",
+  "priority": "high",
+  "dependencies": ["task_040"],
+  "parallel_group": null,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 6: Frontend (React) - Design & Implementation",
+        "Section 6: UI Features - JSON viewer displays expense OR other based on classification",
+        "Section 6: Accessibility - Labels, focus management, keyboard navigation",
+        "Section 6: User controls - High-contrast mode, text size toggles"
+      ],
+      "requirements": [
+        "Textarea for paste raw text, Submit, Clear buttons",
+        "JSON viewer displays expense details OR other/unprocessed details based on classification (responses are specific, not combined)",
+        "Error banner showing error.code and friendly message",
+        "Footer: correlation ID for support traceability",
+        "Labels for inputs, focus management on error, keyboard friendly",
+        "Optional toggles for high-contrast mode and text size (normal/large/x-large), persisted in localStorage",
+        "Responsive design for mobile/tablet/desktop viewports"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 1,
+      "requirement": "Demonstrate working UI flow with clear UX for expense vs other classification",
+      "grading_criteria": "UI clarity and accessibility affect professional impression"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0007-response-contract-design.md",
+        "decision": "Classification-Specific Response (Expense XOR Other)",
+        "rationale": "Type safety, clear contracts, domain alignment",
+        "context": "UI must handle two distinct response shapes (expense vs other)",
+        "key_points": [
+          "Response contains expense XOR other, never both",
+          "classification field determines which payload is present",
+          "TypeScript discriminated unions for type-safe handling",
+          "Display expense data: vendor, total, totalExclTax, salesTax, costCentre, date, time, taxRate",
+          "Display other data: rawTags, note field",
+          "Always display meta: correlationId, warnings, tagsFound"
+        ],
+        "example_expense": "{\n  \"classification\": \"expense\",\n  \"expense\": {\n    \"vendor\": \"Mojo Coffee\",\n    \"total\": 120.50,\n    \"totalExclTax\": 104.78,\n    \"salesTax\": 15.72,\n    \"costCentre\": \"DEV-TEAM\",\n    \"date\": \"2024-10-05\",\n    \"time\": \"12:30\",\n    \"taxRate\": 0.15\n  },\n  \"meta\": {\n    \"correlationId\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"processingTimeMs\": 45,\n    \"warnings\": []\n  }\n}",
+        "example_other": "{\n  \"classification\": \"other\",\n  \"other\": {\n    \"rawTags\": {\n      \"reservation_date\": \"2024-12-25\",\n      \"party_size\": \"6\",\n      \"venue\": \"The French Café\"\n    }\n  },\n  \"meta\": {\n    \"correlationId\": \"550e8400-e29b-41d4-a716-446655440001\",\n    \"processingTimeMs\": 12,\n    \"warnings\": [\"Non-expense content stored for future processing\"]\n  }\n}"
+      },
+      {
+        "file": "project-context/adr/ADR-0004-swagger-api-contract.md",
+        "decision": "Swagger for API Contract Documentation",
+        "relevance": "UI should reflect API contract structure shown in Swagger UI"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M3 — UI & E2E Tests",
+      "sub_section": "Enhanced UI Components",
+      "requirement": "Professional UI with accessibility, responsive design, and clear expense/other classification display"
+    },
+    "execution_plan": "project-context/implementation/M3_EXECUTION_PLAN.md"
+  },
+
+  "deliverables": [
+    {
+      "item": "ParseForm.tsx",
+      "description": "Enhanced form component with improved UX, loading states, ARIA labels",
+      "location": "client/src/components/ParseForm.tsx",
+      "enhancements": [
+        "ARIA labels on textarea and buttons",
+        "Loading spinner during API call",
+        "Disabled state for submit button during loading",
+        "Clear button functionality",
+        "Focus management (auto-focus textarea on load, focus error banner on error)",
+        "Keyboard shortcuts (Cmd/Ctrl+Enter to submit)"
+      ]
+    },
+    {
+      "item": "ResponseDisplay.tsx",
+      "description": "Component to display expense OR other data based on classification",
+      "location": "client/src/components/ResponseDisplay.tsx",
+      "features": [
+        "Discriminated union handling (expense vs other)",
+        "ExpenseView sub-component for expense data",
+        "OtherView sub-component for other/unprocessed data",
+        "Classification badge (visual indicator)",
+        "Tax breakdown display with labels",
+        "Correlation ID shown in footer",
+        "Warnings list if present",
+        "Responsive card layout"
+      ]
+    },
+    {
+      "item": "LoadingSpinner.tsx",
+      "description": "Reusable loading indicator component",
+      "location": "client/src/components/LoadingSpinner.tsx",
+      "features": [
+        "ARIA live region for screen readers",
+        "Accessible loading message",
+        "CSS animation",
+        "Size variants (small, medium, large)"
+      ]
+    },
+    {
+      "item": "ClassificationBadge.tsx",
+      "description": "Visual badge component for expense/other classification",
+      "location": "client/src/components/ClassificationBadge.tsx",
+      "features": [
+        "Color-coded (green for expense, blue for other)",
+        "ARIA label",
+        "Icon support (optional)",
+        "Responsive sizing"
+      ]
+    },
+    {
+      "item": "App.css",
+      "description": "Enhanced styles with responsive design and accessibility features",
+      "location": "client/src/App.css",
+      "features": [
+        "Mobile-first responsive design (breakpoints: 640px, 768px, 1024px)",
+        "High-contrast mode support (CSS custom properties)",
+        "Text size variants (normal, large, x-large)",
+        "Focus visible styles for keyboard navigation",
+        "Color contrast ratios meet WCAG AA standards",
+        "Smooth transitions for state changes"
+      ]
+    },
+    {
+      "item": "App.tsx",
+      "description": "Updated main component with accessibility controls",
+      "location": "client/src/App.tsx",
+      "features": [
+        "State management for response data",
+        "Loading state tracking",
+        "Error state handling",
+        "Accessibility controls (high-contrast, text size)",
+        "localStorage persistence for user preferences",
+        "Response classification handling"
+      ]
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ ParseForm has ARIA labels on all interactive elements (textarea, buttons)",
+    "✅ Loading spinner displays during API call with accessible loading message",
+    "✅ Submit button disabled during loading to prevent double submission",
+    "✅ Clear button clears textarea and response data",
+    "✅ ResponseDisplay correctly renders expense OR other based on classification (never both)",
+    "✅ Expense data displays: vendor, total, totalExclTax, salesTax, costCentre, date, time, taxRate with labels",
+    "✅ Other data displays: rawTags as key-value pairs, note field",
+    "✅ Classification badge shows expense or other with color coding",
+    "✅ Correlation ID displayed in footer for traceability",
+    "✅ Warnings list shown if present in meta",
+    "✅ Keyboard navigation works (Tab, Enter, Escape)",
+    "✅ Focus management: auto-focus textarea on load, focus error banner on error",
+    "✅ Responsive layout works on mobile (320px+), tablet (768px+), desktop (1024px+)",
+    "✅ High-contrast mode toggle works (persists in localStorage)",
+    "✅ Text size controls work (normal/large/x-large, persists in localStorage)",
+    "✅ All text meets WCAG AA color contrast ratios (4.5:1 for normal text, 3:1 for large text)",
+    "✅ No console errors or warnings",
+    "✅ TypeScript strict mode passes"
+  ],
+
+  "business_rules": [
+    "Response is classification-specific: expense XOR other, NEVER both (from ADR-0007)",
+    "Expense display includes all normalized fields: vendor, total, totalExclTax, salesTax, costCentre, date, time, taxRate",
+    "Other display includes rawTags dictionary and note field",
+    "Correlation ID must be visible for support/debugging (PRD Section 6)",
+    "Warnings array from meta must be displayed if non-empty",
+    "Classification badge must clearly indicate expense vs other for quick user identification",
+    "Loading states prevent user confusion during async API calls",
+    "Accessibility controls (high-contrast, text size) persist across sessions via localStorage",
+    "Focus management ensures keyboard users can navigate efficiently",
+    "Responsive breakpoints: mobile 320px-767px, tablet 768px-1023px, desktop 1024px+"
+  ],
+
+  "technical_notes": {
+    "react_patterns": "Use TypeScript discriminated unions for type-safe classification handling, functional components with hooks (useState, useEffect), CSS modules or styled-components for scoped styles",
+    "accessibility_standards": "WCAG 2.1 Level AA compliance, ARIA labels on form controls, focus visible styles, keyboard navigation support, screen reader announcements for dynamic content",
+    "responsive_design": "Mobile-first approach, flexbox/grid layout, CSS breakpoints for tablet/desktop, touch-friendly targets (min 44x44px), fluid typography with clamp()",
+    "state_management": "useState for form state, loading state, error state, user preferences (high-contrast, text size), useEffect for localStorage persistence",
+    "performance": "Avoid unnecessary re-renders, memoize expensive computations, lazy load heavy components if needed",
+    "testing_notes": "Playwright E2E tests will validate accessibility features in task_045-047"
+  },
+
+  "code_examples": {
+    "discriminated_union_handling": "// Type-safe classification handling\nfunction ResponseDisplay({ response }: { response: ParseResponse }) {\n  if (response.classification === 'expense') {\n    return <ExpenseView expense={response.expense} meta={response.meta} />;\n  } else {\n    return <OtherView other={response.other} meta={response.meta} />;\n  }\n}",
+    "aria_form": "// Accessible form with ARIA labels\n<form onSubmit={handleSubmit} aria-label=\"Parse expense text\">\n  <label htmlFor=\"text-input\">Paste expense text here</label>\n  <textarea\n    id=\"text-input\"\n    aria-label=\"Expense text input\"\n    aria-required=\"true\"\n    aria-describedby=\"text-help\"\n    value={text}\n    onChange={(e) => setText(e.target.value)}\n  />\n  <span id=\"text-help\" className=\"sr-only\">\n    Paste email body or text with expense tags\n  </span>\n  <button\n    type=\"submit\"\n    aria-label=\"Parse text\"\n    disabled={isLoading}\n  >\n    {isLoading ? 'Parsing...' : 'Parse'}\n  </button>\n</form>",
+    "loading_spinner": "// Accessible loading spinner\n<div\n  role=\"status\"\n  aria-live=\"polite\"\n  aria-label=\"Loading results\"\n  className=\"spinner\"\n>\n  <span className=\"sr-only\">Loading, please wait...</span>\n  <div className=\"spinner-icon\" aria-hidden=\"true\" />\n</div>",
+    "responsive_css": "/* Mobile-first responsive design */\n.response-container {\n  display: grid;\n  gap: 1rem;\n  padding: 1rem;\n}\n\n/* Tablet */\n@media (min-width: 768px) {\n  .response-container {\n    grid-template-columns: 1fr 1fr;\n    padding: 2rem;\n  }\n}\n\n/* Desktop */\n@media (min-width: 1024px) {\n  .response-container {\n    max-width: 1200px;\n    margin: 0 auto;\n    padding: 3rem;\n  }\n}",
+    "high_contrast_mode": "// High-contrast mode toggle\nconst [highContrast, setHighContrast] = useState(\n  localStorage.getItem('highContrast') === 'true'\n);\n\nuseEffect(() => {\n  localStorage.setItem('highContrast', String(highContrast));\n  document.body.classList.toggle('high-contrast', highContrast);\n}, [highContrast]);\n\n// CSS\n:root {\n  --bg-color: #ffffff;\n  --text-color: #333333;\n}\n\nbody.high-contrast {\n  --bg-color: #000000;\n  --text-color: #ffffff;\n}",
+    "expense_view": "// Expense data display component\nfunction ExpenseView({ expense, meta }: { expense: ExpenseData; meta: Meta }) {\n  return (\n    <div className=\"expense-card\">\n      <ClassificationBadge type=\"expense\" />\n      <dl>\n        <dt>Vendor:</dt>\n        <dd>{expense.vendor}</dd>\n        <dt>Total (incl. tax):</dt>\n        <dd>{expense.total.toFixed(2)} {expense.currency || 'NZD'}</dd>\n        <dt>Total (excl. tax):</dt>\n        <dd>{expense.totalExclTax.toFixed(2)}</dd>\n        <dt>Sales Tax ({expense.taxRate * 100}%):</dt>\n        <dd>{expense.salesTax.toFixed(2)}</dd>\n        <dt>Cost Centre:</dt>\n        <dd>{expense.costCentre}</dd>\n        {expense.date && (\n          <><dt>Date:</dt><dd>{expense.date}</dd></>\n        )}\n        {expense.time && (\n          <><dt>Time:</dt><dd>{expense.time}</dd></>\n        )}\n      </dl>\n      <CorrelationId id={meta.correlationId} />\n      {meta.warnings.length > 0 && <WarningsList warnings={meta.warnings} />}\n    </div>\n  );\n}"
+  },
+
+  "accessibility_checklist": {
+    "semantic_html": "Use semantic elements (form, button, label, dl, dt, dd)",
+    "aria_labels": "All interactive elements have accessible labels",
+    "keyboard_navigation": "All UI operable via keyboard (Tab, Enter, Escape)",
+    "focus_visible": "Clear focus indicators (outline, box-shadow)",
+    "color_contrast": "Meet WCAG AA contrast ratios (4.5:1 normal, 3:1 large)",
+    "screen_reader": "Announce dynamic content changes via ARIA live regions",
+    "error_handling": "Errors announced to screen readers, focus moved to error banner",
+    "skip_links": "Optional: add skip to main content link"
+  },
+
+  "responsive_breakpoints": {
+    "mobile": "320px - 767px (single column, touch-optimized, larger tap targets)",
+    "tablet": "768px - 1023px (two-column grid where appropriate, adjusted spacing)",
+    "desktop": "1024px+ (max-width container, optimized for mouse/keyboard, multi-column layouts)"
+  },
+
+  "validation": {
+    "command": "cd client && npm run build",
+    "expected_output": "Build succeeds with 0 TypeScript errors, 0 warnings",
+    "manual_checks": [
+      "Test responsive layout at 320px, 768px, 1024px+ viewports",
+      "Verify keyboard navigation (Tab through all controls)",
+      "Test high-contrast mode toggle",
+      "Test text size controls (normal/large/x-large)",
+      "Verify ARIA labels with screen reader (VoiceOver, NVDA, JAWS)",
+      "Check focus visible styles on all interactive elements"
+    ]
+  },
+
+  "next_task": {
+    "id": "task_042",
+    "name": "Add TypeScript Types",
+    "why": "UI components enhanced, now align TypeScript types with API contract (ParseResponse discriminated union, ExpenseData, OtherData)"
+  }
+}
