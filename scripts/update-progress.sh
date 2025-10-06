@@ -23,7 +23,8 @@ PROGRESS_MD="project-context/implementation/PROGRESS.md"
 BUILDLOG_MD="project-context/build-logs/BUILDLOG.md"
 
 # Update tasks.json status using jq
-jq --arg task "$TASK_ID" --arg status "$STATUS" --arg timestamp "$(date -Iseconds)" '
+# Use UTC format for timestamps to avoid timezone parsing issues
+jq --arg task "$TASK_ID" --arg status "$STATUS" --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" '
   # Update task status
   (.tasks[] | select(.id == $task) | .status) = $status |
 
@@ -34,10 +35,17 @@ jq --arg task "$TASK_ID" --arg status "$STATUS" --arg timestamp "$(date -Isecond
   elif $status == "completed" then
     (.tasks[] | select(.id == $task) | .completed_at) = $timestamp |
     # Calculate duration_minutes if started_at exists
+    # Need to handle both Z and +XX:XX timezone formats
     (.tasks[] | select(.id == $task)) |= (
       if .started_at != null and .completed_at != null then
-        .duration_minutes = (
-          (((.completed_at | fromdateiso8601) - (.started_at | fromdateiso8601)) / 60) | round
+        # Convert both timestamps to epoch and calculate difference
+        (.started_at as $start | .completed_at as $end |
+          # Try to parse, fallback to 0 if format is incompatible
+          try (
+            .duration_minutes = ((($end | fromdateiso8601) - ($start | fromdateiso8601)) / 60) | round
+          ) catch (
+            .duration_minutes = null
+          )
         )
       else
         .

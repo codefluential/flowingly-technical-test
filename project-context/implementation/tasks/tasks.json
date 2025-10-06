@@ -1,6 +1,6 @@
 {
   "project": "Flowingly Parsing Service",
-  "phase": "Phase 1 - Core Submission (M0→M3)",
+  "phase": "Phase 1 - Core Submission (M0\u2192M3)",
   "timeline": "2.5 days",
   "total_tasks": 51,
   "submittable_after": "task_050",
@@ -143,8 +143,8 @@
       "dependencies": [],
       "parallel_group": null,
       "status": "completed",
-      "completed_at": "2025-10-06T09:05:29+13:00",
-      "started_at": "2025-10-06T08:51:09+13:00"
+      "completed_at": "2025-10-05T20:05:29Z",
+      "started_at": "2025-10-05T19:51:09Z"
     },
     {
       "id": "task_002",
@@ -158,8 +158,8 @@
       ],
       "parallel_group": null,
       "status": "completed",
-      "started_at": "2025-10-06T09:12:14+13:00",
-      "completed_at": "2025-10-06T09:17:30+13:00"
+      "started_at": "2025-10-05T20:12:14Z",
+      "completed_at": "2025-10-05T20:17:30Z"
     },
     {
       "id": "task_003",
@@ -173,8 +173,8 @@
       ],
       "parallel_group": "M0_parallel_1",
       "status": "completed",
-      "started_at": "2025-10-06T09:25:37+13:00",
-      "completed_at": "2025-10-06T10:19:14+13:00"
+      "started_at": "2025-10-05T20:25:37Z",
+      "completed_at": "2025-10-05T21:19:14Z"
     },
     {
       "id": "task_004",
@@ -188,8 +188,8 @@
       ],
       "parallel_group": "M0_parallel_1",
       "status": "completed",
-      "started_at": "2025-10-06T09:25:37+13:00",
-      "completed_at": "2025-10-06T10:19:15+13:00"
+      "started_at": "2025-10-05T20:25:37Z",
+      "completed_at": "2025-10-05T21:19:15Z"
     },
     {
       "id": "task_005",
@@ -204,8 +204,8 @@
       ],
       "parallel_group": null,
       "status": "completed",
-      "started_at": "2025-10-06T11:11:51+13:00",
-      "completed_at": "2025-10-06T11:13:45+13:00"
+      "started_at": "2025-10-05T22:11:51Z",
+      "completed_at": "2025-10-05T22:13:45Z"
     },
     {
       "id": "task_006",
@@ -219,8 +219,8 @@
       ],
       "parallel_group": null,
       "status": "completed",
-      "started_at": "2025-10-06T11:16:35+13:00",
-      "completed_at": "2025-10-06T11:19:11+13:00"
+      "started_at": "2025-10-05T22:16:35Z",
+      "completed_at": "2025-10-05T22:19:11Z"
     },
     {
       "id": "task_007",
@@ -235,8 +235,8 @@
       ],
       "parallel_group": null,
       "status": "completed",
-      "started_at": "2025-10-06T11:31:36+13:00",
-      "completed_at": "2025-10-06T11:33:21+13:00"
+      "started_at": "2025-10-05T22:31:36Z",
+      "completed_at": "2025-10-05T22:33:21Z"
     },
     {
       "id": "task_008",
@@ -250,8 +250,8 @@
       ],
       "parallel_group": "M0_parallel_2",
       "status": "completed",
-      "started_at": "2025-10-06T11:38:40+13:00",
-      "completed_at": "2025-10-06T11:40:11+13:00"
+      "started_at": "2025-10-05T22:38:40Z",
+      "completed_at": "2025-10-05T22:40:11Z"
     },
     {
       "id": "task_009",
@@ -265,8 +265,8 @@
       ],
       "parallel_group": "M0_parallel_2",
       "status": "completed",
-      "started_at": "2025-10-06T11:38:22+13:00",
-      "completed_at": "2025-10-06T12:18:05+13:00"
+      "started_at": "2025-10-05T22:38:22Z",
+      "completed_at": "2025-10-05T23:18:05Z"
     },
     {
       "id": "task_010",
@@ -289,8 +289,8 @@
       "parallel_group": null,
       "milestone_gate": true,
       "status": "completed",
-      "started_at": "2025-10-06T12:39:04+13:00",
-      "completed_at": "2025-10-06T13:18:42+13:00"
+      "started_at": "2025-10-05T23:39:04Z",
+      "completed_at": "2025-10-06T00:18:42Z"
     },
     {
       "id": "task_011",
@@ -304,8 +304,8 @@
       ],
       "parallel_group": null,
       "status": "completed",
-      "started_at": "2025-10-06T13:47:57+13:00",
-      "completed_at": "2025-10-06T13:49:13+13:00"
+      "started_at": "2025-10-06T00:47:57Z",
+      "completed_at": "2025-10-06T00:49:13Z"
     },
     {
       "id": "task_012",
@@ -319,8 +319,8 @@
       ],
       "parallel_group": null,
       "status": "completed",
-      "started_at": "2025-10-06T14:17:58+13:00",
-      "completed_at": "2025-10-06T14:20:25+13:00"
+      "started_at": "2025-10-06T01:17:58Z",
+      "completed_at": "2025-10-06T01:20:25Z"
     },
     {
       "id": "task_013",
@@ -334,8 +334,8 @@
       ],
       "parallel_group": null,
       "status": "completed",
-      "started_at": "2025-10-06T13:51:56+13:00",
-      "completed_at": "2025-10-06T13:59:58+13:00"
+      "started_at": "2025-10-06T00:51:56Z",
+      "completed_at": "2025-10-06T00:59:58Z"
     },
     {
       "id": "task_014",
@@ -350,8 +350,8 @@
       "parallel_group": "M1_parallel_1",
       "tdd_phase": "red",
       "status": "completed",
-      "started_at": "2025-10-06T14:54:46+13:00",
-      "completed_at": "2025-10-06T14:59:07+13:00"
+      "started_at": "2025-10-06T01:54:46Z",
+      "completed_at": "2025-10-06T01:59:07Z"
     },
     {
       "id": "task_015",
@@ -366,8 +366,8 @@
       "parallel_group": null,
       "tdd_phase": "green",
       "status": "completed",
-      "started_at": "2025-10-06T15:18:02+13:00",
-      "completed_at": "2025-10-06T15:41:57+13:00"
+      "started_at": "2025-10-06T02:18:02Z",
+      "completed_at": "2025-10-06T02:41:57Z"
     },
     {
       "id": "task_016",
@@ -382,8 +382,8 @@
       "parallel_group": null,
       "tdd_phase": "refactor",
       "status": "completed",
-      "started_at": "2025-10-06T16:07:01+13:00",
-      "completed_at": "2025-10-06T16:08:19+13:00"
+      "started_at": "2025-10-06T03:07:01Z",
+      "completed_at": "2025-10-06T03:08:19Z"
     },
     {
       "id": "task_017",
@@ -398,8 +398,8 @@
       "parallel_group": "M1_parallel_1",
       "tdd_phase": "red",
       "status": "completed",
-      "started_at": "2025-10-06T14:55:39+13:00",
-      "completed_at": "2025-10-06T14:58:26+13:00"
+      "started_at": "2025-10-06T01:55:39Z",
+      "completed_at": "2025-10-06T01:58:26Z"
     },
     {
       "id": "task_018",
@@ -414,8 +414,8 @@
       "parallel_group": null,
       "tdd_phase": "green",
       "status": "completed",
-      "started_at": "2025-10-06T15:18:02+13:00",
-      "completed_at": "2025-10-06T15:41:58+13:00"
+      "started_at": "2025-10-06T02:18:02Z",
+      "completed_at": "2025-10-06T02:41:58Z"
     },
     {
       "id": "task_019",
@@ -430,8 +430,8 @@
       "parallel_group": "M1_parallel_1",
       "tdd_phase": "red",
       "status": "completed",
-      "started_at": "2025-10-06T14:49:32+13:00",
-      "completed_at": "2025-10-06T14:58:25+13:00"
+      "started_at": "2025-10-06T01:49:32Z",
+      "completed_at": "2025-10-06T01:58:25Z"
     },
     {
       "id": "task_020",
@@ -446,8 +446,8 @@
       "parallel_group": null,
       "tdd_phase": "green",
       "status": "completed",
-      "started_at": "2025-10-06T15:31:39+13:00",
-      "completed_at": "2025-10-06T15:41:03+13:00"
+      "started_at": "2025-10-06T02:31:39Z",
+      "completed_at": "2025-10-06T02:41:03Z"
     },
     {
       "id": "task_021",
@@ -462,8 +462,8 @@
       "parallel_group": "M1_parallel_2",
       "tdd_phase": "red",
       "status": "completed",
-      "started_at": "2025-10-06T16:07:04+13:00",
-      "completed_at": "2025-10-06T16:12:33+13:00"
+      "started_at": "2025-10-06T03:07:04Z",
+      "completed_at": "2025-10-06T03:12:33Z"
     },
     {
       "id": "task_022",
@@ -478,8 +478,8 @@
       "parallel_group": null,
       "tdd_phase": "green",
       "status": "completed",
-      "started_at": "2025-10-06T16:32:39+13:00",
-      "completed_at": "2025-10-06T16:42:55+13:00"
+      "started_at": "2025-10-06T03:32:39Z",
+      "completed_at": "2025-10-06T03:42:55Z"
     },
     {
       "id": "task_023",
@@ -494,8 +494,8 @@
       "parallel_group": "M1_parallel_2",
       "tdd_phase": "red",
       "status": "completed",
-      "started_at": "2025-10-06T15:01:09+13:00",
-      "completed_at": "2025-10-06T15:01:24+13:00"
+      "started_at": "2025-10-06T02:01:09Z",
+      "completed_at": "2025-10-06T02:01:24Z"
     },
     {
       "id": "task_024",
@@ -510,8 +510,8 @@
       "parallel_group": null,
       "tdd_phase": "green",
       "status": "completed",
-      "started_at": "2025-10-06T15:18:03+13:00",
-      "completed_at": "2025-10-06T15:41:58+13:00"
+      "started_at": "2025-10-06T02:18:03Z",
+      "completed_at": "2025-10-06T02:41:58Z"
     },
     {
       "id": "task_025",
@@ -526,8 +526,8 @@
       "parallel_group": "M1_parallel_2",
       "tdd_phase": "red",
       "status": "completed",
-      "started_at": "2025-10-06T14:49:33+13:00",
-      "completed_at": "2025-10-06T15:01:19+13:00"
+      "started_at": "2025-10-06T01:49:33Z",
+      "completed_at": "2025-10-06T02:01:19Z"
     },
     {
       "id": "task_026",
@@ -542,8 +542,8 @@
       "parallel_group": null,
       "tdd_phase": "green",
       "status": "completed",
-      "started_at": "2025-10-06T15:18:03+13:00",
-      "completed_at": "2025-10-06T15:41:59+13:00"
+      "started_at": "2025-10-06T02:18:03Z",
+      "completed_at": "2025-10-06T02:41:59Z"
     },
     {
       "id": "task_027",
@@ -560,8 +560,8 @@
       "parallel_group": null,
       "tdd_phase": "red",
       "status": "completed",
-      "started_at": "2025-10-06T16:07:06+13:00",
-      "completed_at": "2025-10-06T16:10:55+13:00"
+      "started_at": "2025-10-06T03:07:06Z",
+      "completed_at": "2025-10-06T03:10:55Z"
     },
     {
       "id": "task_028",
@@ -576,8 +576,8 @@
       "parallel_group": null,
       "tdd_phase": "green",
       "status": "completed",
-      "started_at": "2025-10-06T16:36:36+13:00",
-      "completed_at": "2025-10-06T16:37:34+13:00"
+      "started_at": "2025-10-06T03:36:36Z",
+      "completed_at": "2025-10-06T03:37:34Z"
     },
     {
       "id": "task_029",
@@ -593,8 +593,8 @@
       "parallel_group": null,
       "tdd_phase": "red",
       "status": "completed",
-      "started_at": "2025-10-06T16:33:21+13:00",
-      "completed_at": "2025-10-06T16:38:20+13:00"
+      "started_at": "2025-10-06T03:33:21Z",
+      "completed_at": "2025-10-06T03:38:20Z"
     },
     {
       "id": "task_030",
@@ -610,8 +610,8 @@
       "tdd_phase": "green",
       "milestone_gate": true,
       "status": "completed",
-      "started_at": "2025-10-06T16:44:10+13:00",
-      "completed_at": "2025-10-06T16:53:47+13:00"
+      "started_at": "2025-10-06T03:44:10Z",
+      "completed_at": "2025-10-06T03:53:47Z"
     },
     {
       "id": "task_031",
@@ -625,8 +625,8 @@
       ],
       "parallel_group": null,
       "status": "completed",
-      "started_at": "2025-10-06T18:07:46+13:00",
-      "completed_at": "2025-10-06T18:09:36+13:00"
+      "started_at": "2025-10-06T05:07:46Z",
+      "completed_at": "2025-10-06T05:09:36Z"
     },
     {
       "id": "task_032",
@@ -640,8 +640,8 @@
       ],
       "parallel_group": null,
       "status": "completed",
-      "started_at": "2025-10-06T18:34:03+13:00",
-      "completed_at": "2025-10-06T18:40:29+13:00",
+      "started_at": "2025-10-06T05:34:03Z",
+      "completed_at": "2025-10-06T05:40:29Z",
       "duration_minutes": 6
     },
     {
@@ -656,8 +656,8 @@
       ],
       "parallel_group": null,
       "status": "completed",
-      "started_at": "2025-10-06T18:30:26+13:00",
-      "completed_at": "2025-10-06T18:40:42+13:00",
+      "started_at": "2025-10-06T05:30:26Z",
+      "completed_at": "2025-10-06T05:40:42Z",
       "duration_minutes": 10
     },
     {
@@ -672,8 +672,8 @@
       ],
       "parallel_group": null,
       "status": "completed",
-      "started_at": "2025-10-06T18:56:22+13:00",
-      "completed_at": "2025-10-06T19:02:15+13:00",
+      "started_at": "2025-10-06T05:56:22Z",
+      "completed_at": "2025-10-06T06:02:15Z",
       "duration_minutes": 6
     },
     {
@@ -705,8 +705,8 @@
       ],
       "parallel_group": null,
       "status": "completed",
-      "started_at": "2025-10-06T20:10:00+13:00",
-      "completed_at": "2025-10-06T20:13:00+13:00",
+      "started_at": "2025-10-06T07:10:00Z",
+      "completed_at": "2025-10-06T07:13:00Z",
       "duration_minutes": 3
     },
     {
@@ -721,8 +721,8 @@
       ],
       "parallel_group": "M2_parallel_1",
       "status": "completed",
-      "started_at": "2025-10-06T20:32:05+13:00",
-      "completed_at": "2025-10-06T20:47:00+13:00",
+      "started_at": "2025-10-06T07:32:05Z",
+      "completed_at": "2025-10-06T07:47:00Z",
       "duration_minutes": 15
     },
     {
@@ -737,8 +737,8 @@
       ],
       "parallel_group": "M2_parallel_1",
       "status": "completed",
-      "started_at": "2025-10-06T20:11:29+13:00",
-      "completed_at": "2025-10-06T20:13:00+13:00",
+      "started_at": "2025-10-06T07:11:29Z",
+      "completed_at": "2025-10-06T07:13:00Z",
       "duration_minutes": 2
     },
     {
@@ -754,8 +754,8 @@
       ],
       "parallel_group": null,
       "status": "completed",
-      "started_at": "2025-10-06T20:49:57+13:00",
-      "completed_at": "2025-10-06T21:03:00+13:00",
+      "started_at": "2025-10-06T07:49:57Z",
+      "completed_at": "2025-10-06T08:03:00Z",
       "duration_minutes": 14
     },
     {
@@ -779,8 +779,8 @@
       "parallel_group": null,
       "milestone_gate": true,
       "status": "completed",
-      "started_at": "2025-10-06T21:21:59+13:00",
-      "completed_at": "2025-10-06T21:28:00+13:00",
+      "started_at": "2025-10-06T08:21:59Z",
+      "completed_at": "2025-10-06T08:28:00Z",
       "duration_minutes": 6
     },
     {
@@ -795,8 +795,8 @@
       ],
       "parallel_group": null,
       "status": "completed",
-      "started_at": "2025-10-06T23:18:14+13:00",
-      "completed_at": "2025-10-07T00:11:14+13:00",
+      "started_at": "2025-10-06T10:18:14Z",
+      "completed_at": "2025-10-06T11:11:14Z",
       "duration_minutes": 53
     },
     {
@@ -811,7 +811,7 @@
       ],
       "parallel_group": "M3_parallel_0",
       "status": "completed",
-      "started_at": "2025-10-07T00:33:16+13:00",
+      "started_at": "2025-10-06T11:33:16Z",
       "completed_at": "2025-10-06T12:10:25+0000",
       "duration_minutes": 50
     },
@@ -875,7 +875,7 @@
       ],
       "parallel_group": "M3_parallel_1",
       "status": "completed",
-      "started_at": "2025-10-07T01:50:23+13:00",
+      "started_at": "2025-10-06T12:50:23Z",
       "completed_at": "2025-10-07T02:20:00Z",
       "duration_minutes": 60
     },
@@ -891,7 +891,7 @@
       ],
       "parallel_group": "M3_parallel_1",
       "status": "completed",
-      "started_at": "2025-10-07T01:50:22+13:00",
+      "started_at": "2025-10-06T12:50:22Z",
       "completed_at": "2025-10-07T02:20:00Z",
       "duration_minutes": 60
     },
@@ -907,7 +907,7 @@
       ],
       "parallel_group": "M3_parallel_1",
       "status": "completed",
-      "started_at": "2025-10-07T01:51:34+13:00",
+      "started_at": "2025-10-06T12:51:34Z",
       "completed_at": "2025-10-07T02:15:00Z",
       "duration_minutes": 45
     },
