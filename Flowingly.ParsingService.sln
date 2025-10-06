@@ -15,6 +15,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flowingly.ParsingService.In
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flowingly.ParsingService.Contracts", "contracts\Flowingly.ParsingService.Contracts.csproj", "{2D64AD5F-BF40-450E-ACB5-C9E4371C786A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{AD4E12D4-009F-4E72-8E1A-2C19EED3C96C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flowingly.ParsingService.UnitTests", "tests\Flowingly.ParsingService.UnitTests\Flowingly.ParsingService.UnitTests.csproj", "{D6A3A2B6-07B5-43A7-84FC-726AFF06E7FE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,11 +48,16 @@ Global
 		{2D64AD5F-BF40-450E-ACB5-C9E4371C786A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D64AD5F-BF40-450E-ACB5-C9E4371C786A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2D64AD5F-BF40-450E-ACB5-C9E4371C786A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D6A3A2B6-07B5-43A7-84FC-726AFF06E7FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6A3A2B6-07B5-43A7-84FC-726AFF06E7FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6A3A2B6-07B5-43A7-84FC-726AFF06E7FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6A3A2B6-07B5-43A7-84FC-726AFF06E7FE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{BDCD3615-B560-4904-B3F6-359338FF03B5} = {4E5086C9-9263-4860-8063-A70A6D117882}
 		{8792D166-999C-4BB8-93D4-666955F289B7} = {4E5086C9-9263-4860-8063-A70A6D117882}
 		{F04CFD2C-889A-4BF6-A8A1-179EDE74380C} = {4E5086C9-9263-4860-8063-A70A6D117882}
 		{56F88BC9-95FA-4395-82F8-4D64809AC54A} = {4E5086C9-9263-4860-8063-A70A6D117882}
+		{D6A3A2B6-07B5-43A7-84FC-726AFF06E7FE} = {AD4E12D4-009F-4E72-8E1A-2C19EED3C96C}
 	EndGlobalSection
 EndGlobal
