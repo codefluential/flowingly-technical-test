@@ -1,10 +1,10 @@
 import ClassificationBadge from './ClassificationBadge';
-import type { OtherDto, Metadata } from '../types/api';
+import type { OtherData, ResponseMeta } from '../types/api';
 import './OtherView.css';
 
 interface OtherViewProps {
-  other: OtherDto;
-  meta: Metadata;
+  other: OtherData;
+  meta: ResponseMeta;
 }
 
 /**
@@ -43,7 +43,7 @@ function OtherView({ other, meta }: OtherViewProps) {
         <div className="other-view__warnings" role="alert">
           <strong>Warnings:</strong>
           <ul>
-            {meta.warnings.map((warning, index) => (
+            {meta.warnings.map((warning: string, index: number) => (
               <li key={index}>{warning}</li>
             ))}
           </ul>

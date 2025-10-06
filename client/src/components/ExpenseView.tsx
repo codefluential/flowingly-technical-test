@@ -1,10 +1,10 @@
 import ClassificationBadge from './ClassificationBadge';
-import type { ExpenseDto, Metadata } from '../types/api';
+import type { ExpenseData, ResponseMeta } from '../types/api';
 import './ExpenseView.css';
 
 interface ExpenseViewProps {
-  expense: ExpenseDto;
-  meta: Metadata;
+  expense: ExpenseData;
+  meta: ResponseMeta;
 }
 
 /**
@@ -59,7 +59,7 @@ function ExpenseView({ expense, meta }: ExpenseViewProps) {
         <div className="expense-view__warnings" role="alert">
           <strong>Warnings:</strong>
           <ul>
-            {meta.warnings.map((warning, index) => (
+            {meta.warnings.map((warning: string, index: number) => (
               <li key={index}>{warning}</li>
             ))}
           </ul>
