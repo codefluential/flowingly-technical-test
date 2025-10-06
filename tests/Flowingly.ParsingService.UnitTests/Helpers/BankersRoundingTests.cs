@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Xunit;
-using Flowingly.ParsingService.Domain.Interfaces; // Does not exist yet - will cause compilation error
+using Flowingly.ParsingService.Domain.Interfaces;
+using Flowingly.ParsingService.Domain.Helpers;
 
 namespace Flowingly.ParsingService.UnitTests.Helpers;
 

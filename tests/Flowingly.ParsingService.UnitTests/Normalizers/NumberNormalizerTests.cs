@@ -189,7 +189,7 @@ public class NumberNormalizerTests
         var result = normalizer.Normalize(input);
 
         // Assert
-        result.Should().BeOfType<decimal>();
+        result.Should().BeOfType(typeof(decimal));
     }
 
     [Theory]
@@ -204,7 +204,7 @@ public class NumberNormalizerTests
         // Act & Assert
         // This will fail in RED phase - implementation will determine behavior
         var act = () => normalizer.Normalize(input);
-        act.Should().ThrowAny<Exception>()
+        act.Should().Throw<ArgumentException>()
             .WithMessage("*invalid*", because: "empty or null input should be rejected");
     }
 
