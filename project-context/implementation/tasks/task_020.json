@@ -1,0 +1,157 @@
+{
+  "task_id": "task_020",
+  "milestone": "M1",
+  "name": "Implement Rounding Helper",
+  "description": "Implement IRoundingHelper using Banker's Rounding (MidpointRounding.ToEven) to make the 10+ tests from task_019 pass (GREEN phase).",
+
+  "agent": {
+    "primary": "coder",
+    "role": "TDD Implementation (GREEN Phase)"
+  },
+
+  "duration": "30min",
+  "priority": "critical",
+  "dependencies": ["task_019"],
+  "parallel_group": null,
+  "tdd_phase": "GREEN",
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 9.3: Banker's Rounding (MidpointRounding.ToEven)",
+        "Section 13: BDD Scenario - 'Banker's Rounding Applied to Tax Calculations'"
+      ],
+      "requirements": [
+        "Use MidpointRounding.ToEven for all financial calculations",
+        "Apply to: GST calculations, totals in response",
+        "Round to 2 decimal places for money values",
+        "2.125 → 2.12 (round to even), not 2.13"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 3,
+      "requirement": "GST calculation must be accurate",
+      "grading_criteria": "Rounding precision affects final submission grade"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0009-bankers-rounding.md",
+        "decision": "Banker's Rounding (MidpointRounding.ToEven)",
+        "rationale": "Statistically unbiased, financial industry standard (IEEE 754)",
+        "key_points": [
+          "Midpoint values round to nearest even number",
+          "Eliminates cumulative rounding errors in large datasets",
+          "Standard for financial systems and accounting"
+        ]
+      },
+      {
+        "file": "project-context/adr/ADR-0002-architecture-clean-hexagonal.md",
+        "decision": "Clean Architecture with Ports & Adapters",
+        "relevance": "RoundingHelper is a Domain service/helper, not an adapter"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M1 — Core Parsing & Validation",
+      "sub_section": "Banker's Rounding (Critical!)",
+      "requirement": "Apply at business boundaries: tax calc, totals"
+    }
+  },
+
+  "previous_task": {
+    "id": "task_019",
+    "name": "Write Banker's Rounding Tests (TDD)",
+    "tdd_phase": "RED",
+    "deliverable": "10+ failing tests in BankersRoundingTests.cs",
+    "test_location": "api/tests/Flowingly.ParsingService.Tests/Helpers/BankersRoundingTests.cs"
+  },
+
+  "deliverables": [
+    {
+      "item": "IRoundingHelper interface",
+      "description": "Interface definition for rounding helper",
+      "location": "api/src/Flowingly.ParsingService.Domain/Interfaces/",
+      "signature": "decimal Round(decimal value, int precision)"
+    },
+    {
+      "item": "RoundingHelper implementation",
+      "description": "Concrete implementation using Math.Round with MidpointRounding.ToEven",
+      "location": "api/src/Flowingly.ParsingService.Domain/Helpers/",
+      "implementation": "Math.Round(value, precision, MidpointRounding.ToEven)"
+    },
+    {
+      "item": "Passing tests",
+      "description": "All 10+ tests from task_019 must now PASS (GREEN)",
+      "validation": "Test runner shows GREEN for all rounding tests"
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ IRoundingHelper interface created in Domain/Interfaces",
+    "✅ RoundingHelper class implements IRoundingHelper",
+    "✅ Uses Math.Round(value, precision, MidpointRounding.ToEven)",
+    "✅ Uses decimal type (not double/float)",
+    "✅ All 10+ tests from task_019 now PASS (GREEN)",
+    "✅ No additional business logic beyond Math.Round",
+    "✅ Helper registered in DI container (if needed for testing)"
+  ],
+
+  "implementation_details": {
+    "interface_location": "api/src/Flowingly.ParsingService.Domain/Interfaces/IRoundingHelper.cs",
+    "implementation_location": "api/src/Flowingly.ParsingService.Domain/Helpers/RoundingHelper.cs",
+    "namespace": "Flowingly.ParsingService.Domain.Helpers",
+    "interface_code": "namespace Flowingly.ParsingService.Domain.Interfaces;\n\npublic interface IRoundingHelper\n{\n    /// <summary>\n    /// Rounds a decimal value to the specified precision using Banker's Rounding (MidpointRounding.ToEven).\n    /// </summary>\n    /// <param name=\"value\">The decimal value to round</param>\n    /// <param name=\"precision\">Number of decimal places (e.g., 2 for currency)</param>\n    /// <returns>Rounded decimal value</returns>\n    decimal Round(decimal value, int precision);\n}",
+    "implementation_code": "using Flowingly.ParsingService.Domain.Interfaces;\n\nnamespace Flowingly.ParsingService.Domain.Helpers;\n\npublic class RoundingHelper : IRoundingHelper\n{\n    public decimal Round(decimal value, int precision)\n    {\n        return Math.Round(value, precision, MidpointRounding.ToEven);\n    }\n}"
+  },
+
+  "business_rules": [
+    "MUST use MidpointRounding.ToEven (not AwayFromZero)",
+    "Apply to ALL financial calculations (GST, totals)",
+    "Precision is always 2 decimal places for money",
+    "Use decimal type for financial accuracy",
+    "Midpoint values round to nearest even number"
+  ],
+
+  "test_verification": {
+    "examples_from_task_019": [
+      "2.125 → 2.12 (2 is even, rounds down)",
+      "2.135 → 2.14 (4 is even, rounds up)",
+      "2.145 → 2.14 (4 is even, rounds down)",
+      "2.155 → 2.16 (6 is even, rounds up)",
+      "0.005 → 0.00 (0 is even, rounds down)",
+      "0.015 → 0.02 (2 is even, rounds up)",
+      "-2.125 → -2.12 (negative numbers)",
+      "2.126 → 2.13 (non-midpoint, standard rounding)"
+    ],
+    "why_these_matter": "These edge cases verify ToEven behavior, critical for GST accuracy"
+  },
+
+  "tdd_workflow": {
+    "current_phase": "GREEN - Make tests pass",
+    "previous_phase": "task_019 - RED - Tests written and failing",
+    "principle": "Simplest implementation that makes tests pass",
+    "next_step": "Use this helper in ITaxCalculator (task_021-022)"
+  },
+
+  "validation": {
+    "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~BankersRounding",
+    "expected_output": "10+ tests PASSED (GREEN)",
+    "test_count": "10+",
+    "must_be_green": true
+  },
+
+  "next_task": {
+    "id": "task_021",
+    "name": "Write Tax Calculator Tests (TDD)",
+    "why": "Rounding helper is ready, now test GST calculations that use it",
+    "tdd_phase": "RED"
+  },
+
+  "environment_setup": {
+    "dotnet_path": "/home/adarsh/.dotnet/dotnet",
+    "dotnet_version": "8.0.414",
+    "critical_note": "ALL dotnet commands MUST prefix with: export PATH=\"$HOME/.dotnet:$PATH\" &&"
+  }
+}
