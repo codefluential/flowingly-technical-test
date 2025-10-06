@@ -1,0 +1,341 @@
+{
+  "task_id": "task_040",
+  "milestone": "M2",
+  "name": "Verify M2 DoD",
+  "description": "Verify Milestone 2 Definition of Done by validating that all API contract deliverables are complete, tested, and meet quality standards. This is a critical milestone gate that confirms the API surface is production-ready before proceeding to UI enhancements (M3).",
+
+  "agent": {
+    "primary": "quality-assurance-engineer",
+    "role": "Milestone gate verification and quality validation for M2 API Contracts completion"
+  },
+
+  "duration": "20min",
+  "priority": "critical",
+  "dependencies": [
+    "task_031",
+    "task_032",
+    "task_033",
+    "task_034",
+    "task_035",
+    "task_036",
+    "task_037",
+    "task_038",
+    "task_039"
+  ],
+  "parallel_group": null,
+  "milestone_gate": true,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 4.1: API - POST /api/v1/parse endpoint specification",
+        "Section 4.2: Parsing & Validation Rules - Tag integrity, XML islands, normalization",
+        "Section 11: Request/Response Contracts - Error responses with 400 codes",
+        "Section 12: Tax Calculation - Banker's Rounding for GST breakdown",
+        "Section 13: TDD/BDD Plan - Contract test coverage requirements"
+      ],
+      "requirements": [
+        "API endpoint accepts POST /api/v1/parse with text, taxRate, currency",
+        "Response structure is classification-specific (expense XOR other)",
+        "Error responses return 400 with error codes (UNCLOSED_TAGS, MISSING_TOTAL, etc.)",
+        "FluentValidation rules enforce request contract",
+        "Correlation ID present in all responses",
+        "Swagger/OpenAPI documentation at /swagger",
+        "10+ contract tests covering happy path and error scenarios"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 3,
+      "requirement": "API contract must be well-defined, error handling clear, and GST calculation correct",
+      "grading_criteria": "API design, error handling, and contract testing are core evaluation criteria"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0004-swagger-api-contract.md",
+        "decision": "Swagger/OpenAPI for API Contract and Onboarding",
+        "rationale": "Single source of truth for API contracts; auto-generated documentation; interactive testing",
+        "context": "M0→M2 scope includes basic Swagger UI, DTO annotations, endpoint documentation (enhanced examples deferred to M3+)",
+        "key_excerpt": "Basic Swagger UI provides sufficient documentation for core delivery (M0→M2). Enhanced examples and client generation are valuable enhancements but not critical for MVP validation."
+      },
+      {
+        "file": "project-context/adr/ADR-0005-versioning-via-uri.md",
+        "decision": "API Versioning via URI Path",
+        "rationale": "Explicit and visible version in URL; browser/tool friendly; simple routing",
+        "context": "All endpoints use /api/v1/ prefix; x-api-version header in responses",
+        "key_excerpt": "Version is in the URL; developers immediately see which version they're using. Logs: POST /api/v1/parse 200 vs POST /api/v2/parse 200"
+      },
+      {
+        "file": "project-context/adr/ADR-0007-response-contract-design.md",
+        "decision": "Response Contract Design - Classification-Specific (Expense XOR Other)",
+        "rationale": "Clear contracts, smaller payloads, TypeScript type safety",
+        "context": "Responses are specific to classification; never both expense and other in same response",
+        "key_excerpt": "Each response will include: (1) classification field (enum: expense | other), (2) Classification-specific block (expense OR other, never both), (3) meta block (common metadata: correlation ID, processing time, warnings)"
+      },
+      {
+        "file": "project-context/adr/ADR-0008-parsing-validation-rules.md",
+        "decision": "Stack-based Tag Validation",
+        "rationale": "Detect overlapping tags, not just unclosed tags; LIFO validation",
+        "context": "Tag validation is a core requirement; must reject malformed content with clear error codes",
+        "key_excerpt": "Reject overlapping tags like <a><b></a></b> with error UNCLOSED_TAGS or MALFORMED_TAGS"
+      },
+      {
+        "file": "project-context/adr/ADR-0009-bankers-rounding.md",
+        "decision": "Banker's Rounding (MidpointRounding.ToEven)",
+        "rationale": "Financial standard; unbiased rounding over many operations",
+        "context": "Applied to all monetary calculations: tax calculation, total computations",
+        "key_excerpt": "Examples: 2.125 → 2.12, 2.135 → 2.14, 2.145 → 2.14, 2.155 → 2.16"
+      },
+      {
+        "file": "project-context/adr/ADR-0010-test-strategy-coverage.md",
+        "decision": "Three-tier Testing Strategy (Unit, Contract, E2E)",
+        "rationale": "Comprehensive coverage across domain logic, API contracts, and user workflows",
+        "context": "M2 requires 10+ contract tests covering API endpoints with full request → response pipeline",
+        "key_excerpt": "Integration Tests: API endpoints with in-memory DB (full request → response pipeline). Coverage Target: 60%+ coverage (happy path + critical error scenarios)"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M2 — API Contracts",
+      "sub_section": "DoD (Definition of Done)",
+      "requirement": "Wrap parsing in API surface with error handling; contract tests green; Swagger documentation complete"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "M2 DoD Checklist Verification",
+      "description": "Verify all 10 M2 Definition of Done criteria are met",
+      "location": "project-context/build-logs/BUILDLOG.md",
+      "properties": {
+        "format": "markdown",
+        "checklist_items": 10
+      }
+    },
+    {
+      "item": "M2 Test Summary Report",
+      "description": "Summary of contract test results (count, status, coverage)",
+      "location": "N/A (reported in BUILDLOG.md)",
+      "properties": {
+        "min_contract_tests": 10,
+        "required_status": "all passing"
+      }
+    },
+    {
+      "item": "API Contract Compliance Report",
+      "description": "Verification that API contracts match PRD specifications",
+      "location": "N/A (reported in BUILDLOG.md)",
+      "properties": {
+        "endpoint_verified": "/api/v1/parse",
+        "request_contract": "ParseRequest DTO",
+        "response_contracts": ["ExpenseResponse", "OtherResponse"],
+        "error_contracts": "ErrorResponse with error codes"
+      }
+    },
+    {
+      "item": "BUILDLOG.md Update",
+      "description": "Append M2 milestone completion entry with date, deliverables, and status",
+      "location": "project-context/build-logs/BUILDLOG.md",
+      "properties": {
+        "format": "## M2 Milestone Complete (YYYY-MM-DD)",
+        "includes": "checklist, test summary, next steps"
+      }
+    },
+    {
+      "item": "M3 Readiness Assessment",
+      "description": "Optional recommendations for M3 UI & E2E Tests based on M2 findings",
+      "location": "N/A (reported in BUILDLOG.md if applicable)",
+      "properties": {
+        "format": "bullet list",
+        "optional": true
+      }
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ All 9 M2 tasks (task_031 through task_039) marked as completed in tasks.json",
+    "✅ 10+ contract tests passing (verified via dotnet test output)",
+    "✅ All DTOs created and validated (ParseRequest, ExpenseResponse, OtherResponse, ErrorResponse)",
+    "✅ FluentValidation rules implemented and tested",
+    "✅ Error codes and models defined (UNCLOSED_TAGS, MISSING_TOTAL, etc.)",
+    "✅ Error mapping complete (domain exceptions → HTTP 400 responses)",
+    "✅ Parse handler implemented and wired via DI",
+    "✅ Swagger documentation accessible at /swagger (verified manually or via curl)",
+    "✅ API endpoint functional: POST /api/v1/parse returns correct responses",
+    "✅ Correlation ID present in all responses (success and error)",
+    "✅ Response contract follows ADR-0007 (expense XOR other, never both)",
+    "✅ BUILDLOG.md updated with M2 completion entry (date, deliverables, status)",
+    "✅ Zero blocking issues preventing M3 start"
+  ],
+
+  "business_rules": [
+    "M2 is a MILESTONE GATE: All deliverables must be verified before M3 can begin",
+    "Contract tests target: 10+ tests minimum (as per ADR-0010 and delivery plan)",
+    "API versioning: All endpoints use /api/v1/ prefix (ADR-0005)",
+    "Response contract: expense XOR other, never both (ADR-0007)",
+    "Error responses: HTTP 400 with error codes (UNCLOSED_TAGS, MISSING_TOTAL, etc.)",
+    "Correlation ID: GUID in all responses (success and error) for traceability",
+    "Swagger documentation: Basic UI at /swagger (enhanced examples deferred to M3+)",
+    "FluentValidation: Request validation with clear error messages",
+    "Banker's Rounding: Applied to all monetary calculations (ADR-0009)",
+    "Tag validation: Stack-based validation rejecting overlapping tags (ADR-0008)"
+  ],
+
+  "m2_definition_of_done": {
+    "description": "The 10 criteria that define M2 completion (from delivery-plan-optimized.md)",
+    "criteria": [
+      {
+        "id": 1,
+        "item": "Request/Response DTOs created and validated",
+        "verification": "Check src/Api/DTOs/ for ParseRequest, ExpenseResponse, OtherResponse, ErrorResponse"
+      },
+      {
+        "id": 2,
+        "item": "FluentValidation rules implemented",
+        "verification": "Check src/Application/Validators/ for ParseRequestValidator and tests"
+      },
+      {
+        "id": 3,
+        "item": "Error codes and models defined",
+        "verification": "Check src/Domain/Exceptions/ for error codes (UNCLOSED_TAGS, MISSING_TOTAL, etc.)"
+      },
+      {
+        "id": 4,
+        "item": "Error mapping complete",
+        "verification": "Check src/Api/Middleware/ or src/Application/Handlers/ for domain exception → HTTP 400 mapping"
+      },
+      {
+        "id": 5,
+        "item": "Parse handler implemented",
+        "verification": "Check src/Application/Handlers/ for ParseMessageCommandHandler"
+      },
+      {
+        "id": 6,
+        "item": "DI wiring complete",
+        "verification": "Check src/Api/Program.cs for service registrations (validators, handlers, parsers)"
+      },
+      {
+        "id": 7,
+        "item": "10+ API contract tests passing",
+        "verification": "Run dotnet test --filter Category=Contract and verify 10+ tests pass"
+      },
+      {
+        "id": 8,
+        "item": "Swagger examples documented",
+        "verification": "Open /swagger and verify endpoint documentation, request/response schemas visible"
+      },
+      {
+        "id": 9,
+        "item": "API contract reviewed",
+        "verification": "task_039 (Review API Contract) completed successfully"
+      },
+      {
+        "id": 10,
+        "item": "BUILDLOG updated with M2 completion",
+        "verification": "Check project-context/build-logs/BUILDLOG.md for M2 milestone entry"
+      }
+    ]
+  },
+
+  "verification_checklist": {
+    "description": "Step-by-step verification process for M2 DoD",
+    "steps": [
+      {
+        "step": 1,
+        "action": "Check task completion status",
+        "command": "jq '.tasks[] | select(.id | startswith(\"task_03\")) | {id, name, status}' project-context/implementation/tasks/tasks.json",
+        "expected": "All task_031 through task_039 have status: completed"
+      },
+      {
+        "step": 2,
+        "action": "Verify contract test count and status",
+        "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter Category=Contract --logger \"console;verbosity=normal\"",
+        "expected": "10+ tests passed, 0 failed"
+      },
+      {
+        "step": 3,
+        "action": "Verify Swagger UI accessibility",
+        "command": "curl -s http://localhost:5000/swagger/index.html | grep -q 'Swagger UI' && echo 'Swagger UI accessible' || echo 'Swagger UI not accessible'",
+        "expected": "Swagger UI accessible"
+      },
+      {
+        "step": 4,
+        "action": "Test API endpoint (happy path)",
+        "command": "curl -X POST http://localhost:5000/api/v1/parse -H 'Content-Type: application/json' -d '{\"text\":\"<expense><total>100</total></expense>\",\"taxRate\":0.15}' -s | jq '.classification'",
+        "expected": "\"expense\""
+      },
+      {
+        "step": 5,
+        "action": "Test API endpoint (error path)",
+        "command": "curl -X POST http://localhost:5000/api/v1/parse -H 'Content-Type: application/json' -d '{\"text\":\"<expense><vendor>Test</vendor></expense>\"}' -s | jq '.error.code'",
+        "expected": "\"MISSING_TOTAL\""
+      },
+      {
+        "step": 6,
+        "action": "Verify correlation ID presence",
+        "command": "curl -X POST http://localhost:5000/api/v1/parse -H 'Content-Type: application/json' -d '{\"text\":\"<expense><total>100</total></expense>\"}' -s | jq '.meta.correlationId'",
+        "expected": "GUID string (non-null)"
+      },
+      {
+        "step": 7,
+        "action": "Check DTOs exist",
+        "command": "ls -1 src/Api/DTOs/*.cs 2>/dev/null | wc -l",
+        "expected": "4 or more DTO files"
+      },
+      {
+        "step": 8,
+        "action": "Check FluentValidation registration",
+        "command": "grep -q 'AddFluentValidation\\|AddValidatorsFromAssembly' src/Api/Program.cs && echo 'FluentValidation registered' || echo 'FluentValidation NOT registered'",
+        "expected": "FluentValidation registered"
+      },
+      {
+        "step": 9,
+        "action": "Check DI wiring",
+        "command": "grep -c 'AddScoped\\|AddSingleton\\|AddTransient' src/Api/Program.cs",
+        "expected": "10+ service registrations"
+      },
+      {
+        "step": 10,
+        "action": "Verify M2 progress tracking",
+        "command": "jq '.progress_tracking.milestones_completed | contains([\"M2\"])' project-context/implementation/tasks/tasks.json",
+        "expected": "true (after this task completes)"
+      }
+    ]
+  },
+
+  "technical_notes": {
+    "dotnet_path": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet <command>",
+    "test_command": "dotnet test --filter Category=Contract",
+    "swagger_url": "http://localhost:5000/swagger",
+    "api_endpoint": "POST http://localhost:5000/api/v1/parse",
+    "buildlog_location": "project-context/build-logs/BUILDLOG.md",
+    "tasks_json_location": "project-context/implementation/tasks/tasks.json"
+  },
+
+  "code_examples": {
+    "buildlog_entry_format": "## M2 — API Contracts Complete (2025-10-06)\n\n**Status**: ✅ Milestone gate passed\n\n**Deliverables Verified**:\n- ✅ DTOs created (ParseRequest, ExpenseResponse, OtherResponse, ErrorResponse)\n- ✅ FluentValidation rules implemented\n- ✅ Error codes and models defined\n- ✅ Error mapping complete (domain exceptions → HTTP 400)\n- ✅ Parse handler implemented (ParseMessageCommandHandler)\n- ✅ DI wiring complete in Program.cs\n- ✅ 12 contract tests passing (target: 10+)\n- ✅ Swagger UI accessible at /swagger\n- ✅ API contract reviewed (task_039)\n- ✅ BUILDLOG updated\n\n**Test Summary**:\n- Contract tests: 12 passed, 0 failed\n- Coverage: Happy path + 4 error scenarios\n- Scenarios: Expense classification, Other classification, Missing total, Unclosed tags, Invalid tax rate\n\n**API Verification**:\n- Endpoint: POST /api/v1/parse ✅\n- Request contract: ParseRequest DTO ✅\n- Response contracts: ExpenseResponse XOR OtherResponse ✅\n- Error responses: HTTP 400 with error codes ✅\n- Correlation ID: Present in all responses ✅\n\n**Next Steps**:\n- Proceed to M3 (UI & E2E Tests)\n- Implement enhanced UI components (task_041)\n- Add TypeScript types (task_042)\n- Write E2E tests for sample emails (task_045-047)\n\n**Duration**: M2 completed in ~4 hours (as planned)\n**Blockers**: None\n",
+    "verification_script": "#!/bin/bash\n# M2 DoD Verification Script\n\nset -e\n\necho \"Verifying M2 Definition of Done...\"\n\necho \"\\n1. Checking task completion...\"\njq '.tasks[] | select(.id | startswith(\"task_03\")) | {id, status}' tasks.json\n\necho \"\\n2. Running contract tests...\"\nexport PATH=\"$HOME/.dotnet:$PATH\"\ndotnet test --filter Category=Contract\n\necho \"\\n3. Verifying Swagger UI...\"\ncurl -s http://localhost:5000/swagger/index.html | grep -q 'Swagger UI' && echo '✅ Swagger accessible'\n\necho \"\\n4. Testing API endpoint (happy path)...\"\ncurl -X POST http://localhost:5000/api/v1/parse \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"text\":\"<expense><total>100</total></expense>\",\"taxRate\":0.15}' \\\n  -s | jq '.classification'\n\necho \"\\n5. Testing API endpoint (error path)...\"\ncurl -X POST http://localhost:5000/api/v1/parse \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"text\":\"<expense><vendor>Test</vendor></expense>\"}' \\\n  -s | jq '.error.code'\n\necho \"\\n✅ M2 DoD verification complete!\"",
+    "jq_query_m2_tasks": "jq '.tasks[] | select(.id | startswith(\"task_03\")) | {id, name, status, completed_at}' project-context/implementation/tasks/tasks.json"
+  },
+
+  "validation": {
+    "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter Category=Contract && jq '.tasks[] | select(.id | startswith(\"task_03\") and .id <= \"task_039\") | .status' project-context/implementation/tasks/tasks.json | grep -c '\"completed\"'",
+    "expected_output": "10+ contract tests PASSED and 9 tasks completed (task_031 through task_039)"
+  },
+
+  "next_task": {
+    "id": "task_041",
+    "name": "Enhance UI Components",
+    "why": "M2 API Contracts complete; now proceed to M3 UI & E2E Tests to implement enhanced UI and validate full user workflows"
+  },
+
+  "notes": {
+    "milestone_gate_importance": "This is a CRITICAL milestone gate. M3 cannot begin until M2 is fully verified and documented.",
+    "buildlog_update_requirement": "BUILDLOG.md MUST be updated as part of this task (not deferred)",
+    "test_count_flexibility": "Target is 10+ contract tests; actual count may be higher (e.g., 12-15) due to comprehensive scenario coverage",
+    "swagger_scope": "Basic Swagger UI is sufficient for M2; enhanced examples are deferred to M3+ (per ADR-0004)",
+    "correlation_id_verification": "Verify correlation ID is present in BOTH success and error responses",
+    "response_contract_enforcement": "Verify responses follow ADR-0007: expense XOR other, never both blocks in same response"
+  }
+}

@@ -1,0 +1,334 @@
+{
+  "task_id": "task_049",
+  "milestone": "M3",
+  "name": "Manual Smoke Test",
+  "description": "Perform comprehensive manual smoke test of the complete application to verify end-to-end functionality before final M3 DoD verification. Tests full user workflows, UI responsiveness, error display, GST calculation accuracy, and overall user experience. This is the final quality gate before submission.",
+
+  "agent": {
+    "primary": "production-validator",
+    "role": "Execute manual smoke test checklist, verify all critical workflows, document results with screenshots"
+  },
+
+  "duration": "20min",
+  "priority": "critical",
+  "dependencies": [
+    "task_048"
+  ],
+  "parallel_group": null,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 4.1: API - POST /api/v1/parse endpoint and response structure",
+        "Section 4.2: Parsing & Validation Rules - Tag validation, GST calculation",
+        "Section 12: Tax Calculation - Banker's Rounding with MidpointRounding.ToEven",
+        "Section 13: BDD Scenarios - End-to-end workflows"
+      ],
+      "requirements": [
+        "End-to-end flow: UI → API → parsing → validation → response → display",
+        "Tag validation rejects unclosed and overlapping tags",
+        "GST calculation uses Banker's Rounding (104.78 from 120.50 inclusive)",
+        "Expense response includes total_excl_tax, sales_tax, correlation_id",
+        "Error messages display clearly in UI",
+        "UI is responsive and user-friendly"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 3,
+      "requirement": "Complete working application with UI that parses expense claims and displays results",
+      "grading_criteria": "User experience, error handling, calculation accuracy, overall polish"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0009-tax-calculation-rounding.md",
+        "decision": "Banker's Rounding (MidpointRounding.ToEven)",
+        "verification": "Manual verification: 120.50 inclusive @ 15% → 104.78 excl + 15.72 tax",
+        "key_excerpt": "Banker's Rounding (round-to-even) for all monetary calculations to prevent bias in long-running sum calculations"
+      },
+      {
+        "file": "project-context/adr/ADR-0007-response-contract-design.md",
+        "decision": "Classification-Specific Response (Expense XOR Other)",
+        "verification": "Verify response contains expense block OR other block, never both"
+      },
+      {
+        "file": "project-context/adr/ADR-0008-parsing-validation-rules.md",
+        "decision": "Stack-based Tag Validation",
+        "verification": "Verify overlapping tags rejected, proper nesting accepted"
+      },
+      {
+        "file": "project-context/adr/ADR-0010-test-strategy-coverage.md",
+        "decision": "45+ tests across unit/contract/E2E tiers",
+        "context": "Manual smoke test complements automated E2E tests for final quality verification"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M3 — UI & E2E Tests",
+      "requirement": "Manual verification of complete application before submission",
+      "dod_criteria": [
+        "Full application works end-to-end",
+        "UI is polished and responsive",
+        "Error messages are clear and helpful",
+        "GST calculations are correct",
+        "No console errors or warnings"
+      ]
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "Manual Smoke Test Checklist (completed)",
+      "description": "Comprehensive checklist of all manual test scenarios with pass/fail status",
+      "location": "Documented in verification report or BUILDLOG.md",
+      "format": "Markdown checklist with ✅/❌ for each scenario"
+    },
+    {
+      "item": "Screenshots of Working Flow",
+      "description": "Screenshots demonstrating key workflows (happy path, error handling, GST display)",
+      "location": "project-context/screenshots/ or embedded in verification report",
+      "scenarios": [
+        "Happy path: Expense parsed and displayed",
+        "Error handling: Unclosed tag error message",
+        "GST calculation: 120.50 → 104.78 + 15.72 breakdown",
+        "UI responsiveness: Mobile/desktop views"
+      ]
+    },
+    {
+      "item": "Verification Report",
+      "description": "Summary of manual smoke test results with any issues found",
+      "location": "Documented in task completion message or BUILDLOG.md",
+      "includes": [
+        "Test execution summary",
+        "Pass/fail counts",
+        "Critical issues (if any)",
+        "Minor polish suggestions (if any)",
+        "Overall readiness assessment"
+      ]
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ All critical workflows tested manually and pass",
+    "✅ UI renders correctly on desktop browsers (Chrome, Firefox, Safari)",
+    "✅ Submit form accepts text input and triggers API call",
+    "✅ Expense data displays with correct GST breakdown",
+    "✅ Error messages display clearly and are user-friendly",
+    "✅ GST calculation verified: 120.50 inclusive → 104.78 excl + 15.72 tax",
+    "✅ Correlation ID visible in response/UI",
+    "✅ No JavaScript console errors during normal usage",
+    "✅ No broken UI elements or styling issues",
+    "✅ Application is responsive (works on different screen sizes)",
+    "✅ Screenshots captured for documentation",
+    "✅ Verification report completed and documented"
+  ],
+
+  "business_rules": [
+    "Manual testing complements automated E2E tests for final quality verification",
+    "Focus on user experience, visual polish, and edge cases not covered by automated tests",
+    "Banker's Rounding verification: 120.50 @ 15% = 104.78 + 15.72 (not 104.77 + 15.73)",
+    "Tag validation must reject overlapping tags like <a><b></a></b>",
+    "Error messages must be clear, actionable, and user-friendly",
+    "UI must work on modern browsers without errors",
+    "Correlation ID must be visible for debugging/support",
+    "Application must be ready for submission after this test"
+  ],
+
+  "technical_notes": {
+    "test_environment": "Both backend and frontend servers running locally",
+    "startup_commands": [
+      "Backend: export PATH=\"$HOME/.dotnet:$PATH\" && dotnet run --project src/Api",
+      "Frontend: cd client && npm run dev"
+    ],
+    "browsers_to_test": [
+      "Chrome (primary)",
+      "Firefox (optional)",
+      "Safari (optional if available)"
+    ],
+    "screen_sizes": [
+      "Desktop: 1920x1080",
+      "Tablet: 768x1024 (optional)",
+      "Mobile: 375x667 (optional)"
+    ],
+    "screenshot_tool": "Built-in browser screenshot or Playwright MCP browser_take_screenshot",
+    "checklist_approach": "Test each scenario, mark ✅ or ❌, document any issues immediately"
+  },
+
+  "smoke_test_checklist": {
+    "setup_verification": [
+      "✅ Backend server starts without errors (http://localhost:5000)",
+      "✅ Frontend server starts without errors (http://localhost:5173)",
+      "✅ Swagger UI accessible at http://localhost:5000/swagger",
+      "✅ No startup errors in console logs"
+    ],
+    "happy_path_expense": [
+      "✅ Navigate to http://localhost:5173",
+      "✅ Paste valid expense text: 'Hi Yvaine, Please create an expense claim for the below. Relevant details are: <expense><cost_centre>DEV002</cost_centre><total>1024.01</total><payment_method>personal card</payment_method></expense>'",
+      "✅ Click 'Parse' button",
+      "✅ Response displays with classification: 'expense'",
+      "✅ Expense data shows cost_centre, total, payment_method",
+      "✅ GST breakdown calculated correctly",
+      "✅ Correlation ID visible",
+      "✅ No errors in browser console"
+    ],
+    "gst_calculation_verification": [
+      "✅ Submit expense with total 120.50 and tax rate 0.15",
+      "✅ Verify total_excl_tax = 104.78 (Banker's Rounding)",
+      "✅ Verify sales_tax = 15.72",
+      "✅ Verify total_incl_tax = 120.50",
+      "✅ Sum verification: 104.78 + 15.72 = 120.50 ✅"
+    ],
+    "error_handling_unclosed_tags": [
+      "✅ Submit text with unclosed tag: 'Expense <total>120'",
+      "✅ Error message displays (not 200 OK)",
+      "✅ Error message mentions 'unclosed tag' or similar",
+      "✅ Error is user-friendly and actionable",
+      "✅ UI remains functional after error",
+      "✅ No JavaScript errors in console"
+    ],
+    "error_handling_overlapping_tags": [
+      "✅ Submit text with overlapping tags: '<a><b></a></b>'",
+      "✅ Validation error displays",
+      "✅ Error message is clear",
+      "✅ UI remains functional after error"
+    ],
+    "error_handling_missing_total": [
+      "✅ Submit expense XML without <total> tag",
+      "✅ Error response indicates missing total",
+      "✅ Error message is helpful",
+      "✅ UI displays error correctly"
+    ],
+    "ui_responsiveness": [
+      "✅ UI layout looks good on desktop (1920x1080)",
+      "✅ Text input area is appropriately sized",
+      "✅ Buttons are clickable and styled",
+      "✅ Results display is readable and well-formatted",
+      "✅ No layout breaks or overlapping elements"
+    ],
+    "edge_cases": [
+      "✅ Empty text submission (should show error or handle gracefully)",
+      "✅ Very long text input (UI doesn't break)",
+      "✅ Special characters in text (doesn't break parsing)",
+      "✅ Multiple rapid submissions (no race conditions)"
+    ],
+    "correlation_id_tracking": [
+      "✅ Correlation ID present in response",
+      "✅ Correlation ID is unique for each request",
+      "✅ Correlation ID displayed in UI (footer or response section)"
+    ],
+    "swagger_documentation": [
+      "✅ Swagger UI loads at /swagger",
+      "✅ POST /api/v1/parse endpoint documented",
+      "✅ Request/response schemas visible",
+      "✅ Example requests provided",
+      "✅ Can test endpoint from Swagger UI"
+    ]
+  },
+
+  "test_scenarios": [
+    {
+      "scenario": "Happy Path - Expense Claim",
+      "input": "Hi Yvaine, Please create an expense claim for the below. Relevant details are: <expense><cost_centre>DEV002</cost_centre><total>1024.01</total><payment_method>personal card</payment_method></expense>",
+      "expected_output": {
+        "classification": "expense",
+        "expense": {
+          "cost_centre": "DEV002",
+          "total_incl_tax": 1024.01,
+          "payment_method": "personal card",
+          "total_excl_tax": "890.44",
+          "sales_tax": "133.57",
+          "tax_rate": 0.15
+        },
+        "correlation_id": "present"
+      },
+      "verification": "Visual inspection of UI response, GST calculation correct"
+    },
+    {
+      "scenario": "Banker's Rounding Verification",
+      "input": "Expense total <total>120.50</total>",
+      "expected_output": {
+        "total_incl_tax": 120.50,
+        "total_excl_tax": 104.78,
+        "sales_tax": 15.72,
+        "tax_rate": 0.15
+      },
+      "verification": "Exact match on 104.78 (not 104.77), confirms Banker's Rounding"
+    },
+    {
+      "scenario": "Error - Unclosed Tag",
+      "input": "Expense <total>120",
+      "expected_output": {
+        "error": true,
+        "message": "Contains 'unclosed tag' or similar validation error"
+      },
+      "verification": "Error message displays in UI, user-friendly wording"
+    },
+    {
+      "scenario": "Error - Overlapping Tags",
+      "input": "<a><b></a></b>",
+      "expected_output": {
+        "error": true,
+        "message": "Tag validation error (overlapping tags detected)"
+      },
+      "verification": "Stack-based validator rejects improper nesting"
+    },
+    {
+      "scenario": "Error - Missing Total",
+      "input": "<expense><cost_centre>DEV</cost_centre></expense>",
+      "expected_output": {
+        "error": true,
+        "message": "Missing required field: total"
+      },
+      "verification": "Clear error message about missing total"
+    },
+    {
+      "scenario": "UI Responsiveness - Desktop",
+      "action": "Resize browser window to 1920x1080",
+      "expected_output": "UI renders correctly, no layout breaks",
+      "verification": "Visual inspection"
+    },
+    {
+      "scenario": "Correlation ID Tracking",
+      "action": "Submit any request",
+      "expected_output": "Correlation ID visible in response (footer or result section)",
+      "verification": "Check UI displays correlation ID from API response"
+    }
+  ],
+
+  "validation": {
+    "manual_tests": [
+      "Start both servers (backend + frontend)",
+      "Open browser to http://localhost:5173",
+      "Execute all scenarios in smoke_test_checklist",
+      "Mark ✅ or ❌ for each item",
+      "Capture screenshots of key scenarios",
+      "Document any issues found",
+      "Verify GST calculation accuracy (120.50 → 104.78 + 15.72)"
+    ],
+    "screenshot_capture": [
+      "Happy path expense response with GST breakdown",
+      "Error message display (unclosed tag)",
+      "Swagger UI showing endpoint documentation",
+      "Mobile/responsive view (optional)"
+    ],
+    "expected_outcome": "All critical workflows pass, application ready for submission, no blocking issues found"
+  },
+
+  "code_examples": {
+    "sample_test_input_1": "Hi Yvaine, Please create an expense claim for the below. Relevant details are:\n<expense><cost_centre>DEV002</cost_centre><total>1024.01</total><payment_method>personal card</payment_method></expense>",
+    "sample_test_input_2": "Expense for team lunch: <total>120.50</total>",
+    "sample_error_input_1": "<total>120",
+    "sample_error_input_2": "<a><b></a></b>",
+    "gst_verification_calculation": "Total inclusive: 120.50\nTax rate: 0.15 (15%)\nExpected total_excl_tax: 120.50 / 1.15 = 104.78260869... → 104.78 (Banker's Rounding)\nExpected sales_tax: 120.50 - 104.78 = 15.72\nVerify: 104.78 + 15.72 = 120.50 ✅"
+  },
+
+  "verification_report_template": "## Manual Smoke Test Results - task_049\n\n**Date**: {{date}}\n**Tester**: production-validator agent\n**Duration**: 20min\n\n### Summary\n- **Total Scenarios Tested**: {{total_count}}\n- **Passed**: {{pass_count}} ✅\n- **Failed**: {{fail_count}} ❌\n- **Overall Status**: {{PASS|FAIL}}\n\n### Test Results\n\n#### Setup Verification\n{{setup_checklist_results}}\n\n#### Happy Path - Expense Flow\n{{happy_path_results}}\n\n#### GST Calculation Verification\n{{gst_calculation_results}}\n**Critical**: 120.50 @ 15% → 104.78 + 15.72 ✅\n\n#### Error Handling\n{{error_handling_results}}\n\n#### UI Responsiveness\n{{ui_responsiveness_results}}\n\n#### Correlation ID Tracking\n{{correlation_id_results}}\n\n### Issues Found\n{{issues_list}}\n\n### Screenshots\n{{screenshot_links}}\n\n### Recommendations\n{{recommendations}}\n\n### Final Assessment\n{{final_assessment}}\n\n---",
+
+  "next_task": {
+    "id": "task_050",
+    "name": "Verify M3 & Phase 1 DoD - SUBMITTABLE",
+    "why": "Manual smoke test complete, ready for final M3 DoD verification and submission gate",
+    "milestone": "M3"
+  }
+}

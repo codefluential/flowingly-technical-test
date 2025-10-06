@@ -1,0 +1,504 @@
+{
+  "task_id": "task_050",
+  "milestone": "M3",
+  "name": "Verify M3 & Phase 1 DoD - SUBMITTABLE",
+  "description": "Final milestone gate that verifies ALL Phase 1 work is complete and ready for submission. This task validates M3 DoD criteria (enhanced UI, E2E tests passing, manual smoke test complete) AND Phase 1 DoD criteria (all 50 tasks complete, 45+ tests passing, end-to-end functionality proven, submission package ready). This is the final checkpoint before submitting to Flowingly for evaluation.",
+
+  "agent": {
+    "primary": "production-validator",
+    "role": "Final submission verification - validate all M3 and Phase 1 Definition of Done criteria are met"
+  },
+
+  "duration": "20min",
+  "priority": "critical",
+  "dependencies": [
+    "task_041",
+    "task_042",
+    "task_043",
+    "task_044",
+    "task_045",
+    "task_046",
+    "task_047",
+    "task_048",
+    "task_049"
+  ],
+  "parallel_group": null,
+  "milestone_gate": true,
+  "submittable": true,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 1: Vision & Goals - Deliver a codebase that is easy to understand, maintain, and extend, with tests, docs, ADRs, and CI/CD",
+        "Section 2: Scope & Use Cases - All in-scope Phase 1 features implemented",
+        "Section 13: BDD Scenarios - All scenarios covered by tests",
+        "Section 19: Two-Minute Reviewer Path - Quick start verification"
+      ],
+      "requirements": [
+        "Accept raw text with inline tags and XML islands",
+        "Validate tag integrity (reject unclosed/overlapping tags)",
+        "Extract expense fields and compute tax breakdown",
+        "Non-expense content classified as 'other'",
+        "React UI for text submission and result display",
+        "Comprehensive testing (unit, contract, E2E)",
+        "Clear documentation for reviewer setup"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 3,
+      "requirement": "Complete submission must include: working API, React UI, comprehensive tests (unit + E2E), clean code, clear documentation, and easy setup for reviewer",
+      "grading_criteria": "Submission completeness: All requirements met, tests passing, reviewer can run in 2 minutes, code quality demonstrated"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0010-test-strategy-coverage.md",
+        "decision": "Comprehensive Test Strategy with 45+ Tests (30 unit, 10 contract, 5 E2E)",
+        "rationale": "Demonstrate testing quality and coverage across all layers",
+        "context": "Test brief evaluates testing quality as a core grading criterion",
+        "key_excerpt": "Target Coverage: 45+ tests total. M1: 30+ unit tests. M2: 10+ API contract tests. M3: 5+ E2E tests. Distribution shows comprehensive coverage across all layers."
+      },
+      {
+        "file": "project-context/adr/ADR-0002-architecture-style.md",
+        "decision": "Clean/Hexagonal Architecture with CQRS-lite",
+        "relevance": "Final verification that architecture is properly implemented across all layers"
+      },
+      {
+        "file": "project-context/adr/ADR-0008-parsing-validation-rules.md",
+        "decision": "Stack-based Tag Validation and Parsing Rules",
+        "relevance": "Verify all parsing rules are implemented and working correctly"
+      },
+      {
+        "file": "project-context/adr/ADR-0009-tax-calculation-rounding.md",
+        "decision": "Banker's Rounding (MidpointRounding.ToEven) for Tax Calculations",
+        "relevance": "Verify tax calculations use correct rounding throughout"
+      },
+      {
+        "file": "project-context/adr/ADR-0007-response-contract-design.md",
+        "decision": "Classification-Specific Response Design (expense XOR other)",
+        "relevance": "Verify API responses follow correct contract structure"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "Phase 1: Core Submission (M0→M3) — ✅ SUBMITTABLE",
+      "sub_section": "Phase 1 Complete — READY TO SUBMIT",
+      "requirement": "All Phase 1 work complete: M0 scaffold, M1 parsing (30+ unit tests), M2 API contracts (10+ contract tests), M3 UI & E2E tests (5+ E2E tests). Reviewer can clone, run, and evaluate in 2 minutes.",
+      "dod_criteria": [
+        "All 50 Phase 1 tasks completed",
+        "45+ tests passing (30 unit, 10 contract, 5 E2E)",
+        "API functional: POST /api/v1/parse works end-to-end",
+        "UI functional: React app submits text and displays results",
+        "All parsing rules working (tag validation, GST calc, Banker's Rounding)",
+        "README has 2-minute quick start (clone, run API, run UI)",
+        "All documentation up to date (README, ADRs, BUILDLOG)",
+        "No critical bugs or failing tests",
+        "Code quality: Clean architecture, SOLID principles, DRY/KISS/YAGNI"
+      ]
+    },
+    "dependency_context": {
+      "task_041": "Enhanced UI Components - Improved user experience",
+      "task_042": "TypeScript Types - Type safety between API and UI",
+      "task_043": "Error Display - User-friendly error handling",
+      "task_044": "Playwright Setup - E2E testing infrastructure",
+      "task_045": "E2E Happy Path Tests - Core user flows tested",
+      "task_046": "E2E Error Tests - Error scenarios tested",
+      "task_047": "E2E GST Verification - Tax calculation accuracy tested",
+      "task_048": "Full Test Suite - All tests verified passing",
+      "task_049": "Manual Smoke Test - Human verification of functionality"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "M3 DoD Verification Report",
+      "description": "Checklist confirming all M3 milestone criteria met",
+      "location": "project-context/build-logs/BUILDLOG.md",
+      "verification_points": [
+        "Enhanced UI components implemented and functional",
+        "TypeScript types aligned between API and UI",
+        "Error display working correctly",
+        "Playwright setup complete",
+        "5+ E2E tests passing",
+        "Manual smoke test completed successfully"
+      ]
+    },
+    {
+      "item": "Phase 1 DoD Verification Report",
+      "description": "Comprehensive checklist confirming submission readiness",
+      "location": "project-context/build-logs/BUILDLOG.md",
+      "verification_points": [
+        "All 50 tasks completed (M0: 10, M1: 20, M2: 10, M3: 10)",
+        "45+ tests passing (30 unit, 10 contract, 5 E2E)",
+        "API endpoint working: POST /api/v1/parse",
+        "React UI functional: submit text, display results",
+        "All parsing rules implemented and tested",
+        "Tag validation (stack-based, rejects overlapping/unclosed)",
+        "GST calculation correct (Banker's Rounding)",
+        "Number normalization working",
+        "Time parsing functional",
+        "XML island extraction working",
+        "Content routing correct (expense vs other)",
+        "README quick start verified (2-minute setup)",
+        "All ADRs finalized (10 total)",
+        "BUILDLOG.md up to date",
+        "Code quality verified (Clean Architecture, SOLID, DRY/KISS/YAGNI)",
+        "No critical bugs",
+        "No failing tests"
+      ]
+    },
+    {
+      "item": "Submission Readiness Report",
+      "description": "Final checklist for submission package",
+      "location": "project-context/build-logs/BUILDLOG.md",
+      "submission_criteria": [
+        "Repository clean (no uncommitted changes)",
+        "All progress files updated (tasks.json, PROGRESS.md, BUILDLOG.md)",
+        "README.md has clear quick start (3 steps max)",
+        "Dependencies documented (dotnet, npm versions)",
+        "Sample test data included",
+        "API accessible at http://localhost:5000",
+        "UI accessible at http://localhost:5173",
+        "Swagger UI accessible at http://localhost:5000/swagger",
+        "All tests pass: dotnet test && npm run test:e2e",
+        "Code compiles with 0 warnings"
+      ]
+    },
+    {
+      "item": "BUILDLOG.md Final Entry",
+      "description": "Final milestone gate entry documenting Phase 1 completion",
+      "location": "project-context/build-logs/BUILDLOG.md",
+      "content_required": [
+        "Date and milestone (M3 & Phase 1 Complete)",
+        "Summary of all 50 tasks completed",
+        "Test counts: unit (30+), contract (10+), E2E (5+), total (45+)",
+        "All DoD criteria met",
+        "Submission readiness confirmed",
+        "Next steps: Ready for submission to Flowingly"
+      ]
+    },
+    {
+      "item": "Updated PROGRESS.md",
+      "description": "Progress dashboard showing 50/50 tasks complete",
+      "location": "project-context/implementation/PROGRESS.md",
+      "final_state": {
+        "tasks_completed": 50,
+        "tasks_pending": 0,
+        "milestones_completed": ["M0", "M1", "M2", "M3"],
+        "tests_passing": {
+          "unit": "30+",
+          "contract": "10+",
+          "e2e": "5+",
+          "total": "45+"
+        },
+        "submission_ready": true
+      }
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ All M3 tasks completed (task_041 through task_049)",
+    "✅ Enhanced UI components functional and user-friendly",
+    "✅ TypeScript types aligned between API and UI",
+    "✅ Error display working correctly",
+    "✅ Playwright setup complete",
+    "✅ 5+ E2E tests passing (happy path, errors, GST verification)",
+    "✅ Manual smoke test completed successfully",
+    "✅ All M0 tasks completed (solution structure, API, UI, echo flow)",
+    "✅ All M1 tasks completed (30+ unit tests, all parsing rules implemented)",
+    "✅ All M2 tasks completed (DTOs, validation, error handling, API contracts, 10+ contract tests)",
+    "✅ Total test count: 45+ tests passing",
+    "✅ API endpoint POST /api/v1/parse functional",
+    "✅ React UI submits text and displays results correctly",
+    "✅ Tag validation working (rejects overlapping/unclosed tags)",
+    "✅ GST calculation correct (Banker's Rounding verified)",
+    "✅ Number normalization working (commas, currency symbols removed)",
+    "✅ Time parser functional",
+    "✅ XML island extraction working",
+    "✅ Content router classifies expense vs other correctly",
+    "✅ README.md has 2-minute quick start verified",
+    "✅ All 10 ADRs finalized and documented",
+    "✅ BUILDLOG.md updated with final entry",
+    "✅ PROGRESS.md shows 50/50 tasks complete",
+    "✅ tasks.json updated with all task statuses",
+    "✅ No failing tests (100% pass rate)",
+    "✅ Code builds with 0 warnings",
+    "✅ No critical bugs identified",
+    "✅ Clean Architecture verified (Api, Application, Domain, Infrastructure layers)",
+    "✅ SOLID principles followed throughout",
+    "✅ Repository clean (no uncommitted changes)",
+    "✅ Submission package ready for Flowingly evaluation"
+  ],
+
+  "business_rules": [
+    "Phase 1 submission requires ALL 50 tasks complete (M0: 10, M1: 20, M2: 10, M3: 10)",
+    "Minimum 45+ tests passing (30 unit, 10 contract, 5 E2E)",
+    "Tag validation MUST reject overlapping tags (not just unclosed)",
+    "GST calculation MUST use Banker's Rounding (MidpointRounding.ToEven)",
+    "<total> tag is REQUIRED for expenses; reject with MISSING_TOTAL if absent",
+    "<cost_centre> is OPTIONAL; default to 'UNKNOWN' if absent",
+    "API responses MUST follow expense XOR other contract (never both)",
+    "README quick start MUST enable reviewer setup in 2 minutes",
+    "All tests MUST pass (0 failures allowed for submission)",
+    "Code MUST compile with 0 warnings",
+    "No critical bugs allowed in submission"
+  ],
+
+  "technical_notes": {
+    "verification_commands": [
+      "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build",
+      "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test",
+      "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --logger \"console;verbosity=detailed\" | grep -E 'Total tests|Passed|Failed'",
+      "cd client && npm run build",
+      "cd client && npm run test:e2e",
+      "jq '.progress_tracking.tasks_completed' project-context/implementation/tasks/tasks.json",
+      "jq '.progress_tracking.tests_passing' project-context/implementation/tasks/tasks.json"
+    ],
+    "expected_outputs": [
+      "dotnet build: Build succeeded. 0 Warning(s) 0 Error(s)",
+      "dotnet test: Total tests: 45+, Passed: 45+, Failed: 0",
+      "npm run test:e2e: 5+ E2E tests passed",
+      "tasks.json: tasks_completed = 50",
+      "tasks.json: milestones_completed = ['M0', 'M1', 'M2', 'M3']"
+    ],
+    "quick_start_test": [
+      "Clone repository",
+      "Run API: export PATH=\"$HOME/.dotnet:$PATH\" && dotnet run --project src/Api",
+      "Run UI (new terminal): cd client && npm install && npm run dev",
+      "Open browser: http://localhost:5173",
+      "Paste sample text: 'Hi Yvaine, Please create an expense claim for the below. Relevant details are: <expense><cost_centre>DEV002</cost_centre><total>1024.01</total><payment_method>personal card</payment_method></expense>'",
+      "Click Parse button",
+      "Verify: Response shows expense data with GST breakdown",
+      "Total time: < 2 minutes"
+    ],
+    "manual_verification_checklist": [
+      "API responds to POST /api/v1/parse",
+      "Swagger UI accessible at /swagger",
+      "React UI loads without errors",
+      "Form submission works",
+      "Results display correctly",
+      "Error messages display correctly",
+      "Tag validation errors shown for malformed input",
+      "GST calculation accurate (verify with calculator)",
+      "cost_centre defaults to 'UNKNOWN' when missing",
+      "Correlation ID present in all responses"
+    ]
+  },
+
+  "m3_dod_verification": {
+    "checklist": [
+      "✅ Enhanced UI components implemented (ParserForm, ResultDisplay, ErrorDisplay)",
+      "✅ UI is user-friendly and accessible",
+      "✅ TypeScript types aligned between API DTOs and UI interfaces",
+      "✅ Error display working correctly (validation errors, API errors, network errors)",
+      "✅ Playwright setup complete and configured",
+      "✅ 5+ E2E tests passing (happy path, error scenarios, GST verification)",
+      "✅ Full test suite passing (unit + contract + E2E)",
+      "✅ Manual smoke test completed successfully",
+      "✅ UI functional end-to-end"
+    ],
+    "verification_commands": [
+      "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter Category=E2E",
+      "cd client && npm run test:e2e",
+      "cd client && npm run build"
+    ],
+    "success_criteria": "All M3 tasks complete, 5+ E2E tests passing, UI functional, smoke test passed"
+  },
+
+  "phase1_dod_verification": {
+    "checklist": [
+      "✅ All 50 Phase 1 tasks completed (M0: 10, M1: 20, M2: 10, M3: 10)",
+      "✅ 45+ tests passing (30 unit, 10 contract, 5 E2E)",
+      "✅ API endpoint POST /api/v1/parse works end-to-end",
+      "✅ React UI submits text and displays results",
+      "✅ Tag validation working (stack-based, rejects overlapping/unclosed)",
+      "✅ Number normalization working (removes $, commas, etc.)",
+      "✅ Banker's Rounding implemented correctly (MidpointRounding.ToEven)",
+      "✅ GST calculation accurate (from tax-inclusive total)",
+      "✅ Time parser working (12h/24h formats, ambiguous handling)",
+      "✅ XML island extraction working (DTD/XXE protection)",
+      "✅ Content router classifies expense vs other correctly",
+      "✅ Expense processor implements 5-stage pipeline",
+      "✅ <total> required validation working",
+      "✅ <cost_centre> defaults to 'UNKNOWN' when missing",
+      "✅ API responses follow expense XOR other contract",
+      "✅ Error codes correct (UNCLOSED_TAGS, MISSING_TOTAL, etc.)",
+      "✅ FluentValidation working for request DTOs",
+      "✅ Error mapping consistent across all endpoints",
+      "✅ Correlation IDs present in all responses",
+      "✅ Swagger UI accessible and functional",
+      "✅ README.md has 2-minute quick start",
+      "✅ All 10 ADRs finalized",
+      "✅ BUILDLOG.md comprehensive and up to date",
+      "✅ Clean Architecture layers properly separated",
+      "✅ Dependency Injection configured correctly",
+      "✅ SOLID principles followed",
+      "✅ DRY/KISS/YAGNI principles followed",
+      "✅ Code compiles with 0 warnings",
+      "✅ No critical bugs",
+      "✅ Repository clean (no uncommitted changes)"
+    ],
+    "verification_commands": [
+      "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build",
+      "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test",
+      "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --logger \"console;verbosity=detailed\"",
+      "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter Category=Unit",
+      "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter Category=Contract",
+      "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter Category=E2E",
+      "cd client && npm run build",
+      "cd client && npm run test:e2e",
+      "jq '.progress_tracking' project-context/implementation/tasks/tasks.json"
+    ],
+    "success_criteria": "All Phase 1 DoD criteria met, ready for submission to Flowingly"
+  },
+
+  "submission_readiness_checklist": {
+    "repository_state": [
+      "✅ All code committed to git",
+      "✅ No uncommitted changes (git status clean)",
+      "✅ All progress files updated (tasks.json, PROGRESS.md, BUILDLOG.md)",
+      "✅ README.md complete with quick start",
+      "✅ All ADRs committed",
+      "✅ All task files created and committed"
+    ],
+    "functionality": [
+      "✅ API runs: export PATH=\"$HOME/.dotnet:$PATH\" && dotnet run --project src/Api",
+      "✅ UI runs: cd client && npm run dev",
+      "✅ API accessible at http://localhost:5000",
+      "✅ UI accessible at http://localhost:5173",
+      "✅ Swagger UI accessible at http://localhost:5000/swagger",
+      "✅ Sample expense text parses correctly",
+      "✅ Sample error cases display correctly",
+      "✅ GST calculations accurate"
+    ],
+    "testing": [
+      "✅ All unit tests pass (30+)",
+      "✅ All contract tests pass (10+)",
+      "✅ All E2E tests pass (5+)",
+      "✅ Total tests: 45+ passing",
+      "✅ 0 failing tests",
+      "✅ 100% test pass rate"
+    ],
+    "documentation": [
+      "✅ README.md has quick start (3 steps, < 2 minutes)",
+      "✅ README.md lists dependencies (.NET 8, Node.js)",
+      "✅ README.md has sample test data",
+      "✅ All 10 ADRs finalized",
+      "✅ BUILDLOG.md comprehensive",
+      "✅ API documentation via Swagger",
+      "✅ Code comments where needed"
+    ],
+    "code_quality": [
+      "✅ Clean Architecture layers separated",
+      "✅ SOLID principles followed",
+      "✅ DRY/KISS/YAGNI principles followed",
+      "✅ Proper dependency injection",
+      "✅ Consistent naming conventions",
+      "✅ Error handling comprehensive",
+      "✅ No code smells or anti-patterns",
+      "✅ Type safety throughout (C# + TypeScript)"
+    ],
+    "build_quality": [
+      "✅ dotnet build succeeds with 0 warnings",
+      "✅ npm run build succeeds with 0 errors",
+      "✅ No compiler warnings",
+      "✅ No runtime errors during smoke test"
+    ]
+  },
+
+  "validation": {
+    "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --logger \"console;verbosity=detailed\" && cd client && npm run test:e2e && cd .. && jq '.progress_tracking.tasks_completed' project-context/implementation/tasks/tasks.json",
+    "expected_output": "All tests passing (45+), tasks_completed = 50, submission ready",
+    "manual_steps": [
+      "1. Run API: export PATH=\"$HOME/.dotnet:$PATH\" && dotnet run --project src/Api",
+      "2. Run UI: cd client && npm run dev",
+      "3. Open http://localhost:5173",
+      "4. Test happy path: paste sample expense, click Parse, verify results",
+      "5. Test error case: paste invalid tags, verify error display",
+      "6. Verify Swagger: open http://localhost:5000/swagger, test endpoint",
+      "7. Verify GST calculation: 1024.01 total → 890.44 excl + 133.57 GST",
+      "8. Verify cost_centre default: omit tag → defaults to 'UNKNOWN'",
+      "9. Verify tag validation: <a><b></a></b> → UNCLOSED_TAGS error"
+    ],
+    "final_verification": [
+      "All 50 tasks completed",
+      "All tests passing (45+)",
+      "API functional",
+      "UI functional",
+      "Documentation complete",
+      "Code quality verified",
+      "Repository clean",
+      "Ready for submission"
+    ]
+  },
+
+  "definition_of_done": [
+    "✅ All M3 DoD criteria met (verified above)",
+    "✅ All Phase 1 DoD criteria met (verified above)",
+    "✅ Submission readiness checklist complete",
+    "✅ All 50 tasks verified complete in tasks.json",
+    "✅ All tests passing: dotnet test && npm run test:e2e",
+    "✅ Code builds with 0 warnings: dotnet build && npm run build",
+    "✅ README 2-minute quick start verified manually",
+    "✅ Manual smoke test passed",
+    "✅ BUILDLOG.md updated with final M3/Phase 1 completion entry",
+    "✅ PROGRESS.md updated to show 50/50 tasks complete",
+    "✅ Repository clean: git status shows no uncommitted changes",
+    "✅ Progress updated: ./scripts/update-progress.sh task_050 completed",
+    "✅ Commit created with message: 'feat(submission): complete M3 and Phase 1 - READY FOR SUBMISSION'",
+    "✅ Submission package ready for Flowingly evaluation"
+  ],
+
+  "buildlog_entry_template": {
+    "date": "2025-10-06",
+    "milestone": "M3 & Phase 1 Complete - SUBMITTABLE",
+    "summary": [
+      "Completed all 50 Phase 1 tasks (M0: 10, M1: 20, M2: 10, M3: 10)",
+      "All milestones verified: M0 (scaffold), M1 (parsing), M2 (API), M3 (UI & E2E)",
+      "Test coverage: 45+ tests passing (30 unit, 10 contract, 5 E2E)",
+      "API fully functional: POST /api/v1/parse with validation, error handling, Swagger docs",
+      "React UI fully functional: submit text, display results, error handling",
+      "All parsing rules implemented and tested",
+      "Clean Architecture layers properly separated",
+      "SOLID, DRY, KISS, YAGNI principles followed throughout",
+      "All 10 ADRs finalized and documented",
+      "README 2-minute quick start verified",
+      "Manual smoke test passed",
+      "No critical bugs, 0 failing tests, 0 compiler warnings"
+    ],
+    "test_results": {
+      "unit_tests": "30+ passing",
+      "contract_tests": "10+ passing",
+      "e2e_tests": "5+ passing",
+      "total_tests": "45+ passing",
+      "pass_rate": "100%"
+    },
+    "implementation_highlights": [
+      "Stack-based tag validation (rejects overlapping tags)",
+      "Banker's Rounding for GST calculations (MidpointRounding.ToEven)",
+      "Number normalization (currency symbols, commas)",
+      "Time parser (12h/24h, ambiguous handling)",
+      "XML island extraction (DTD/XXE protection)",
+      "Content routing (expense vs other classification)",
+      "5-stage expense processing pipeline",
+      "Classification-specific response contract (expense XOR other)",
+      "Comprehensive error handling with specific error codes",
+      "Type safety across all layers (C# + TypeScript)"
+    ],
+    "submission_status": "READY FOR SUBMISSION TO FLOWINGLY",
+    "next_steps": [
+      "Submit repository to Flowingly for evaluation",
+      "Optional: Phase 2 polish (deployment, advanced features) if time permits"
+    ]
+  },
+
+  "next_task": {
+    "id": "N/A",
+    "name": "Phase 1 Complete - Ready for Submission",
+    "why": "All 50 Phase 1 tasks complete. Submission package ready for Flowingly evaluation. Optional Phase 2 tasks (deployment, polish) can be pursued if time permits, but are not required for submission.",
+    "milestone": "Phase 1 Complete",
+    "parallel_eligible": false,
+    "submission_ready": true
+  }
+}

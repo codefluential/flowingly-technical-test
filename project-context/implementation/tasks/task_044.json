@@ -1,0 +1,263 @@
+{
+  "task_id": "task_044",
+  "milestone": "M3",
+  "name": "Setup Playwright",
+  "description": "Install and configure Playwright for end-to-end testing of the React UI and API integration. This task establishes the E2E testing infrastructure required for the 5+ E2E tests that validate critical user workflows (ADR-0010 Tier 3). Includes Playwright installation, configuration files, test structure scaffolding, browser installation, and an example smoke test to verify the setup is working.",
+
+  "agent": {
+    "primary": "quality-assurance-engineer",
+    "role": "E2E test infrastructure setup and Playwright configuration specialist"
+  },
+
+  "duration": "30min",
+  "priority": "high",
+  "dependencies": ["task_002"],
+  "parallel_group": null,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 4: Technology Stack - React + Vite + TypeScript frontend with Playwright for E2E",
+        "Section 6: Frontend Architecture - Playwright E2E testing requirements",
+        "Section 13: BDD Scenarios - Sample email fixtures for E2E tests"
+      ],
+      "requirements": [
+        "Use Playwright for E2E testing against running application",
+        "Test critical user workflows (submit text, view results, error handling)",
+        "Verify full integration: React UI -> API -> Database -> Response",
+        "Support sample email fixtures from project brief for test data",
+        "Run against real application instances (not mocked)"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 3,
+      "requirement": "E2E testing validates full system behavior including UI rendering and API integration",
+      "grading_criteria": "E2E tests are part of comprehensive testing strategy (45+ total tests required)"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0010-test-strategy-coverage.md",
+        "decision": "Three-tier testing strategy: Unit (30+), Integration (10+), E2E (5+)",
+        "rationale": "E2E tests validate critical user workflows against running application to ensure production readiness",
+        "context": "Testing pyramid approach: Few E2E tests for high-value scenarios, many unit tests for fast feedback",
+        "key_excerpt": "Tier 3: E2E Tests (Playwright) - Test critical user workflows against running application + database. Technology: Playwright (TypeScript). Coverage Target: Happy path + critical error scenarios (not exhaustive).",
+        "e2e_requirements": {
+          "components_to_test": [
+            "Full user workflows (submit text → view results)",
+            "UI rendering (React components)",
+            "API integration from UI",
+            "Sample email fixtures from project brief"
+          ],
+          "technology": "Playwright (TypeScript)",
+          "database": "Test instance of Postgres (or SQLite for speed)",
+          "sample_fixtures": [
+            "sample-email-1-expense.txt: Expense email example from brief",
+            "sample-email-2-other.txt: Non-expense email example from brief"
+          ],
+          "test_scenarios": [
+            "Expense workflow (Sample Email 1)",
+            "Other workflow (Sample Email 2)",
+            "Validation error (unclosed tag)",
+            "Tax calculation (Banker's Rounding)"
+          ]
+        }
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M3 — UI & E2E Tests",
+      "sub_section": "E2E Testing Infrastructure",
+      "requirement": "Setup Playwright before writing 3 parallel E2E test tasks (task_045, task_046, task_047)"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "playwright.config.ts",
+      "description": "Playwright configuration with test directory, base URL, browsers, timeout settings, and screenshot/video options",
+      "location": "client/",
+      "properties": {
+        "base_url": "http://localhost:5173",
+        "browsers": ["chromium", "firefox", "webkit"],
+        "timeout": "30000ms",
+        "screenshot_on_failure": true,
+        "video_on_failure": true
+      }
+    },
+    {
+      "item": "tests/ directory",
+      "description": "Test structure with subdirectories for different test categories",
+      "location": "client/tests/",
+      "subdirectories": [
+        "workflows/ - User workflow tests (expense, other)",
+        "errors/ - Error handling tests",
+        "fixtures/ - Sample email fixtures from project brief"
+      ]
+    },
+    {
+      "item": "example.spec.ts",
+      "description": "Simple smoke test verifying app loads and basic interaction works",
+      "location": "client/tests/",
+      "purpose": "Validate Playwright setup is working before writing real E2E tests"
+    },
+    {
+      "item": "package.json updates",
+      "description": "Add Playwright dependency and test scripts",
+      "location": "client/package.json",
+      "scripts_to_add": {
+        "test:e2e": "playwright test",
+        "test:e2e:ui": "playwright test --ui",
+        "test:e2e:headed": "playwright test --headed",
+        "test:e2e:debug": "playwright test --debug"
+      },
+      "dependency": "@playwright/test"
+    },
+    {
+      "item": ".gitignore updates",
+      "description": "Ignore Playwright test artifacts",
+      "location": "client/.gitignore",
+      "entries_to_add": [
+        "test-results/",
+        "playwright-report/",
+        "playwright/.cache/"
+      ]
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ Playwright installed as dev dependency in client/package.json",
+    "✅ playwright.config.ts created with proper base URL and browser configuration",
+    "✅ tests/ directory structure created with workflows/, errors/, fixtures/ subdirectories",
+    "✅ Example smoke test (example.spec.ts) passes successfully",
+    "✅ Browsers installed (chromium, firefox, webkit) via npx playwright install",
+    "✅ npm run test:e2e command executes and passes example test",
+    "✅ Test artifacts (screenshots, videos, reports) properly gitignored",
+    "✅ CI integration ready (playwright.yml or similar workflow file created)"
+  ],
+
+  "business_rules": [
+    "E2E tests run against REAL application instances (not mocked)",
+    "Base URL for local dev: http://localhost:5173 (Vite default)",
+    "Base URL for CI: configurable via environment variable PLAYWRIGHT_BASE_URL",
+    "Screenshot on failure: ENABLED for debugging",
+    "Video on failure: ENABLED for debugging",
+    "Timeout default: 30 seconds (generous for E2E tests)",
+    "Browsers: chromium (primary), firefox, webkit (cross-browser validation)",
+    "Test data from fixtures: Sample emails from project brief must be stored in tests/fixtures/"
+  ],
+
+  "technical_notes": {
+    "installation_command": "cd client && npm install -D @playwright/test && npx playwright install",
+    "package_version": "@playwright/test (latest stable)",
+    "configuration_file": "playwright.config.ts in TypeScript for type safety",
+    "test_pattern": "tests/**/*.spec.ts",
+    "base_url_handling": "Use baseURL in config for consistent test URLs",
+    "ci_considerations": "GitHub Actions playwright setup requires npx playwright install --with-deps",
+    "debugging_tools": [
+      "playwright test --ui (interactive UI mode)",
+      "playwright test --debug (step-through debugger)",
+      "playwright test --headed (see browser while tests run)",
+      "playwright show-report (view HTML test report)"
+    ]
+  },
+
+  "code_examples": {
+    "playwright_config": "import { defineConfig, devices } from '@playwright/test';\n\nexport default defineConfig({\n  testDir: './tests',\n  fullyParallel: true,\n  forbidOnly: !!process.env.CI,\n  retries: process.env.CI ? 2 : 0,\n  workers: process.env.CI ? 1 : undefined,\n  reporter: 'html',\n  use: {\n    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:5173',\n    trace: 'on-first-retry',\n    screenshot: 'only-on-failure',\n    video: 'retain-on-failure',\n  },\n  projects: [\n    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },\n    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },\n    { name: 'webkit', use: { ...devices['Desktop Safari'] } },\n  ],\n  webServer: {\n    command: 'npm run dev',\n    url: 'http://localhost:5173',\n    reuseExistingServer: !process.env.CI,\n  },\n});",
+    "example_smoke_test": "import { test, expect } from '@playwright/test';\n\ntest.describe('Smoke Tests', () => {\n  test('app loads successfully', async ({ page }) => {\n    // Navigate to app\n    await page.goto('/');\n\n    // Verify page title or main heading\n    await expect(page).toHaveTitle(/Flowingly/);\n  });\n\n  test('parse button is visible', async ({ page }) => {\n    await page.goto('/');\n\n    // Verify parse button exists and is visible\n    const parseButton = page.getByRole('button', { name: /parse/i });\n    await expect(parseButton).toBeVisible();\n  });\n});",
+    "package_json_scripts": "\"scripts\": {\n  \"dev\": \"vite\",\n  \"build\": \"tsc -b && vite build\",\n  \"lint\": \"eslint .\",\n  \"preview\": \"vite preview\",\n  \"test:e2e\": \"playwright test\",\n  \"test:e2e:ui\": \"playwright test --ui\",\n  \"test:e2e:headed\": \"playwright test --headed\",\n  \"test:e2e:debug\": \"playwright test --debug\"\n}",
+    "gitignore_additions": "# Playwright\ntest-results/\nplaywright-report/\nplaywright/.cache/",
+    "ci_workflow": "name: E2E Tests\n\non: [push, pull_request]\n\njobs:\n  e2e:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v3\n      - uses: actions/setup-node@v3\n        with:\n          node-version: 18\n      - name: Install dependencies\n        run: cd client && npm ci\n      - name: Install Playwright browsers\n        run: cd client && npx playwright install --with-deps\n      - name: Run E2E tests\n        run: cd client && npm run test:e2e\n      - uses: actions/upload-artifact@v3\n        if: always()\n        with:\n          name: playwright-report\n          path: client/playwright-report/\n          retention-days: 30"
+  },
+
+  "test_structure": {
+    "directory_layout": "client/\n  tests/\n    workflows/\n      expense-workflow.spec.ts (task_045)\n      other-workflow.spec.ts (task_045)\n    errors/\n      validation-errors.spec.ts (task_046)\n      api-errors.spec.ts (task_046)\n    calculations/\n      gst-verification.spec.ts (task_047)\n    fixtures/\n      sample-email-1-expense.txt\n      sample-email-2-other.txt\n    example.spec.ts (this task - smoke test)",
+    "naming_convention": "*.spec.ts for all test files",
+    "test_organization": "Group by feature/workflow, not by component"
+  },
+
+  "validation": {
+    "command": "cd /home/adarsh/dev/codefluent/flowingly-technical-test/client && npm run test:e2e",
+    "expected_output": "Running 2+ tests using 1 worker\n  2 passed\nServed at http://localhost:XXXX",
+    "success_criteria": [
+      "All example smoke tests pass",
+      "No browser installation errors",
+      "Test report generated in playwright-report/",
+      "Screenshots/videos captured on failure (if any tests fail)"
+    ]
+  },
+
+  "next_task": {
+    "id": "task_045",
+    "name": "Write E2E Happy Path Tests",
+    "why": "Playwright infrastructure is ready, now write the 5+ E2E tests for expense and other workflows using sample email fixtures",
+    "parallel_group": "M3_parallel_1",
+    "note": "task_045, task_046, task_047 can run in parallel once Playwright setup is complete"
+  },
+
+  "ci_integration": {
+    "workflow_file": ".github/workflows/e2e-tests.yml",
+    "trigger": "on push to main or pull_request",
+    "required_steps": [
+      "Checkout code",
+      "Setup Node.js",
+      "Install npm dependencies",
+      "Install Playwright browsers with system dependencies",
+      "Run E2E tests",
+      "Upload test artifacts (reports, screenshots, videos)"
+    ],
+    "environment_variables": {
+      "PLAYWRIGHT_BASE_URL": "Override base URL for CI environment",
+      "CI": "Automatically set by GitHub Actions, enables stricter test mode"
+    }
+  },
+
+  "fixture_preparation": {
+    "source": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+    "fixtures_to_create": [
+      {
+        "file": "tests/fixtures/sample-email-1-expense.txt",
+        "content": "Hi Yvaine, Please create an expense claim for the below. Relevant details are:\n<expense><cost_centre>DEV002</cost_centre><total>1024.01</total><payment_method>personal card</payment_method></expense>\nFrom: Ivan Castle Sent: Friday, 16 February 2018 10:32 AM To: Antoine Lloyd <Antoine.Lloyd@example.com> Subject: test",
+        "purpose": "Primary expense workflow test data"
+      },
+      {
+        "file": "tests/fixtures/sample-email-2-other.txt",
+        "content": "Hi Yvaine, Please can you make a reservation at the <vendor>Viaduct Steakhouse</vendor> for <total>5</total> people.",
+        "purpose": "Other/unprocessed workflow test data"
+      }
+    ],
+    "usage_pattern": "import { readFileSync } from 'fs';\nconst sampleEmail1 = readFileSync('./tests/fixtures/sample-email-1-expense.txt', 'utf-8');"
+  },
+
+  "debugging_guidance": {
+    "common_issues": [
+      {
+        "issue": "Browsers not installed",
+        "solution": "Run npx playwright install --with-deps",
+        "verification": "npx playwright --version should show installed version"
+      },
+      {
+        "issue": "Base URL not reachable",
+        "solution": "Ensure Vite dev server is running on port 5173 before running tests",
+        "verification": "curl http://localhost:5173 should return HTML"
+      },
+      {
+        "issue": "Tests timeout",
+        "solution": "Increase timeout in playwright.config.ts or use await page.waitForLoadState('networkidle')",
+        "verification": "Check network tab in Playwright trace viewer"
+      },
+      {
+        "issue": "CI failures but local pass",
+        "solution": "Run with --headed locally to see browser behavior, check CI logs for browser installation errors",
+        "verification": "npx playwright test --headed --workers=1"
+      }
+    ],
+    "debugging_commands": [
+      "npx playwright test --ui (interactive mode with time travel)",
+      "npx playwright test --debug (step-through debugger)",
+      "npx playwright show-report (view last test run report)",
+      "npx playwright codegen http://localhost:5173 (record test actions)"
+    ]
+  }
+}

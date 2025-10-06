@@ -1,0 +1,212 @@
+{
+  "task_id": "task_045",
+  "milestone": "M3",
+  "name": "Write E2E Happy Path Tests",
+  "description": "Implement Playwright E2E tests for valid expense claim scenarios using sample email fixtures from the test brief. Tests validate the complete user workflow: submit expense content → verify structured response with correct classification, tax calculation, and correlation ID.",
+
+  "agent": {
+    "primary": "production-validator",
+    "role": "E2E test implementation with Playwright for critical happy path workflows"
+  },
+
+  "duration": "1h",
+  "priority": "critical",
+  "dependencies": ["task_011", "task_044"],
+  "parallel_group": "M3_parallel_1",
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 4.1: API - POST /api/v1/parse response structure for expense classification",
+        "Section 13: BDD Scenarios - Happy path extraction and tax calculation",
+        "Section 13: Testing Matrix - E2E tests validate full workflow with real DB",
+        "Section 13: Sample Email Fixtures - E2E tests must use sample-email-1-expense.txt from brief"
+      ],
+      "requirements": [
+        "Test full user workflow: submit text → view results",
+        "Verify expense classification response structure (expense block only, not other)",
+        "Validate correlation_id present in response meta",
+        "Test tax calculation correctness (total_incl_tax, sales_tax, total_excl_tax)",
+        "Use exact sample email fixtures from test brief (sample-email-1-expense.txt)",
+        "Validate cost_centre handling (explicit value or UNKNOWN default)",
+        "E2E tests run against real API + DB (not mocked)"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 3,
+      "requirement": "E2E tests demonstrate working flow with real data from brief examples",
+      "grading_criteria": "E2E test coverage is a core graded component (5+ tests required for submission)"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0010-test-strategy-coverage.md",
+        "decision": "Three-tier testing strategy with E2E tests for critical user workflows",
+        "context": "Tier 3: E2E Tests (Playwright) section defines E2E test scope",
+        "key_excerpt": "E2E tests validate: Full user workflows (submit text → view results), UI rendering (React components), API integration from UI, Sample email fixtures from project brief",
+        "coverage_target": "Happy path + critical error scenarios (not exhaustive)",
+        "sample_fixtures": "Sample Email 1 from brief (expense email example), Sample Email 2 from brief (other email example)"
+      },
+      {
+        "file": "project-context/adr/ADR-0007-response-contract-design.md",
+        "decision": "Classification-Specific Response (Expense XOR Other)",
+        "rationale": "Responses contain EITHER expense block OR other block, never both",
+        "key_excerpt": "For Expense Content: response has classification='expense' and expense block only. For Other Content: response has classification='other' and other block only."
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M3 — UI & E2E Tests",
+      "sub_section": "E2E Happy Path Tests",
+      "requirement": "Write E2E tests for valid expense scenarios using Playwright against running app"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "expense-happy-path.spec.ts",
+      "description": "Playwright E2E test spec for expense classification happy paths",
+      "location": "client/tests/e2e/",
+      "test_count": "2+ test cases",
+      "properties": {
+        "scenarios": [
+          "Submit sample-email-1-expense.txt (XML island with cost_centre)",
+          "Submit expense with inline tags (vendor, total, description)"
+        ],
+        "assertions": [
+          "Response classification is 'expense'",
+          "Expense data displayed (vendor, total, cost_centre, payment_method)",
+          "Tax calculation correct (sales_tax, total_excl_tax from total_incl_tax)",
+          "Correlation ID present and non-empty",
+          "UI renders expense response (not other response)"
+        ]
+      }
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ 2+ happy path E2E test cases implemented in expense-happy-path.spec.ts",
+    "✅ Test 1 uses sample-email-1-expense.txt fixture (XML island scenario)",
+    "✅ Test 2 uses inline tag expense scenario (vendor, total, description, cost_centre)",
+    "✅ All tests verify response classification is 'expense' (not 'other')",
+    "✅ All tests verify expense data displayed in UI (vendor, total, cost_centre, payment_method)",
+    "✅ All tests verify tax calculation correctness (sales_tax, total_excl_tax computed from total_incl_tax)",
+    "✅ All tests verify correlation_id present in response meta",
+    "✅ All tests pass when run against running API + UI (npm run test:e2e)",
+    "✅ Tests use Playwright browser automation (page navigation, form submission, assertion)",
+    "✅ Tests are idempotent (can run multiple times without side effects)"
+  ],
+
+  "business_rules": [
+    "Response classification MUST be 'expense' for expense content (XOR with 'other')",
+    "Expense response contains expense block only (never both expense and other)",
+    "total_incl_tax is the input total (tax-inclusive value from <total> tag)",
+    "sales_tax = total_incl_tax - total_excl_tax (computed with Banker's Rounding)",
+    "total_excl_tax = total_incl_tax / (1 + tax_rate) (computed with Banker's Rounding)",
+    "cost_centre defaults to 'UNKNOWN' if not provided in expense tags",
+    "Correlation ID must be present in all responses (for traceability)",
+    "E2E tests run against REAL API + DB (not mocked services)",
+    "Sample Email 1 fixture content: <expense><cost_centre>DEV632</cost_centre><total>35,000</total><payment_method>personal card</payment_method></expense>"
+  ],
+
+  "technical_notes": {
+    "playwright_setup": "Playwright installed via task_044 (Setup Playwright)",
+    "test_command": "npm run test:e2e (from client/ directory)",
+    "fixture_loading": "import { readFileSync } from 'fs'; const sampleEmail1 = readFileSync('../fixtures/sample-email-1-expense.txt', 'utf-8');",
+    "page_elements": {
+      "textarea": "[data-testid='content-input']",
+      "submit_button": "[data-testid='submit-button']",
+      "classification": "[data-testid='classification']",
+      "expense_vendor": "[data-testid='expense-vendor']",
+      "expense_total": "[data-testid='expense-total']",
+      "expense_cost_centre": "[data-testid='expense-cost-centre']",
+      "correlation_id": "[data-testid='correlation-id']"
+    },
+    "server_requirements": "Both API (localhost:5000) and UI (localhost:5173) must be running before E2E tests",
+    "test_isolation": "Each test should be independent (no shared state between tests)"
+  },
+
+  "code_examples": {
+    "test_structure": "import { test, expect } from '@playwright/test';\nimport { readFileSync } from 'fs';\n\ntest.describe('Expense Happy Path E2E', () => {\n  test('submits sample-email-1-expense and verifies expense response', async ({ page }) => {\n    // GIVEN: Sample email 1 content loaded\n    const sampleEmail1 = readFileSync('../fixtures/sample-email-1-expense.txt', 'utf-8');\n    await page.goto('http://localhost:5173');\n\n    // WHEN: User submits content\n    await page.fill('[data-testid=\"content-input\"]', sampleEmail1);\n    await page.click('[data-testid=\"submit-button\"]');\n\n    // THEN: Expense response displayed\n    await expect(page.locator('[data-testid=\"classification\"]')).toHaveText('expense');\n    await expect(page.locator('[data-testid=\"expense-cost-centre\"]')).toHaveText('DEV632');\n    await expect(page.locator('[data-testid=\"expense-total\"]')).toContainText('35000');\n    await expect(page.locator('[data-testid=\"correlation-id\"]')).not.toBeEmpty();\n  });\n});",
+    "fixture_usage": "// Load fixture content\nconst expenseContent = readFileSync('../fixtures/sample-email-1-expense.txt', 'utf-8');\n\n// Use in test\nawait page.fill('[data-testid=\"content-input\"]', expenseContent);",
+    "assertion_patterns": "// Classification assertion\nawait expect(page.locator('[data-testid=\"classification\"]')).toHaveText('expense');\n\n// Expense data assertions\nawait expect(page.locator('[data-testid=\"expense-vendor\"]')).toHaveText('ExpectedVendor');\nawait expect(page.locator('[data-testid=\"expense-total\"]')).toContainText('35000');\n\n// Correlation ID assertion\nconst correlationId = await page.locator('[data-testid=\"correlation-id\"]').textContent();\nexpect(correlationId).toBeTruthy();\nexpect(correlationId).toMatch(/^[a-f0-9\\-]{36}$/); // UUID format"
+  },
+
+  "test_scenarios": [
+    {
+      "name": "Submit_SampleEmail1_ExpenseWithXMLIsland",
+      "fixture": "sample-email-1-expense.txt",
+      "input_summary": "Email with <expense><cost_centre>DEV632</cost_centre><total>35,000</total><payment_method>personal card</payment_method></expense>",
+      "expected_classification": "expense",
+      "expected_expense_data": {
+        "cost_centre": "DEV632",
+        "total_incl_tax": 35000.00,
+        "payment_method": "personal card",
+        "tax_rate": 0.15,
+        "sales_tax": "4565.22 (computed)",
+        "total_excl_tax": "30434.78 (computed)"
+      },
+      "assertions": [
+        "Response classification is 'expense'",
+        "cost_centre displayed as 'DEV632'",
+        "total_incl_tax displayed as 35000.00 or '35,000' (formatted)",
+        "payment_method displayed as 'personal card'",
+        "sales_tax and total_excl_tax computed correctly (Banker's Rounding)",
+        "correlation_id is a valid UUID"
+      ]
+    },
+    {
+      "name": "Submit_InlineTagExpense_VendorAndTotal",
+      "input": "Hi team, Expense for <vendor>Mojo Coffee</vendor> total <total>120.50</total> <description>Team lunch</description> <cost_centre>DEV</cost_centre>",
+      "expected_classification": "expense",
+      "expected_expense_data": {
+        "vendor": "Mojo Coffee",
+        "total_incl_tax": 120.50,
+        "description": "Team lunch",
+        "cost_centre": "DEV",
+        "tax_rate": 0.15,
+        "sales_tax": "15.72 (computed)",
+        "total_excl_tax": "104.78 (computed)"
+      },
+      "assertions": [
+        "Response classification is 'expense'",
+        "vendor displayed as 'Mojo Coffee'",
+        "total_incl_tax displayed as 120.50",
+        "description displayed as 'Team lunch'",
+        "cost_centre displayed as 'DEV'",
+        "Tax calculation correct (Banker's Rounding applied)",
+        "correlation_id present"
+      ]
+    }
+  ],
+
+  "validation": {
+    "command": "npm run test:e2e -- expense-happy-path.spec.ts",
+    "expected_output": "2+ tests PASSED (all scenarios pass with expense classification)",
+    "prerequisites": [
+      "API running on localhost:5000",
+      "UI running on localhost:5173",
+      "Database seeded or empty (tests should handle both)"
+    ]
+  },
+
+  "playwright_mcp_usage": {
+    "note": "This task uses Playwright MCP for browser automation during test execution",
+    "key_tools": [
+      "browser_navigate: Navigate to http://localhost:5173",
+      "browser_snapshot: Capture page accessibility tree for debugging",
+      "browser_type: Type fixture content into textarea",
+      "browser_click: Click submit button",
+      "browser_wait_for: Wait for response to appear",
+      "browser_take_screenshot: Capture screenshots for debugging failures"
+    ],
+    "workflow_example": "1. Navigate to UI → 2. Snapshot page → 3. Type content → 4. Click submit → 5. Wait for response → 6. Snapshot result → 7. Take screenshot"
+  },
+
+  "next_task": {
+    "id": "task_046",
+    "name": "Write E2E Error Tests",
+    "why": "Happy path tests complete, now test error scenarios (unclosed tags, missing total) in parallel"
+  }
+}

@@ -1,0 +1,219 @@
+{
+  "task_id": "task_043",
+  "milestone": "M3",
+  "name": "Implement Error Display",
+  "description": "Create comprehensive error display component for the React UI that shows user-friendly error messages for all error codes, displays correlation IDs for support, and ensures accessibility. Error messages must be clear, actionable, and guide users to fix validation issues (unclosed tags, missing total, etc.).",
+
+  "agent": {
+    "primary": "frontend-design-expert",
+    "role": "React UI implementation with focus on error handling UX, accessibility, and user-friendly messaging"
+  },
+
+  "duration": "45min",
+  "priority": "high",
+  "dependencies": ["task_042"],
+  "parallel_group": null,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 4.1: API - Error Responses (400 Bad Request)",
+        "Section 6: Frontend (React) - Error banner showing error.code and friendly message",
+        "Section 15: DevEx & Observability - Error Model with correlation_id",
+        "Section 20.2: Error Codes - Complete list of error codes"
+      ],
+      "requirements": [
+        "Display error code (UNCLOSED_TAGS, MISSING_TOTAL, EMPTY_TEXT, etc.)",
+        "Show user-friendly error messages that help users fix issues",
+        "Display correlation ID for support/debugging purposes",
+        "Error banner must be prominent and accessible",
+        "Map all error codes to user-friendly messages",
+        "Handle both 400 (client errors) and 500 (server errors)"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 2,
+      "requirement": "Clear error messages when validation fails (unclosed tags, missing total)",
+      "grading_criteria": "Error handling UX is evaluated for clarity and user guidance"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0008-parsing-validation-rules.md",
+        "decision": "Stack-based Tag Validation with specific error messages",
+        "rationale": "Clear error messages help users quickly identify and fix validation issues",
+        "context": "Errors must specify what went wrong (e.g., 'expected </b>, found </a>')",
+        "key_excerpt": "Stack-based parser ensures closing tags match most recent opening tag. Error messages are specific: 'Overlapping tags: expected </b>, found </a>'"
+      },
+      {
+        "file": "project-context/adr/ADR-0007-response-contract-design.md",
+        "decision": "Specific response structures (expense XOR other)",
+        "rationale": "TypeScript discriminated unions provide type-safe error handling",
+        "context": "Error responses have consistent structure with code, message, details",
+        "key_excerpt": "Error Model: { error: { code, message, details }, correlation_id }"
+      },
+      {
+        "file": "project-context/adr/ADR-0010-test-strategy-coverage.md",
+        "decision": "E2E tests validate error display in browser",
+        "rationale": "Playwright E2E tests ensure error UI renders correctly",
+        "context": "E2E tests check error banner visibility and content",
+        "key_excerpt": "E2E Test: Submit invalid input (unclosed tags) → sees error banner with clear error code"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M3 — UI & E2E Tests",
+      "sub_section": "Error Handling UI",
+      "requirement": "Implement error display component with user-friendly messages and correlation ID visibility"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "ErrorDisplay.tsx",
+      "description": "React component that renders error banner with code, message, and correlation ID",
+      "location": "client/src/components/",
+      "properties": {
+        "displays": "Error code, user-friendly message, correlation ID",
+        "accessibility": "ARIA live region, keyboard dismissible",
+        "styling": "Prominent, red/warning color scheme"
+      }
+    },
+    {
+      "item": "errorMessages.ts",
+      "description": "Error code to user-friendly message mapping (all error codes)",
+      "location": "client/src/utils/",
+      "properties": {
+        "error_codes_mapped": [
+          "UNCLOSED_TAGS",
+          "MALFORMED_TAGS",
+          "MISSING_TOTAL",
+          "EMPTY_TEXT",
+          "INVALID_REQUEST",
+          "MISSING_TAXRATE",
+          "INTERNAL_ERROR"
+        ]
+      }
+    },
+    {
+      "item": "Updated types.ts",
+      "description": "TypeScript interface for ErrorResponse (matches backend contract)",
+      "location": "client/src/types/",
+      "properties": {
+        "fields": "errorCode, message, details, correlationId"
+      }
+    },
+    {
+      "item": "Updated App.tsx",
+      "description": "Integrate ErrorDisplay component with parse flow",
+      "location": "client/src/",
+      "properties": {
+        "integration": "Show error banner when API returns 400/500",
+        "state_management": "Track error state from API responses"
+      }
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ ErrorDisplay component created with error code, message, and correlation ID display",
+    "✅ All 7 error codes (UNCLOSED_TAGS, MALFORMED_TAGS, MISSING_TOTAL, EMPTY_TEXT, INVALID_REQUEST, MISSING_TAXRATE, INTERNAL_ERROR) have user-friendly messages",
+    "✅ User-friendly messages are actionable (e.g., 'Please close all tags before submitting')",
+    "✅ Correlation ID is displayed prominently with label 'Support Reference'",
+    "✅ Error banner has proper accessibility (ARIA role='alert', live region)",
+    "✅ Error banner is keyboard dismissible (ESC key or close button)",
+    "✅ Error state is cleared when user submits new request",
+    "✅ Component handles missing correlation ID gracefully (shows 'N/A' or 'Not available')",
+    "✅ TypeScript ErrorResponse interface matches backend contract (errorCode, message, details, correlationId)",
+    "✅ Error display is visually prominent (red/warning color, top of results area)"
+  ],
+
+  "business_rules": [
+    "All error codes from ErrorCodes.cs must have user-friendly messages",
+    "Correlation ID is REQUIRED for all error responses (from backend)",
+    "Error messages must be actionable and guide users to fix issues",
+    "UNCLOSED_TAGS message: 'Your text contains unclosed or overlapping tags. Please ensure all tags are properly closed (e.g., <tag>content</tag>).'",
+    "MISSING_TOTAL message: 'Expense content is missing a total amount. Please include a <total> tag with the expense total (including tax).'",
+    "EMPTY_TEXT message: 'Please enter some text to parse before submitting.'",
+    "MALFORMED_TAGS message: 'Your text contains malformed tags. Please check for overlapping tags (e.g., <a><b></a></b> is invalid).'",
+    "MISSING_TAXRATE message: 'Tax rate is required. Please provide a tax rate in your request or configure a default.'",
+    "INVALID_REQUEST message: 'Your request is invalid. Please check your input and try again.'",
+    "INTERNAL_ERROR message: 'An unexpected error occurred. Please try again or contact support with reference ID: {correlationId}'",
+    "Error banner must be dismissible (do not block UI permanently)",
+    "Error state clears on new submission (no stale errors)"
+  ],
+
+  "technical_notes": {
+    "react_patterns": "Use functional component with hooks (useState for dismissal), ARIA attributes for accessibility",
+    "styling": "Tailwind CSS classes for error styling (bg-red-100, border-red-500, text-red-700) or CSS module",
+    "accessibility": "role='alert', aria-live='polite', tabIndex for keyboard focus, ESC key handler",
+    "state_management": "Parent component (App.tsx) manages error state, passes to ErrorDisplay via props",
+    "typescript": "Strict typing for ErrorResponse, error code enums, props interface"
+  },
+
+  "code_examples": {
+    "error_response_interface": "// TypeScript ErrorResponse interface\nexport interface ErrorResponse {\n  errorCode: string;\n  message: string;\n  details?: Record<string, unknown>;\n  correlationId: string;\n}\n\n// Error state in parent component\nconst [error, setError] = useState<ErrorResponse | null>(null);",
+    "error_messages_mapping": "// errorMessages.ts\nexport const ERROR_MESSAGES: Record<string, string> = {\n  UNCLOSED_TAGS: 'Your text contains unclosed or overlapping tags. Please ensure all tags are properly closed (e.g., <tag>content</tag>).',\n  MALFORMED_TAGS: 'Your text contains malformed tags. Please check for overlapping tags (e.g., <a><b></a></b> is invalid).',\n  MISSING_TOTAL: 'Expense content is missing a total amount. Please include a <total> tag with the expense total (including tax).',\n  EMPTY_TEXT: 'Please enter some text to parse before submitting.',\n  INVALID_REQUEST: 'Your request is invalid. Please check your input and try again.',\n  MISSING_TAXRATE: 'Tax rate is required. Please provide a tax rate in your request or configure a default.',\n  INTERNAL_ERROR: 'An unexpected error occurred. Please try again or contact support.'\n};\n\nexport function getErrorMessage(code: string): string {\n  return ERROR_MESSAGES[code] || 'An unknown error occurred. Please try again.';\n}",
+    "error_display_component": "// ErrorDisplay.tsx\nimport React from 'react';\nimport { ErrorResponse } from '../types';\nimport { getErrorMessage } from '../utils/errorMessages';\n\ninterface ErrorDisplayProps {\n  error: ErrorResponse;\n  onDismiss: () => void;\n}\n\nexport function ErrorDisplay({ error, onDismiss }: ErrorDisplayProps) {\n  const userMessage = getErrorMessage(error.errorCode);\n\n  React.useEffect(() => {\n    const handleEsc = (e: KeyboardEvent) => {\n      if (e.key === 'Escape') onDismiss();\n    };\n    window.addEventListener('keydown', handleEsc);\n    return () => window.removeEventListener('keydown', handleEsc);\n  }, [onDismiss]);\n\n  return (\n    <div\n      role=\"alert\"\n      aria-live=\"polite\"\n      className=\"bg-red-100 border border-red-500 text-red-700 px-4 py-3 rounded mb-4\"\n      data-testid=\"error-banner\"\n    >\n      <div className=\"flex justify-between items-start\">\n        <div className=\"flex-1\">\n          <strong className=\"font-bold\">Error: {error.errorCode}</strong>\n          <p className=\"mt-1\">{userMessage}</p>\n          <p className=\"text-sm mt-2\">\n            <strong>Support Reference:</strong> {error.correlationId || 'N/A'}\n          </p>\n        </div>\n        <button\n          onClick={onDismiss}\n          className=\"text-red-700 hover:text-red-900\"\n          aria-label=\"Dismiss error\"\n          data-testid=\"dismiss-error-button\"\n        >\n          <span className=\"text-2xl\">&times;</span>\n        </button>\n      </div>\n    </div>\n  );\n}",
+    "app_integration": "// App.tsx integration\nconst [error, setError] = useState<ErrorResponse | null>(null);\nconst [result, setResult] = useState<ParseResponse | null>(null);\n\nconst handleSubmit = async () => {\n  // Clear previous error\n  setError(null);\n  setResult(null);\n\n  try {\n    const response = await parseContent(text);\n    setResult(response);\n  } catch (err) {\n    if (err.response) {\n      // API error (400/500)\n      setError(err.response.data);\n    } else {\n      // Network error\n      setError({\n        errorCode: 'INTERNAL_ERROR',\n        message: 'Network error occurred',\n        correlationId: 'N/A'\n      });\n    }\n  }\n};\n\nreturn (\n  <div>\n    {error && <ErrorDisplay error={error} onDismiss={() => setError(null)} />}\n    {result && <ResultDisplay result={result} />}\n  </div>\n);"
+  },
+
+  "validation": {
+    "command": "npm run dev",
+    "expected_output": "Dev server running at http://localhost:5173. Manually test: (1) Submit empty text → see EMPTY_TEXT error banner with correlation ID, (2) Submit unclosed tag → see UNCLOSED_TAGS error banner, (3) Click dismiss button → error clears, (4) Press ESC key → error clears."
+  },
+
+  "accessibility_requirements": [
+    "ARIA role='alert' for screen reader announcement",
+    "ARIA aria-live='polite' for non-intrusive announcements",
+    "Keyboard dismissible (ESC key and close button)",
+    "Focus management: error banner should not trap focus",
+    "Color contrast: text-red-700 on bg-red-100 meets WCAG AA standards",
+    "Error message must be readable by screen readers",
+    "Correlation ID labeled clearly for assistive technologies"
+  ],
+
+  "error_code_details": {
+    "UNCLOSED_TAGS": {
+      "status_code": 400,
+      "user_message": "Your text contains unclosed or overlapping tags. Please ensure all tags are properly closed (e.g., <tag>content</tag>).",
+      "example": "Input: '<total>120' → Error: unclosed <total> tag"
+    },
+    "MALFORMED_TAGS": {
+      "status_code": 400,
+      "user_message": "Your text contains malformed tags. Please check for overlapping tags (e.g., <a><b></a></b> is invalid).",
+      "example": "Input: '<a><b></a></b>' → Error: overlapping tags"
+    },
+    "MISSING_TOTAL": {
+      "status_code": 400,
+      "user_message": "Expense content is missing a total amount. Please include a <total> tag with the expense total (including tax).",
+      "example": "Input: '<vendor>Coffee</vendor>' → Error: missing <total>"
+    },
+    "EMPTY_TEXT": {
+      "status_code": 400,
+      "user_message": "Please enter some text to parse before submitting.",
+      "example": "Input: '' → Error: empty text"
+    },
+    "INVALID_REQUEST": {
+      "status_code": 400,
+      "user_message": "Your request is invalid. Please check your input and try again.",
+      "example": "Validation failure from FluentValidation"
+    },
+    "MISSING_TAXRATE": {
+      "status_code": 400,
+      "user_message": "Tax rate is required. Please provide a tax rate in your request or configure a default.",
+      "example": "StrictTaxRate mode enabled, no tax rate provided"
+    },
+    "INTERNAL_ERROR": {
+      "status_code": 500,
+      "user_message": "An unexpected error occurred. Please try again or contact support.",
+      "example": "Unhandled exception, database error"
+    }
+  },
+
+  "next_task": {
+    "id": "task_044",
+    "name": "Setup Playwright",
+    "why": "Error display UI is complete, now setup E2E testing framework to validate error handling workflows end-to-end"
+  }
+}

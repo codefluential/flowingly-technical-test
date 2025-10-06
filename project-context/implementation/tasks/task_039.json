@@ -1,0 +1,479 @@
+{
+  "task_id": "task_039",
+  "milestone": "M2",
+  "name": "Review API Contract",
+  "description": "Comprehensive review of M2 API contract implementation. Verify all API endpoints, request/response DTOs, Swagger documentation, error handling, and validation rules against PRD specifications. Ensure compliance with ADR decisions for versioning, response contract design, and Swagger standards. Validate that the API surface is production-ready, consistent, and fully documented.",
+
+  "agent": {
+    "primary": "reviewer",
+    "role": "API contract review specialist - M2 quality gate before DoD verification"
+  },
+
+  "duration": "30min",
+  "priority": "critical",
+  "dependencies": ["task_037", "task_038"],
+  "parallel_group": null,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 11: Request/Response Contracts - API contract structure",
+        "Section 11.2: Response Contract - Classification-Specific (Expense XOR Other)",
+        "Section 7: Swagger (OpenAPI) - API documentation standards",
+        "Section 12: Versioning via URI - /api/v1/ pattern",
+        "Section 10: Parsing Rules - Validation requirements and error codes"
+      ],
+      "requirements": [
+        "Single endpoint: POST /api/v1/parse with correct versioning",
+        "Response MUST be expense XOR other (never both)",
+        "All responses include correlation ID for traceability",
+        "Request DTOs properly validated with FluentValidation",
+        "Error responses follow standard structure with clear error codes",
+        "Swagger UI provides interactive documentation with examples",
+        "API contract matches specification exactly (no drift)"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 3,
+      "requirement": "API contract must be well-documented, testable, and production-ready",
+      "grading_criteria": "API design quality, documentation completeness, error handling clarity"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0004-swagger-api-contract.md",
+        "decision": "Swagger/OpenAPI for API documentation and contract specification",
+        "rationale": "Interactive documentation, single source of truth, review-friendly",
+        "context": "Swagger UI at /swagger with complete endpoint documentation",
+        "key_excerpt": "Annotate API endpoints and DTOs with XML comments and attributes. Add example schemas using SwaggerOperation and SwaggerResponse attributes."
+      },
+      {
+        "file": "project-context/adr/ADR-0005-versioning-via-uri.md",
+        "decision": "URI path-based versioning with /api/v{N}/ prefix",
+        "rationale": "Explicit, visible, browser/tool friendly versioning",
+        "context": "Phase 1 uses /api/v1/ pattern for all endpoints",
+        "key_excerpt": "Pattern: /api/v1/, /api/v2/, etc. Include x-api-version header in all responses."
+      },
+      {
+        "file": "project-context/adr/ADR-0007-response-contract-design.md",
+        "decision": "Classification-Specific Response (Expense XOR Other)",
+        "rationale": "Clear contracts, smaller payloads, type safety via discriminated unions",
+        "context": "Response structure mirrors business reality - content is either expense or other, not both",
+        "key_excerpt": "Each response will include: (1) classification field (enum: expense | other), (2) Classification-specific block (expense OR other, never both), (3) meta block (correlation ID, processing time, warnings)"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M2 — API Contracts",
+      "sub_section": "API Contract Review (Quality Gate)",
+      "requirement": "Comprehensive review of API surface before M2 DoD verification"
+    },
+    "m2_implementation_context": {
+      "completed_tasks": [
+        "task_031: Create DTOs (request/response contracts)",
+        "task_032: Implement FluentValidation (request validation)",
+        "task_033: Create Error Codes & Models (standardized errors)",
+        "task_034: Implement Error Mapping (domain to API errors)",
+        "task_035: Create Parse Handler (CQRS command handler)",
+        "task_036: Wire Dependency Injection (DI registration)",
+        "task_037: Write API Contract Tests (10+ contract tests)",
+        "task_038: Create Swagger Examples (comprehensive documentation)"
+      ],
+      "current_status": "All M2 implementation complete, ready for final review"
+    }
+  },
+
+  "review_areas": [
+    {
+      "area": "API Endpoint Structure",
+      "checks": [
+        "Endpoint route follows ADR-0005: POST /api/v1/parse",
+        "HTTP method is POST (not GET, PUT, DELETE)",
+        "Endpoint properly wired in Program.cs with DI",
+        "Request/response DTOs correctly mapped",
+        "x-api-version header included in all responses"
+      ],
+      "files_to_review": [
+        "src/Api/Endpoints/ParseEndpoint.cs or src/Api/Program.cs",
+        "Response headers middleware"
+      ]
+    },
+    {
+      "area": "Request/Response DTOs",
+      "checks": [
+        "ParseRequest DTO matches PRD Section 11 spec exactly",
+        "ParseResponse follows ADR-0007 (expense XOR other structure)",
+        "ExpenseResponse includes all required fields per spec",
+        "OtherResponse includes rawTags structure per spec",
+        "Metadata includes correlationId, processingTimeMs, warnings",
+        "No drift from specification (all fields present, correctly typed)"
+      ],
+      "files_to_review": [
+        "contracts/ParseRequest.cs",
+        "contracts/ParseResponse.cs",
+        "contracts/ExpenseResponse.cs",
+        "contracts/OtherResponse.cs",
+        "contracts/ErrorResponse.cs"
+      ]
+    },
+    {
+      "area": "Validation Rules",
+      "checks": [
+        "FluentValidation rules match PRD requirements",
+        "Required fields enforced (e.g., text field required)",
+        "Optional fields handled correctly (taxRate, currency)",
+        "Validation error messages are clear and actionable",
+        "Validation errors return 400 status with proper error codes"
+      ],
+      "files_to_review": [
+        "src/Application/Validators/ParseRequestValidator.cs"
+      ]
+    },
+    {
+      "area": "Error Handling",
+      "checks": [
+        "Error codes follow PRD spec: MISSING_TOTAL, UNCLOSED_TAGS, MALFORMED_XML, etc.",
+        "Error responses follow standard structure (code, message, details)",
+        "All error responses include correlation ID",
+        "Error mapping from domain exceptions to API errors is correct",
+        "HTTP status codes are appropriate (400 for validation, 500 for server errors)"
+      ],
+      "files_to_review": [
+        "src/Api/Models/ErrorResponse.cs",
+        "src/Application/Errors/ErrorMapper.cs or similar"
+      ]
+    },
+    {
+      "area": "Swagger Documentation",
+      "checks": [
+        "Swagger UI accessible at /swagger in development",
+        "OpenAPI spec generated at /swagger/v1/swagger.json",
+        "POST /api/v1/parse endpoint documented with summary and description",
+        "Request examples show inline tags and XML islands",
+        "Response examples for 200 OK (expense and other classifications)",
+        "Response examples for 400 Bad Request (validation errors)",
+        "All DTOs have XML documentation comments",
+        "Examples are copy-pasteable and functional"
+      ],
+      "files_to_review": [
+        "src/Api/Program.cs (Swagger configuration)",
+        "src/Api/Endpoints/ParseEndpoint.cs (WithOpenApi configuration)",
+        "Swagger UI at http://localhost:5000/swagger"
+      ]
+    },
+    {
+      "area": "Dependency Injection",
+      "checks": [
+        "All parsers registered (ITagValidator, IXmlIslandExtractor, etc.)",
+        "All processors registered (IContentProcessor implementations)",
+        "Handler registered with MediatR or equivalent",
+        "Repositories registered with correct lifetime scopes",
+        "No missing dependencies that would cause runtime errors"
+      ],
+      "files_to_review": [
+        "src/Api/Program.cs (DI registration)",
+        "src/Infrastructure/DependencyInjection.cs or similar"
+      ]
+    },
+    {
+      "area": "API Contract Tests",
+      "checks": [
+        "10+ contract tests written (from task_037)",
+        "Happy path expense parsing tested",
+        "Happy path other/unprocessed tested",
+        "Error scenarios tested (MISSING_TOTAL, UNCLOSED_TAGS, etc.)",
+        "Response structure validated (expense XOR other)",
+        "Correlation ID presence validated",
+        "All tests passing"
+      ],
+      "files_to_review": [
+        "api/tests/Flowingly.ParsingService.Tests/ContractTests/ or similar"
+      ]
+    }
+  ],
+
+  "deliverables": [
+    {
+      "item": "API Contract Review Report",
+      "description": "Comprehensive review document of M2 API implementation",
+      "format": "Markdown report or inline review comments",
+      "contents": [
+        "API endpoint structure verification",
+        "Request/response DTO compliance with spec",
+        "Validation rules assessment",
+        "Error handling review",
+        "Swagger documentation quality check",
+        "Dependency injection verification",
+        "Contract test coverage review",
+        "List of issues found (if any) with severity levels",
+        "Approval status or remediation recommendations"
+      ],
+      "location": "project-context/reviews/m2-api-contract-review.md or inline in commit/PR"
+    },
+    {
+      "item": "Issue List (if applicable)",
+      "description": "Documented list of any contract violations or quality issues",
+      "format": "Checklist with severity (critical, high, medium, low)",
+      "example": "- [CRITICAL] Response missing correlationId field\n- [HIGH] Swagger examples not copy-pasteable\n- [MEDIUM] Error message unclear for MISSING_TOTAL"
+    },
+    {
+      "item": "Approval Sign-Off",
+      "description": "Explicit approval for M2 DoD gate or list of blockers",
+      "options": [
+        "APPROVED: API contract production-ready, proceed to task_040 (M2 DoD)",
+        "CONDITIONAL: Minor issues, fix before DoD gate",
+        "BLOCKED: Critical issues, must remediate before proceeding"
+      ]
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ API endpoint verified: POST /api/v1/parse with correct versioning",
+    "✅ Request/response DTOs match PRD spec exactly (no drift)",
+    "✅ Expense XOR Other structure confirmed (ADR-0007 compliance)",
+    "✅ All responses include correlation ID in meta block",
+    "✅ FluentValidation rules verified against spec",
+    "✅ Error codes and messages reviewed (MISSING_TOTAL, UNCLOSED_TAGS, etc.)",
+    "✅ Error responses follow standard structure",
+    "✅ Swagger UI accessible and functional at /swagger",
+    "✅ Swagger examples comprehensive (happy path, errors, edge cases)",
+    "✅ All DTOs have XML documentation comments",
+    "✅ Dependency injection wiring verified (no missing registrations)",
+    "✅ Contract tests reviewed (10+ tests, all passing)",
+    "✅ Review report created documenting findings",
+    "✅ Approval status determined (approved, conditional, or blocked)",
+    "✅ If issues found: documented with severity and remediation steps"
+  ],
+
+  "business_rules": [
+    "API contract MUST match PRD v0.3 specification exactly",
+    "Response structure MUST be expense XOR other (ADR-0007)",
+    "All responses MUST include correlation ID for traceability",
+    "URI versioning MUST follow /api/v1/ pattern (ADR-0005)",
+    "Error codes MUST be standardized (MISSING_TOTAL, UNCLOSED_TAGS, MALFORMED_XML)",
+    "Swagger UI MUST be accessible and functional in development",
+    "No breaking changes introduced without explicit approval",
+    "All contract tests MUST be passing before approval"
+  ],
+
+  "technical_requirements": {
+    "quality_gates": [
+      "All contract tests pass (10+ tests green)",
+      "API builds and runs without errors",
+      "Swagger UI renders correctly",
+      "No DTO field mismatches with specification",
+      "No missing DI registrations",
+      "Error handling is comprehensive and consistent"
+    ],
+    "review_methodology": [
+      "Compare DTOs against PRD Section 11 line-by-line",
+      "Test API endpoint manually via Swagger UI",
+      "Verify error scenarios return correct codes and structure",
+      "Check Swagger examples are functional (copy-paste-run)",
+      "Review contract test coverage for completeness",
+      "Verify DI registration by checking app startup logs"
+    ],
+    "dotnet_commands": {
+      "build": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build",
+      "run": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet run --project src/Api",
+      "test_contract": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter Category=Contract",
+      "swagger_url": "http://localhost:5000/swagger"
+    }
+  },
+
+  "review_checklist": {
+    "endpoint_structure": [
+      "Route is /api/v1/parse (not /parse or /api/parse)",
+      "HTTP method is POST",
+      "Accepts application/json content-type",
+      "Returns application/json responses",
+      "Response includes x-api-version: v1 header"
+    ],
+    "request_dto": [
+      "ParseRequest has 'text' field (string, required)",
+      "ParseRequest has 'taxRate' field (decimal?, optional)",
+      "ParseRequest has 'currency' field (string?, optional)",
+      "Field names follow camelCase convention",
+      "Validation attributes or FluentValidation rules present"
+    ],
+    "response_dto": [
+      "Response has 'classification' field (string: expense | other)",
+      "Response has 'expense' field (populated if classification=expense)",
+      "Response has 'other' field (populated if classification=other)",
+      "Response has 'meta' field (always populated)",
+      "Meta includes correlationId, processingTimeMs, warnings",
+      "ExpenseResponse matches PRD Section 11.2 structure",
+      "OtherResponse matches PRD Section 11.2 structure",
+      "No extra fields not in specification",
+      "No missing fields from specification"
+    ],
+    "error_response": [
+      "Error response has 'correlationId' field",
+      "Error response has 'error' block with code, message, details",
+      "Error codes match spec: MISSING_TOTAL, UNCLOSED_TAGS, MALFORMED_XML",
+      "Error messages are clear and actionable",
+      "HTTP status codes are appropriate (400 for validation)"
+    ],
+    "swagger": [
+      "Swagger UI loads at /swagger without errors",
+      "POST /api/v1/parse endpoint visible and documented",
+      "Summary and description provide context",
+      "Request schema shows all fields with types",
+      "Response schema shows 200 OK and 400 Bad Request",
+      "Examples for expense response present",
+      "Examples for other response present",
+      "Examples for error response present",
+      "Examples are valid JSON and functional"
+    ],
+    "validation": [
+      "FluentValidation registered in DI",
+      "ParseRequestValidator validates 'text' as required",
+      "Validation errors return 400 status",
+      "Validation error messages are user-friendly"
+    ],
+    "di_registration": [
+      "ITagValidator → TagValidator registered",
+      "IXmlIslandExtractor → XmlIslandExtractor registered",
+      "IContentRouter → ContentRouter registered",
+      "IContentProcessor implementations registered",
+      "ITaxCalculator → TaxCalculator registered",
+      "Handler registered (MediatR or equivalent)",
+      "Repositories registered with correct scopes"
+    ]
+  },
+
+  "common_issues_to_check": [
+    {
+      "issue": "Response missing correlation ID",
+      "severity": "CRITICAL",
+      "fix": "Add correlationId to meta block in all responses"
+    },
+    {
+      "issue": "DTOs don't match spec (extra or missing fields)",
+      "severity": "CRITICAL",
+      "fix": "Align DTOs exactly with PRD Section 11"
+    },
+    {
+      "issue": "URI versioning incorrect (/api/parse instead of /api/v1/parse)",
+      "severity": "CRITICAL",
+      "fix": "Update endpoint route to /api/v1/parse per ADR-0005"
+    },
+    {
+      "issue": "Response includes both expense AND other blocks",
+      "severity": "CRITICAL",
+      "fix": "Ensure XOR structure per ADR-0007"
+    },
+    {
+      "issue": "Error codes inconsistent or non-standard",
+      "severity": "HIGH",
+      "fix": "Standardize error codes per PRD Section 10"
+    },
+    {
+      "issue": "Swagger examples not functional",
+      "severity": "HIGH",
+      "fix": "Update examples to be copy-pasteable and valid"
+    },
+    {
+      "issue": "Missing DI registration (runtime errors)",
+      "severity": "CRITICAL",
+      "fix": "Register all dependencies in Program.cs"
+    },
+    {
+      "issue": "Contract tests not passing",
+      "severity": "CRITICAL",
+      "fix": "Fix failing tests before review approval"
+    }
+  ],
+
+  "validation": {
+    "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build && dotnet run --project src/Api",
+    "expected_output": "Build succeeded. Application started. Navigate to http://localhost:5000/swagger.",
+    "manual_checks": [
+      "Open http://localhost:5000/swagger in browser",
+      "Verify POST /api/v1/parse endpoint is visible",
+      "Expand endpoint and check request/response schemas",
+      "Review examples for accuracy and functionality",
+      "Click 'Try it out' and test with sample expense text",
+      "Verify response structure matches ADR-0007 (expense XOR other)",
+      "Test error scenario (e.g., missing total) and verify error response",
+      "Check response headers include x-api-version: v1"
+    ],
+    "contract_tests": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter Category=Contract",
+    "expected_test_output": "10+ contract tests passing (all green)"
+  },
+
+  "review_process": {
+    "steps": [
+      "1. Build and run the API (verify no startup errors)",
+      "2. Open Swagger UI and review endpoint documentation",
+      "3. Compare request/response DTOs against PRD Section 11 specification",
+      "4. Test happy path via Swagger UI (expense classification)",
+      "5. Test other/unprocessed path via Swagger UI",
+      "6. Test error scenarios (MISSING_TOTAL, UNCLOSED_TAGS)",
+      "7. Verify response structure follows ADR-0007 (expense XOR other)",
+      "8. Check all responses include correlation ID",
+      "9. Review Swagger examples for completeness and accuracy",
+      "10. Verify URI versioning (/api/v1/) per ADR-0005",
+      "11. Run contract tests and verify all passing",
+      "12. Review DI registration in Program.cs",
+      "13. Document findings in review report",
+      "14. Determine approval status (approved, conditional, blocked)"
+    ],
+    "focus_areas": [
+      "Compliance with PRD specifications (no drift)",
+      "Compliance with ADR decisions (versioning, response structure)",
+      "Quality of Swagger documentation",
+      "Error handling consistency",
+      "Production readiness"
+    ]
+  },
+
+  "definition_of_done": [
+    "✅ Review completed for all M2 components",
+    "✅ API endpoint structure verified against ADR-0005",
+    "✅ Request/response DTOs verified against PRD Section 11",
+    "✅ Expense XOR Other structure verified against ADR-0007",
+    "✅ Error handling reviewed (codes, messages, structure)",
+    "✅ Swagger UI tested and documentation quality verified",
+    "✅ Contract tests reviewed (10+ tests, all passing)",
+    "✅ Dependency injection verified (no missing registrations)",
+    "✅ Review report created documenting all findings",
+    "✅ Issues documented with severity levels (if any)",
+    "✅ Approval status determined (approved/conditional/blocked)",
+    "✅ Progress updated: ./scripts/update-progress.sh task_039 completed",
+    "✅ Review report committed or documented in PR"
+  ],
+
+  "implementation_notes": {
+    "key_files_to_review": [
+      "src/Api/Program.cs - DI registration, Swagger config, endpoint wiring",
+      "src/Api/Endpoints/ParseEndpoint.cs - Endpoint implementation (if separate file)",
+      "contracts/ParseRequest.cs - Request DTO",
+      "contracts/ParseResponse.cs - Base response",
+      "contracts/ExpenseResponse.cs - Expense classification response",
+      "contracts/OtherResponse.cs - Other classification response",
+      "contracts/ErrorResponse.cs - Error response structure",
+      "src/Application/Validators/ParseRequestValidator.cs - FluentValidation",
+      "api/tests/Flowingly.ParsingService.Tests/ContractTests/ - Contract tests"
+    ],
+    "reference_documents": [
+      "PRD v0.3 Section 11: Request/Response Contracts (source of truth)",
+      "ADR-0004: Swagger documentation standards",
+      "ADR-0005: URI versioning pattern",
+      "ADR-0007: Response contract design (expense XOR other)"
+    ],
+    "review_scope": [
+      "IN SCOPE: API surface, DTOs, validation, error handling, Swagger docs",
+      "OUT OF SCOPE: Domain logic (already tested in M1), UI implementation (M3)"
+    ]
+  },
+
+  "next_task": {
+    "id": "task_040",
+    "name": "Verify M2 DoD",
+    "why": "API contract review complete, ready for final M2 milestone gate verification",
+    "milestone_gate": true,
+    "blocked_if": "Critical issues found in review (must remediate before DoD)"
+  }
+}

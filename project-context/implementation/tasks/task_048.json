@@ -1,0 +1,255 @@
+{
+  "task_id": "task_048",
+  "milestone": "M3",
+  "name": "Run Full Test Suite",
+  "description": "Execute complete test suite (unit + contract + E2E) to verify 45+ total tests pass. Generate comprehensive test report showing breakdown by test type and coverage metrics. This is the final verification before manual smoke testing and M3 DoD.",
+
+  "agent": {
+    "primary": "production-validator",
+    "role": "Full test suite execution and verification - ensures all test categories meet coverage targets"
+  },
+
+  "duration": "30min",
+  "priority": "critical",
+  "dependencies": ["task_030", "task_037", "task_045", "task_046", "task_047"],
+  "parallel_group": null,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 13: TDD/BDD Plan - Core test inventory with unit, integration, and E2E tests",
+        "Section 13: Test Coverage Summary - 45+ total tests (30+ unit, 10+ contract, 5+ E2E)"
+      ],
+      "requirements": [
+        "Domain unit tests: Tag integrity, XML extraction, number/date/time normalization, Banker's Rounding, tax calculator",
+        "Application/Integration tests: POST /api/v1/parse happy paths and error scenarios",
+        "UI E2E tests (Playwright): Sample emails, error handling, GST verification",
+        "All tests must pass with 100% pass rate",
+        "Test coverage >80% on parser logic",
+        "Sample email fixtures from test brief used in E2E tests"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 3,
+      "requirement": "Comprehensive test coverage demonstrating correctness of parsing, validation, and calculation logic",
+      "grading_criteria": "Testing quality and coverage are core graded components - must show 45+ tests passing"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0010-test-strategy-coverage.md",
+        "decision": "Three-Tier Testing Strategy (Unit + Integration + E2E)",
+        "rationale": "Comprehensive coverage across domain logic, API contracts, and user workflows",
+        "context": "Unit tests (30+) for domain logic isolation, Integration tests (10+) for API + DB, E2E tests (5+) for critical user paths",
+        "key_excerpt": "**Coverage Targets**: Unit 80%+, Integration 60%+, E2E happy path + critical errors. **Total: 45+ tests** for submission.",
+        "test_breakdown": {
+          "unit_tests": "30+ tests (Tag validation: 8, Required fields: 3, Normalization: 4, Banker's Rounding: 6, GST calc: 4, Tax rate precedence: 2, Time parsing: 5, Sample fixtures: 2)",
+          "contract_tests": "10+ tests (Happy paths: 2, Error scenarios: 4, Contract enforcement: 2, Tax rate: 2)",
+          "e2e_tests": "5+ tests (Happy path expense: 1, Happy path other: 1, Error display: 2, GST calc: 1)"
+        }
+      },
+      {
+        "file": "project-context/adr/ADR-0009-bankers-rounding.md",
+        "decision": "Banker's Rounding (MidpointRounding.ToEven) for all monetary values",
+        "relevance": "Tests must verify Banker's Rounding is correctly applied in tax calculations"
+      },
+      {
+        "file": "project-context/adr/ADR-0008-parsing-validation-rules.md",
+        "decision": "Stack-based Tag Validation (detects overlapping tags)",
+        "relevance": "Tests must verify tag validation rejects overlapping tags like <a><b></a></b>"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M3 — UI & E2E Tests",
+      "sub_section": "Test Coverage Summary (45+ total tests)",
+      "requirement": "Run full test suite and verify all categories meet targets: Unit (30+), Contract (10+), E2E (5+)",
+      "dod_criteria": [
+        "All tests green (100% pass rate)",
+        "Test count breakdown documented: unit + contract + E2E",
+        "Coverage metrics >80% for domain logic",
+        "Zero test failures or skips"
+      ]
+    },
+    "dependency_context": {
+      "task_030": "M1 DoD verified - 30+ unit tests green (Tag validation, number normalization, Banker's Rounding, tax calc, time parsing, XML extraction, content routing, expense processing)",
+      "task_037": "API contract tests written and green (10+ integration tests for endpoint happy paths and error scenarios)",
+      "task_045": "E2E happy path tests written (expense workflow, other workflow)",
+      "task_046": "E2E error tests written (missing total, overlapping tags)",
+      "task_047": "E2E GST verification tests written (Banker's Rounding verification)"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "Test execution report",
+      "description": "Console output showing all test results with pass/fail counts by category",
+      "location": "Console output / CI logs",
+      "properties": {
+        "format": "xUnit + Playwright test runner output",
+        "contains": [
+          "Total test count (45+ expected)",
+          "Pass count (should equal total)",
+          "Fail count (should be 0)",
+          "Breakdown by category (unit, contract, E2E)"
+        ]
+      }
+    },
+    {
+      "item": "Test count summary",
+      "description": "Documented breakdown of test counts by type",
+      "format": "Unit: X tests, Contract: Y tests, E2E: Z tests, Total: 45+",
+      "validation": "Total >= 45, all categories meet minimum targets"
+    },
+    {
+      "item": "Coverage report (optional)",
+      "description": "Code coverage metrics for backend (.NET) tests",
+      "location": "Generated by dotnet test with coverage flag",
+      "properties": {
+        "domain_coverage": ">80% expected",
+        "overall_coverage": ">60% expected"
+      }
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ Backend unit tests executed: export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter Category=Unit",
+    "✅ Backend contract tests executed: export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter Category=Contract",
+    "✅ Frontend E2E tests executed: cd client && npm run test:e2e",
+    "✅ Total test count >= 45 (30+ unit, 10+ contract, 5+ E2E)",
+    "✅ All tests PASS (100% pass rate, 0 failures)",
+    "✅ No skipped or ignored tests (all tests executed)",
+    "✅ Test execution time documented (baseline for CI/CD)",
+    "✅ Zero warnings in test output",
+    "✅ Unit test coverage >80% on domain logic (if coverage enabled)",
+    "✅ Test count breakdown documented and verified against targets",
+    "✅ Both backend (dotnet test) and frontend (Playwright) test suites run successfully",
+    "✅ CI/CD verification: Tests can run in CI environment (GitHub Actions compatible)"
+  ],
+
+  "business_rules": [
+    "Total test count must be >= 45 for submission (per ADR-0010)",
+    "Unit tests >= 30 (domain logic in isolation)",
+    "Contract/Integration tests >= 10 (API endpoints + full pipeline)",
+    "E2E tests >= 5 (critical user workflows)",
+    "100% pass rate required (no failing tests allowed)",
+    "No skipped tests (all tests must execute)",
+    "Test coverage >80% on domain logic (parser, calculator, validator, normalizer)",
+    "Sample email fixtures from test brief must be used in E2E tests",
+    "Banker's Rounding verification in tax calculation tests",
+    "Tag overlap validation verification in tag validator tests",
+    "Tax rate precedence verification in configuration tests"
+  ],
+
+  "technical_notes": {
+    "backend_test_commands": [
+      "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test",
+      "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter Category=Unit",
+      "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter Category=Contract",
+      "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --logger \"console;verbosity=detailed\""
+    ],
+    "frontend_test_commands": [
+      "cd client && npm run test:e2e",
+      "cd client && npx playwright test",
+      "cd client && npx playwright test --reporter=list"
+    ],
+    "coverage_commands": [
+      "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --collect:\"XPlat Code Coverage\"",
+      "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test /p:CollectCoverage=true /p:CoverageReporter=lcov"
+    ],
+    "test_count_extraction": [
+      "grep -E 'Total tests|Passed|Failed' from dotnet test output",
+      "grep -E 'passed|failed' from Playwright output",
+      "Sum totals from both backends and frontend"
+    ],
+    "prerequisites": [
+      "Both API and frontend servers must be running for E2E tests",
+      "API: export PATH=\"$HOME/.dotnet:$PATH\" && dotnet run --project src/Api",
+      "Frontend: cd client && npm run dev",
+      "Playwright browsers installed: cd client && npx playwright install"
+    ]
+  },
+
+  "code_examples": {
+    "full_test_suite_script": "#!/bin/bash\n# Run full test suite\nset -e\n\necho \"=== Running Backend Unit Tests ===\"\nexport PATH=\"$HOME/.dotnet:$PATH\"\ndotnet test --filter Category=Unit --logger \"console;verbosity=normal\"\nUNIT_COUNT=$(dotnet test --filter Category=Unit --logger \"console;verbosity=minimal\" | grep -oP 'Passed!\\s*-\\s*Failed:\\s*0,\\s*Passed:\\s*\\K\\d+')\n\necho \"\"\necho \"=== Running Backend Contract Tests ===\"\ndotnet test --filter Category=Contract --logger \"console;verbosity=normal\"\nCONTRACT_COUNT=$(dotnet test --filter Category=Contract --logger \"console;verbosity=minimal\" | grep -oP 'Passed!\\s*-\\s*Failed:\\s*0,\\s*Passed:\\s*\\K\\d+')\n\necho \"\"\necho \"=== Running Frontend E2E Tests ===\"\ncd client\nnpm run test:e2e\nE2E_COUNT=$(npx playwright test --reporter=list | grep -oP '\\d+\\s*passed' | grep -oP '\\d+')\n\necho \"\"\necho \"=== Test Suite Summary ===\"\necho \"Unit Tests: $UNIT_COUNT\"\necho \"Contract Tests: $CONTRACT_COUNT\"\necho \"E2E Tests: $E2E_COUNT\"\nTOTAL=$((UNIT_COUNT + CONTRACT_COUNT + E2E_COUNT))\necho \"Total Tests: $TOTAL\"\n\nif [ $TOTAL -ge 45 ]; then\n  echo \"✅ Test count target met (>= 45)\"\nelse\n  echo \"❌ Test count below target (< 45)\"\n  exit 1\nfi",
+
+    "dotnet_test_output": "Test run for /path/to/Flowingly.ParsingService.Tests.dll (.NET 8.0.0)\nMicrosoft (R) Test Execution Command Line Tool Version 17.x.x\nCopyright (c) Microsoft Corporation.  All rights reserved.\n\nStarting test execution, please wait...\nA total of 1 test files matched the specified pattern.\n\nPassed!  - Failed:     0, Passed:    32, Skipped:     0, Total:    32, Duration: 1.2 s",
+
+    "playwright_test_output": "Running 5 tests using 5 workers\n\n  ✓  1 expense-workflow.spec.ts:3:1 › submit expense email returns structured response (2.1s)\n  ✓  2 other-workflow.spec.ts:3:1 › submit reservation email classified as other (1.8s)\n  ✓  3 error-tests.spec.ts:3:1 › missing total shows error banner (1.5s)\n  ✓  4 error-tests.spec.ts:12:1 › overlapping tags shows error (1.6s)\n  ✓  5 gst-verification.spec.ts:3:1 › GST calculation uses Bankers Rounding (2.0s)\n\n  5 passed (9.0s)",
+
+    "test_count_summary": "Test Suite Execution Summary\n============================\n\nBackend Tests (xUnit):\n  Unit Tests:     32 passed  (Tag validation, normalization, Banker's Rounding, tax calc, etc.)\n  Contract Tests: 12 passed  (API endpoints, error handling, full pipeline)\n  Subtotal:       44 passed\n\nFrontend Tests (Playwright):\n  E2E Tests:       5 passed  (Expense workflow, other workflow, error display, GST verification)\n  Subtotal:        5 passed\n\nTotal:            49 passed\nTarget:           45+ passed\nResult:           ✅ PASS (exceeded target by 4 tests)"
+  },
+
+  "validation": {
+    "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test && cd client && npm run test:e2e",
+    "expected_output": "All tests passed. Total: 45+, Passed: 45+, Failed: 0",
+    "notes": "Full test suite execution across both backend and frontend. Verify totals meet 45+ target."
+  },
+
+  "test_execution_workflow": {
+    "step_1": {
+      "name": "Start API server",
+      "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet run --project src/Api",
+      "terminal": "Terminal 1 (keep running)",
+      "verification": "API running on http://localhost:5000"
+    },
+    "step_2": {
+      "name": "Start frontend server",
+      "command": "cd client && npm run dev",
+      "terminal": "Terminal 2 (keep running)",
+      "verification": "Frontend running on http://localhost:5173"
+    },
+    "step_3": {
+      "name": "Run backend unit tests",
+      "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter Category=Unit",
+      "terminal": "Terminal 3",
+      "expected": "30+ tests passed"
+    },
+    "step_4": {
+      "name": "Run backend contract tests",
+      "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter Category=Contract",
+      "terminal": "Terminal 3",
+      "expected": "10+ tests passed"
+    },
+    "step_5": {
+      "name": "Run frontend E2E tests",
+      "command": "cd client && npm run test:e2e",
+      "terminal": "Terminal 3",
+      "expected": "5+ tests passed",
+      "prerequisite": "Both API and frontend servers must be running"
+    },
+    "step_6": {
+      "name": "Calculate totals and verify",
+      "action": "Sum all test counts: Unit + Contract + E2E >= 45",
+      "verification": "Total test count meets submission target"
+    },
+    "step_7": {
+      "name": "Generate test report",
+      "action": "Document test count breakdown and verification results",
+      "output": "Test count summary for BUILDLOG.md and progress tracking"
+    }
+  },
+
+  "ci_cd_verification": {
+    "github_actions_compatibility": "Tests must run successfully in GitHub Actions CI environment",
+    "required_setup": [
+      "Install .NET 8 SDK",
+      "Install Node 18+",
+      "Install Playwright browsers (npx playwright install)",
+      "Start API server in background",
+      "Start frontend server in background",
+      "Run all test suites",
+      "Aggregate results"
+    ],
+    "example_workflow": "name: Test Suite\n\non: [push, pull_request]\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v3\n      - name: Setup .NET\n        uses: actions/setup-dotnet@v3\n        with:\n          dotnet-version: 8.0.x\n      - name: Setup Node\n        uses: actions/setup-node@v3\n        with:\n          node-version: 18\n      - name: Run Backend Tests\n        run: dotnet test\n      - name: Install Playwright\n        run: cd client && npx playwright install --with-deps\n      - name: Start API\n        run: dotnet run --project src/Api &\n      - name: Start Frontend\n        run: cd client && npm run dev &\n      - name: Run E2E Tests\n        run: cd client && npm run test:e2e"
+  },
+
+  "next_task": {
+    "id": "task_049",
+    "name": "Manual Smoke Test",
+    "why": "Full test suite green (45+ tests passed). Now perform manual smoke testing to verify end-to-end user experience before M3 DoD.",
+    "milestone": "M3",
+    "verification": "All automated tests passed, ready for manual verification of UX and edge cases"
+  }
+}

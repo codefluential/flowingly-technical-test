@@ -1,0 +1,170 @@
+{
+  "task_id": "task_046",
+  "milestone": "M3",
+  "name": "Write E2E Error Tests",
+  "description": "Create Playwright E2E tests for error path scenarios (unclosed tags, missing total, invalid inputs). Tests validate that error messages are displayed correctly in the UI and HTTP 400 responses are properly handled.",
+
+  "agent": {
+    "primary": "production-validator",
+    "role": "E2E Test Implementation - Error Path Scenarios"
+  },
+
+  "duration": "1h",
+  "priority": "high",
+  "dependencies": ["task_044"],
+  "parallel_group": "M3_parallel_1",
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 10.1: Tag Validation Rules - Reject unclosed and overlapping tags",
+        "Section 4: Parsing Rules - <total> is REQUIRED for expense classification",
+        "Section 11: Error Response Contract - Error codes and messages"
+      ],
+      "requirements": [
+        "Unclosed tags (e.g., <total>120) must return 400 with UNCLOSED_TAGS error",
+        "Overlapping tags (e.g., <a><b></a></b>) must return 400 with UNCLOSED_TAGS error",
+        "Missing <total> in expense content must return 400 with MISSING_TOTAL error",
+        "Error responses must include error code, message, and correlation ID",
+        "UI must display error messages clearly to users"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 2,
+      "requirement": "Validate tag integrity and reject malformed content with clear error messages",
+      "grading_criteria": "Error handling and validation are key graded components"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0008-parsing-validation-rules.md",
+        "decision": "Stack-based Tag Validation - Reject overlapping and unclosed tags",
+        "rationale": "Prevent malformed data from being processed",
+        "context": "Validation happens before any content processing",
+        "key_excerpt": "Overlapping tags like <a><b></a></b> must be detected and rejected with specific error messages"
+      },
+      {
+        "file": "project-context/adr/ADR-0010-test-strategy-coverage.md",
+        "decision": "E2E tests cover critical error scenarios, not exhaustive edge cases",
+        "rationale": "Focus on high-value user-facing error paths",
+        "context": "E2E tests validate UI error display and HTTP error responses",
+        "key_excerpt": "E2E tests: Happy path + critical error scenarios (not exhaustive)"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M3 — UI & E2E Tests",
+      "sub_section": "E2E Error Tests",
+      "requirement": "Write Playwright tests for error scenarios - unclosed tags, missing total"
+    }
+  },
+
+  "test_scenarios": [
+    {
+      "name": "Unclosed_Tag_Error_Displayed_In_UI",
+      "description": "Submit content with unclosed tag, verify error message appears in UI",
+      "input": "Hi Yvaine, Expense for <vendor>Coffee Co</vendor> <total>120.50",
+      "expected_ui": "Error message displayed containing 'Unclosed tag' or 'UNCLOSED_TAGS'",
+      "expected_http": "400 Bad Request",
+      "expected_error_code": "UNCLOSED_TAGS",
+      "reason": "Missing closing </total> tag must be caught by validator"
+    },
+    {
+      "name": "Overlapping_Tags_Error_Displayed_In_UI",
+      "description": "Submit content with overlapping tags, verify specific error message",
+      "input": "Please process <expense><vendor>Mojo Coffee</vendor><total>150.00</expense></total>",
+      "expected_ui": "Error message displayed containing 'Overlapping tags' or 'UNCLOSED_TAGS'",
+      "expected_http": "400 Bad Request",
+      "expected_error_code": "UNCLOSED_TAGS",
+      "reason": "Closing </expense> before </total> violates stack-based validation"
+    },
+    {
+      "name": "Missing_Total_Error_Displayed_In_UI",
+      "description": "Submit expense content without required <total> tag",
+      "input": "Hi team, Expense for <vendor>Office Supplies Ltd</vendor> <cost_centre>DEV002</cost_centre> <description>Printer paper</description>",
+      "expected_ui": "Error message displayed containing 'total' or 'MISSING_TOTAL' or 'required'",
+      "expected_http": "400 Bad Request",
+      "expected_error_code": "MISSING_TOTAL",
+      "reason": "<total> is REQUIRED for expense classification"
+    },
+    {
+      "name": "Invalid_Tax_Rate_Error_Displayed",
+      "description": "Submit request with invalid tax rate (out of 0-1 range)",
+      "input": "Expense: <total>100.00</total>",
+      "tax_rate": "1.5",
+      "expected_ui": "Error message displayed containing 'tax rate' or 'INVALID_TAX_RATE' or 'invalid'",
+      "expected_http": "400 Bad Request",
+      "expected_error_code": "INVALID_TAX_RATE",
+      "reason": "Tax rate must be between 0 and 1 (e.g., 0.15 for 15%)"
+    }
+  ],
+
+  "deliverables": [
+    {
+      "item": "error-paths.spec.ts",
+      "description": "Playwright E2E test file for error scenarios",
+      "location": "client/tests/e2e/",
+      "test_count": "4+ test cases (unclosed tag, overlapping tag, missing total, invalid tax rate)",
+      "properties": {
+        "framework": "Playwright",
+        "language": "TypeScript",
+        "test_pattern": "describe/test blocks with clear error scenario names"
+      }
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ 2+ error path E2E tests passing (unclosed tags, missing total minimum)",
+    "✅ Tests verify HTTP 400 response status for validation errors",
+    "✅ Tests verify error messages are displayed in UI (data-testid or visible text)",
+    "✅ Tests verify correlation ID is present in error responses",
+    "✅ Tests use clear naming (e.g., 'displays error when tags are unclosed')",
+    "✅ Tests include assertions on error code (UNCLOSED_TAGS, MISSING_TOTAL)",
+    "✅ All E2E tests pass when run via npm run test:e2e",
+    "✅ No browser console errors during test execution"
+  ],
+
+  "business_rules": [
+    "Unclosed tags MUST return 400 with UNCLOSED_TAGS error code",
+    "Overlapping tags MUST return 400 with UNCLOSED_TAGS error code",
+    "Missing <total> tag MUST return 400 with MISSING_TOTAL error code",
+    "Invalid tax rate (outside 0-1 range) MUST return 400 with INVALID_TAX_RATE error code",
+    "All error responses MUST include correlation ID for traceability",
+    "UI MUST display error messages clearly (not just HTTP status codes)",
+    "Error handling happens at API layer, UI displays errors from API response"
+  ],
+
+  "technical_notes": {
+    "playwright_setup": "Tests assume both API (http://localhost:5000) and UI (http://localhost:5173) are running",
+    "test_data_attributes": "UI components should use data-testid attributes for error message elements (e.g., data-testid='error-message')",
+    "error_response_structure": "API returns { error: { code, message, details }, correlationId }",
+    "ui_error_display": "Error component should display error.message from API response",
+    "test_isolation": "Each test should submit independent content (no shared state between tests)",
+    "playwright_assertions": "Use expect(page.locator(...)).toHaveText() or toContainText() for error message verification",
+    "http_status_verification": "Verify API response status via browser network tab or API client calls"
+  },
+
+  "code_examples": {
+    "test_structure": "import { test, expect } from '@playwright/test';\n\ntest.describe('Error Path Scenarios', () => {\n  test('displays error when tag is unclosed', async ({ page }) => {\n    await page.goto('http://localhost:5173');\n    \n    const unclosedTagContent = 'Expense: <total>120.50';\n    await page.fill('[data-testid=\"content-input\"]', unclosedTagContent);\n    await page.click('[data-testid=\"submit-button\"]');\n    \n    // Wait for error message to appear\n    await expect(page.locator('[data-testid=\"error-message\"]'))\n      .toContainText('Unclosed tag');\n    \n    // Verify error code if displayed\n    await expect(page.locator('[data-testid=\"error-code\"]'))\n      .toHaveText('UNCLOSED_TAGS');\n  });\n});",
+    "missing_total_test": "test('displays error when total tag is missing', async ({ page }) => {\n  await page.goto('http://localhost:5173');\n  \n  const missingTotalContent = 'Expense: <vendor>Coffee Shop</vendor>';\n  await page.fill('[data-testid=\"content-input\"]', missingTotalContent);\n  await page.click('[data-testid=\"submit-button\"]');\n  \n  await expect(page.locator('[data-testid=\"error-message\"]'))\n    .toContainText('total');\n});",
+    "overlapping_tags_test": "test('displays error when tags overlap', async ({ page }) => {\n  await page.goto('http://localhost:5173');\n  \n  const overlappingContent = '<a><b></a></b>';\n  await page.fill('[data-testid=\"content-input\"]', overlappingContent);\n  await page.click('[data-testid=\"submit-button\"]');\n  \n  await expect(page.locator('[data-testid=\"error-message\"]'))\n    .toBeVisible();\n});"
+  },
+
+  "validation": {
+    "command": "npm run test:e2e -- error-paths.spec.ts",
+    "expected_output": "2+ tests PASSED (error scenarios validated)",
+    "prerequisites": [
+      "API server running on http://localhost:5000",
+      "UI dev server running on http://localhost:5173",
+      "Playwright installed (npx playwright install)"
+    ]
+  },
+
+  "next_task": {
+    "id": "task_047",
+    "name": "Write E2E GST Verification",
+    "why": "Error paths validated, now verify GST tax calculation in E2E context",
+    "parallel_execution": "Can run in parallel with task_045 and task_046 (all in M3_parallel_1 group)"
+  }
+}

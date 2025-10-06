@@ -1,0 +1,174 @@
+{
+  "task_id": "task_042",
+  "milestone": "M3",
+  "name": "Add TypeScript Types",
+  "description": "Create TypeScript interfaces that exactly match backend API DTOs, ensuring end-to-end type safety between C# API contracts and React frontend. Update existing types to match actual backend ResponseMeta structure (correlationId as string, warnings, tagsFound) and ExpenseData fields.",
+
+  "agent": {
+    "primary": "frontend-design-expert",
+    "role": "TypeScript type definition specialist ensuring C# DTO alignment"
+  },
+
+  "duration": "30min",
+  "priority": "critical",
+  "dependencies": ["task_041"],
+  "parallel_group": null,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 4.1: API - Request/Response Contracts",
+        "Section 11: Request/Response Contracts",
+        "Section 11.2: Response Contract - Classification-Specific (XOR)"
+      ],
+      "requirements": [
+        "Responses are specific to classification (expense XOR other, never both)",
+        "Each response includes classification field, classification-specific block, and meta block",
+        "Request includes text (required) and optional taxRate",
+        "Error responses include error detail and correlation ID"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 3,
+      "requirement": "API contract must be clear and type-safe with proper request/response structure",
+      "grading_criteria": "Type safety and contract alignment between frontend and backend are evaluated"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0007-response-contract-design.md",
+        "decision": "Classification-Specific Response (Expense XOR Other)",
+        "rationale": "Clear contracts, smaller payloads, TypeScript discriminated union type safety, domain alignment",
+        "context": "Response structure mirrors business reality - content is either expense or other, not both",
+        "key_excerpt": "TypeScript discriminated unions provide compile-time guarantees. If classification is 'expense', TypeScript knows expense exists and other doesn't exist."
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M3 — UI & E2E Tests",
+      "sub_section": "TypeScript Integration",
+      "requirement": "Add TypeScript types matching backend DTOs for type-safe API consumption"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "api.ts (updated)",
+      "description": "TypeScript interfaces matching C# DTOs exactly, including discriminated union for ParseResponse",
+      "location": "client/src/types/",
+      "properties": {
+        "interfaces": [
+          "ParseRequest",
+          "ExpenseResponse",
+          "OtherResponse",
+          "ExpenseData",
+          "OtherData",
+          "ResponseMeta",
+          "ErrorResponse",
+          "ErrorDetail",
+          "ParseResponse (discriminated union type)"
+        ]
+      }
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ TypeScript interfaces match backend C# DTOs field-for-field (name casing converted to camelCase)",
+    "✅ ParseResponse is a discriminated union type (ExpenseResponse | OtherResponse)",
+    "✅ ResponseMeta includes correlationId (string), warnings (string[]), and tagsFound (string[])",
+    "✅ ExpenseData includes vendor, total, totalExclTax, salesTax, costCentre, description (nullable)",
+    "✅ OtherData includes rawTags (Record<string, string>) and note",
+    "✅ ErrorResponse includes error (ErrorDetail) and correlationId",
+    "✅ ErrorDetail includes code, message, and optional details",
+    "✅ ParseRequest includes text (required) and taxRate (optional number)",
+    "✅ All nullable fields marked with '?' or '| null' appropriately",
+    "✅ No TypeScript compilation errors in types file",
+    "✅ Types are exported for use in components and API client",
+    "✅ Documentation comments added explaining discriminated union usage"
+  ],
+
+  "business_rules": [
+    "Classification is ALWAYS 'expense' XOR 'other', never both (enforced by discriminated union)",
+    "ExpenseResponse contains expense block only; OtherResponse contains other block only",
+    "CorrelationId is Guid in C# (serialize to string in JSON)",
+    "TaxRate is decimal in C# (serialize to number in JSON)",
+    "Nullable fields in C# (string?, decimal?) map to TypeScript union types (string | null, number | null)",
+    "Dictionary<string, string> maps to Record<string, string> in TypeScript",
+    "List<string> maps to string[] in TypeScript",
+    "C# PascalCase property names convert to camelCase in JSON (ASP.NET default serialization)",
+    "All responses include meta block with correlationId, warnings, tagsFound"
+  ],
+
+  "technical_notes": {
+    "typescript_patterns": "Use discriminated unions for type-safe response handling. The 'classification' field acts as the discriminator.",
+    "casing_convention": "C# PascalCase (ExpenseData.CostCentre) → JSON camelCase (costCentre) → TypeScript camelCase (costCentre)",
+    "nullable_handling": "C# string? → TypeScript string | null or string? (optional property)",
+    "type_guards": "TypeScript can narrow types based on classification: if (response.classification === 'expense') { response.expense /* is accessible */ }",
+    "serialization_mapping": {
+      "Guid": "string",
+      "decimal": "number",
+      "List<T>": "T[]",
+      "Dictionary<K,V>": "Record<K, V>",
+      "string?": "string | null",
+      "decimal?": "number | null"
+    }
+  },
+
+  "code_examples": {
+    "discriminated_union_usage": "// Type-safe response handling\nfunction handleResponse(response: ParseResponse) {\n  if (response.classification === 'expense') {\n    // TypeScript knows response.expense exists\n    console.log(response.expense.vendor);\n    console.log(response.expense.total);\n  } else {\n    // TypeScript knows response.other exists\n    console.log(response.other.rawTags);\n    console.log(response.other.note);\n  }\n  // Always accessible\n  console.log(response.meta.correlationId);\n}",
+    "request_interface": "// Request contract\nexport interface ParseRequest {\n  text: string;          // Required in C#: [Required]\n  taxRate?: number;      // Optional in C#: decimal?\n}",
+    "response_meta_interface": "// Matches C# ResponseMeta exactly\nexport interface ResponseMeta {\n  correlationId: string;    // C# Guid serializes to string\n  warnings: string[];       // C# List<string>\n  tagsFound: string[];      // C# List<string>\n}",
+    "expense_data_interface": "// Matches C# ExpenseData exactly\nexport interface ExpenseData {\n  vendor: string;             // C# string\n  total: number;              // C# decimal\n  totalExclTax: number;       // C# decimal\n  salesTax: number;           // C# decimal\n  costCentre: string;         // C# string\n  description: string | null; // C# string? (nullable)\n}",
+    "error_response_interface": "// Matches C# ErrorResponse exactly\nexport interface ErrorResponse {\n  error: ErrorDetail;       // C# ErrorDetail\n  correlationId: string;    // C# Guid\n}\n\nexport interface ErrorDetail {\n  code: string;             // C# string\n  message: string;          // C# string\n  details?: unknown;        // C# object? (any JSON type)\n}"
+  },
+
+  "validation": {
+    "command": "cd client && npx tsc --noEmit",
+    "expected_output": "No TypeScript compilation errors"
+  },
+
+  "backend_dto_reference": {
+    "note": "TypeScript types MUST match these C# DTOs exactly (field names in camelCase)",
+    "files": [
+      "src/Api/Contracts/ParseRequest.cs",
+      "src/Api/Contracts/ParseResponseBase.cs",
+      "src/Api/Contracts/ExpenseParseResponse.cs",
+      "src/Api/Contracts/OtherParseResponse.cs",
+      "src/Api/Contracts/ExpenseData.cs",
+      "src/Api/Contracts/OtherData.cs",
+      "src/Api/Contracts/ResponseMeta.cs",
+      "src/Api/Contracts/ErrorResponse.cs",
+      "src/Api/Contracts/ErrorDetail.cs"
+    ],
+    "mapping_examples": {
+      "ParseRequest.Text": "ParseRequest.text",
+      "ParseRequest.TaxRate": "ParseRequest.taxRate",
+      "ExpenseData.CostCentre": "ExpenseData.costCentre",
+      "ExpenseData.TotalExclTax": "ExpenseData.totalExclTax",
+      "ExpenseData.SalesTax": "ExpenseData.salesTax",
+      "ResponseMeta.CorrelationId": "ResponseMeta.correlationId",
+      "ResponseMeta.TagsFound": "ResponseMeta.tagsFound",
+      "OtherData.RawTags": "OtherData.rawTags"
+    }
+  },
+
+  "discrepancies_to_fix": {
+    "current_types": "client/src/types/api.ts",
+    "issues": [
+      "ResponseMeta (current 'Metadata') missing 'tagsFound' field",
+      "ResponseMeta (current) has 'processingTimeMs' which doesn't exist in backend C# ResponseMeta",
+      "ExpenseData (current 'ExpenseDto') missing several fields: description is optional in backend",
+      "ExpenseData includes 'date' and 'time' which don't exist in current backend ExpenseData.cs",
+      "OtherData missing 'note' field",
+      "ErrorResponse structure differs from backend (current has nested 'meta', backend has direct correlationId)"
+    ],
+    "resolution": "Update TypeScript interfaces to match backend DTOs exactly. Remove fields not in backend (processingTimeMs, date, time). Add missing fields (tagsFound, note, description nullable)."
+  },
+
+  "next_task": {
+    "id": "task_043",
+    "name": "Implement Error Display",
+    "why": "With TypeScript types aligned to backend contracts, can now implement type-safe error display using ErrorResponse interface"
+  }
+}

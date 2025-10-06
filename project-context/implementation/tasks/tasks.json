@@ -7,18 +7,18 @@
   "aadf_compliant": true,
   "tdd_approach": true,
   "progress_tracking": {
-    "last_updated": "2025-10-06T20:15:00+13:00",
+    "last_updated": "2025-10-06T20:32:05+13:00",
     "current_milestone": "M2",
     "current_task": "task_037",
     "tasks_completed": 37,
-    "tasks_in_progress": 0,
-    "tasks_pending": 13,
+    "tasks_in_progress": 1,
+    "tasks_pending": 12,
     "tasks_blocked": 0,
     "tests_passing": {
       "unit": 116,
-      "contract": 0,
+      "contract": 13,
       "e2e": 0,
-      "total": 116
+      "total": 129
     },
     "milestones_completed": [
       "M0",
@@ -709,7 +709,9 @@
       "dependencies": [
         "task_036"
       ],
-      "parallel_group": "M2_parallel_1"
+      "parallel_group": "M2_parallel_1",
+      "status": "in_progress",
+      "started_at": "2025-10-06T20:32:05+13:00"
     },
     {
       "id": "task_038",
