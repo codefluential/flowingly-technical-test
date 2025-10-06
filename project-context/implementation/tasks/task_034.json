@@ -1,0 +1,187 @@
+{
+  "task_id": "task_034",
+  "milestone": "M2",
+  "name": "Implement Error Mapping",
+  "description": "Create middleware/handler to map domain exceptions (ValidationException) and FluentValidation failures to standardized ErrorResponse DTOs with appropriate HTTP status codes and error details.",
+
+  "agent": {
+    "primary": "dev-backend-api",
+    "role": "Error Mapping Middleware Implementation"
+  },
+
+  "duration": "45min",
+  "priority": "critical",
+  "dependencies": ["task_033"],
+  "parallel_group": null,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 4.1: API - Error Responses (400 with error codes)",
+        "Section 7: Middleware for cross-cutting concerns",
+        "Section 4.2: Parsing & Validation Rules - Error triggers"
+      ],
+      "requirements": [
+        "Map ValidationException to HTTP 400 with ErrorResponse",
+        "Map FluentValidation failures to HTTP 400 with INVALID_REQUEST code",
+        "Map unhandled exceptions to HTTP 500 with INTERNAL_ERROR code",
+        "Include correlation ID in all error responses",
+        "Log all exceptions with correlation ID for traceability"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 2,
+      "requirement": "Validation errors must return clear error codes with proper HTTP status",
+      "grading_criteria": "Error handling quality affects API design and robustness grades"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0008-parsing-validation-rules.md",
+        "decision": "Stack-based Tag Validation with specific error codes",
+        "rationale": "ValidationException thrown with ErrorCode property for tag errors",
+        "context": "Domain layer throws ValidationException; API layer must map to HTTP responses",
+        "key_excerpt": "ValidationException contains ErrorCode (e.g., UNCLOSED_TAGS, MALFORMED_TAGS) which must be preserved in API response"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M2 — API Contracts",
+      "sub_section": "Error Mapping",
+      "requirement": "Middleware to centralize exception-to-response mapping"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "ExceptionMappingMiddleware.cs",
+      "description": "ASP.NET Core middleware to catch exceptions globally and map to ErrorResponse",
+      "location": "src/Api/Middleware/ExceptionMappingMiddleware.cs",
+      "responsibilities": [
+        "Catch all exceptions in request pipeline",
+        "Generate correlation ID if not present",
+        "Map exception type to HTTP status code",
+        "Build ErrorResponse with code, message, details",
+        "Log exception with correlation ID",
+        "Return JSON error response"
+      ]
+    },
+    {
+      "item": "ExceptionExtensions.cs",
+      "description": "Extension methods to map exceptions to ErrorResponse DTOs",
+      "location": "src/Api/Extensions/ExceptionExtensions.cs",
+      "methods": [
+        "ToErrorResponse(ValidationException) -> ErrorResponse with 400",
+        "ToErrorResponse(FluentValidation.ValidationException) -> ErrorResponse with INVALID_REQUEST",
+        "ToErrorResponse(Exception) -> ErrorResponse with INTERNAL_ERROR and 500"
+      ]
+    },
+    {
+      "item": "Program.cs updates",
+      "description": "Register ExceptionMappingMiddleware in request pipeline",
+      "location": "src/Api/Program.cs",
+      "change": "Add app.UseMiddleware<ExceptionMappingMiddleware>() before routing"
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ ExceptionMappingMiddleware created and registered in Program.cs",
+    "✅ ValidationException mapped to HTTP 400 with ErrorResponse containing ErrorCode from exception",
+    "✅ FluentValidation.ValidationException mapped to HTTP 400 with INVALID_REQUEST code and validation details",
+    "✅ Unhandled exceptions mapped to HTTP 500 with INTERNAL_ERROR code",
+    "✅ All error responses include correlation ID (generated if missing)",
+    "✅ All exceptions logged with correlation ID, error code, and stack trace",
+    "✅ Error details populated (e.g., unclosed tag names for UNCLOSED_TAGS)",
+    "✅ Middleware runs early in pipeline (before routing/controllers)",
+    "✅ Solution builds with 0 warnings",
+    "✅ Manual test: throw ValidationException → verify 400 with ErrorResponse"
+  ],
+
+  "business_rules": [
+    "ValidationException from Domain layer → HTTP 400 (client error)",
+    "ErrorCode from ValidationException MUST be preserved in ErrorResponse.Error.Code",
+    "FluentValidation errors → HTTP 400 with INVALID_REQUEST code and field-level details",
+    "Unhandled exceptions → HTTP 500 (server error) with INTERNAL_ERROR code",
+    "Correlation ID REQUIRED in all error responses for traceability",
+    "Exception details (e.g., unclosed tag names) MUST be in ErrorResponse.Error.Details",
+    "Never leak stack traces to client (log server-side only)",
+    "Middleware runs BEFORE controllers (catch all exceptions globally)",
+    "Error messages use ErrorMessages.GetMessage(errorCode) for consistency"
+  ],
+
+  "exception_mapping_table": [
+    {
+      "exception_type": "ValidationException (Domain)",
+      "http_status": 400,
+      "error_code": "exception.ErrorCode (e.g., UNCLOSED_TAGS, MALFORMED_TAGS)",
+      "message": "ErrorMessages.GetMessage(exception.ErrorCode)",
+      "details": "Extract from exception data (e.g., unclosed tag names)"
+    },
+    {
+      "exception_type": "FluentValidation.ValidationException",
+      "http_status": 400,
+      "error_code": "INVALID_REQUEST",
+      "message": "ErrorMessages.GetMessage(INVALID_REQUEST)",
+      "details": "{ errors: [ { field, message } ] } from validation failures"
+    },
+    {
+      "exception_type": "Exception (unhandled)",
+      "http_status": 500,
+      "error_code": "INTERNAL_ERROR",
+      "message": "ErrorMessages.GetMessage(INTERNAL_ERROR)",
+      "details": "{ reference: 'Contact support with correlation ID' }"
+    }
+  ],
+
+  "technical_notes": {
+    "middleware_registration": "app.UseMiddleware<ExceptionMappingMiddleware>() — Add BEFORE app.UseRouting()",
+    "correlation_id_source": "HttpContext.Items[\"CorrelationId\"] ?? Guid.NewGuid().ToString()",
+    "logging": "Use ILogger<ExceptionMappingMiddleware> injected via constructor",
+    "response_content_type": "application/json (set in middleware)",
+    "fluent_validation_namespace": "FluentValidation.ValidationException (different from Domain.ValidationException)",
+    "dotnet_command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build"
+  },
+
+  "code_examples": {
+    "middleware_structure": "public class ExceptionMappingMiddleware\n{\n    private readonly RequestDelegate _next;\n    private readonly ILogger<ExceptionMappingMiddleware> _logger;\n\n    public ExceptionMappingMiddleware(RequestDelegate next, ILogger<ExceptionMappingMiddleware> logger)\n    {\n        _next = next;\n        _logger = logger;\n    }\n\n    public async Task InvokeAsync(HttpContext context)\n    {\n        try\n        {\n            await _next(context);\n        }\n        catch (Exception ex)\n        {\n            await HandleExceptionAsync(context, ex);\n        }\n    }\n\n    private async Task HandleExceptionAsync(HttpContext context, Exception exception)\n    {\n        var correlationId = context.Items[\"CorrelationId\"]?.ToString() ?? Guid.NewGuid().ToString();\n        \n        // Log exception\n        _logger.LogError(exception, \"Request failed. CorrelationId: {CorrelationId}\", correlationId);\n        \n        // Map to ErrorResponse\n        var errorResponse = exception.ToErrorResponse(correlationId);\n        var statusCode = GetStatusCode(exception);\n        \n        // Write JSON response\n        context.Response.ContentType = \"application/json\";\n        context.Response.StatusCode = statusCode;\n        await context.Response.WriteAsJsonAsync(errorResponse);\n    }\n\n    private static int GetStatusCode(Exception exception)\n    {\n        return exception switch\n        {\n            ValidationException => 400,\n            FluentValidation.ValidationException => 400,\n            _ => 500\n        };\n    }\n}",
+    "extension_method_validation": "public static ErrorResponse ToErrorResponse(this ValidationException exception, string correlationId)\n{\n    return new ErrorResponse\n    {\n        Error = new ErrorDetail\n        {\n            Code = exception.ErrorCode,\n            Message = ErrorMessages.GetMessage(exception.ErrorCode),\n            Details = exception.Data.Count > 0 ? exception.Data : null\n        },\n        CorrelationId = correlationId\n    };\n}",
+    "extension_method_fluent": "public static ErrorResponse ToErrorResponse(this FluentValidation.ValidationException exception, string correlationId)\n{\n    var errors = exception.Errors.Select(e => new { field = e.PropertyName, message = e.ErrorMessage });\n    \n    return new ErrorResponse\n    {\n        Error = new ErrorDetail\n        {\n            Code = ErrorCodes.INVALID_REQUEST,\n            Message = ErrorMessages.GetMessage(ErrorCodes.INVALID_REQUEST),\n            Details = new { errors }\n        },\n        CorrelationId = correlationId\n    };\n}",
+    "extension_method_unhandled": "public static ErrorResponse ToErrorResponse(this Exception exception, string correlationId)\n{\n    return new ErrorResponse\n    {\n        Error = new ErrorDetail\n        {\n            Code = ErrorCodes.INTERNAL_ERROR,\n            Message = ErrorMessages.GetMessage(ErrorCodes.INTERNAL_ERROR),\n            Details = new { reference = \"Contact support with correlation ID\" }\n        },\n        CorrelationId = correlationId\n    };\n}",
+    "program_registration": "// In Program.cs\nvar app = builder.Build();\n\n// Exception mapping (run early, before routing)\napp.UseMiddleware<ExceptionMappingMiddleware>();\n\napp.UseRouting();\n// ... rest of middleware"
+  },
+
+  "test_scenarios": [
+    {
+      "name": "ValidationException with UNCLOSED_TAGS maps to 400",
+      "setup": "Throw ValidationException(ErrorCodes.UNCLOSED_TAGS, \"Unclosed tags\") in endpoint",
+      "expected_response": "HTTP 400 with { error: { code: 'UNCLOSED_TAGS', message: '...', details: {...} }, correlationId: '...' }",
+      "verification": "Check response status, error code, correlation ID presence"
+    },
+    {
+      "name": "FluentValidation error maps to 400 with INVALID_REQUEST",
+      "setup": "Trigger FluentValidation failure (e.g., taxRate out of range)",
+      "expected_response": "HTTP 400 with { error: { code: 'INVALID_REQUEST', details: { errors: [...] } } }",
+      "verification": "Check field-level error details included"
+    },
+    {
+      "name": "Unhandled exception maps to 500",
+      "setup": "Throw new Exception(\"Unexpected error\") in endpoint",
+      "expected_response": "HTTP 500 with { error: { code: 'INTERNAL_ERROR', message: '...' }, correlationId: '...' }",
+      "verification": "Check 500 status, no stack trace leaked to client"
+    }
+  ],
+
+  "validation": {
+    "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build",
+    "expected_output": "Build succeeded. 0 Warning(s) 0 Error(s)",
+    "manual_test": "Create test endpoint that throws ValidationException, verify 400 response with ErrorResponse structure"
+  },
+
+  "next_task": {
+    "id": "task_035",
+    "name": "Create Parse Handler",
+    "why": "Error mapping infrastructure ready; now implement the main parse request handler using MediatR",
+    "dependency": "Handler needs error mapping middleware to convert domain exceptions to HTTP responses"
+  }
+}
