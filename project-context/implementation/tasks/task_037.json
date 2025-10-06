@@ -1,0 +1,266 @@
+{
+  "task_id": "task_037",
+  "milestone": "M2",
+  "name": "Write API Contract Tests",
+  "description": "Write comprehensive contract tests (integration tests) for the /api/v1/parse endpoint to validate full request → response pipeline with in-memory database. Tests should verify API contracts, DTOs, validation rules, error handling, correlation IDs, and response structures (expense XOR other). Target: 10+ contract tests covering happy paths and critical error scenarios.",
+
+  "agent": {
+    "primary": "quality-assurance-engineer",
+    "role": "Comprehensive testing strategy and contract test implementation. Ensures API endpoints meet specifications with proper request/response validation, error handling, and full pipeline testing."
+  },
+
+  "duration": "1.5h",
+  "priority": "critical",
+  "dependencies": ["task_036"],
+  "parallel_group": "M2_parallel_1",
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 4: API Contract - Request/Response structure, versioning, error codes",
+        "Section 4.1: Request - content, tax_rate fields",
+        "Section 4.2: Parsing Rules - Tag validation, XML islands, tax precedence",
+        "Section 5: NFRs - Performance (200ms p50), Security (input validation)",
+        "Section 7: Backend Design - Clean/Hexagonal architecture with CQRS-lite",
+        "Section 13: Testing Strategy - Integration tests matrix"
+      ],
+      "requirements": [
+        "POST /api/v1/parse endpoint with request body { content, tax_rate }",
+        "Response structure: classification XOR expense/other (ADR-0007)",
+        "Correlation ID in all responses (meta.correlationId)",
+        "HTTP 400 for validation errors (unclosed tags, missing total)",
+        "HTTP 200 for successful parsing (expense or other)",
+        "Tag validation before processing (stack-based, reject overlapping tags)",
+        "Tax rate precedence: request parameter > config default",
+        "Banker's Rounding (MidpointRounding.ToEven) for all tax calculations",
+        "Expense requires <total>, <cost_centre> defaults to UNKNOWN",
+        "Full pipeline: validate → extract → normalize → persist → respond"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 3,
+      "requirement": "API contract must validate inputs, compute GST correctly, return structured JSON with proper error codes",
+      "grading_criteria": "API contract correctness, error handling, test coverage are graded components"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0007-response-contract-design.md",
+        "decision": "Response Contract Design - Classification-Specific (Expense XOR Other)",
+        "rationale": "Responses are specific to classification (expense XOR other, never both) for clarity, type safety, and smaller payloads",
+        "context": "API consumers need clear, predictable response structures based on content classification",
+        "key_excerpt": "Each response includes: (1) classification field (expense|other), (2) classification-specific block (expense OR other, never both), (3) meta block (correlationId, processingTimeMs, warnings)",
+        "example_expense": "{\n  \"classification\": \"expense\",\n  \"expense\": {\n    \"vendor\": \"Mojo Coffee\",\n    \"total\": 120.50,\n    \"totalExclTax\": 104.78,\n    \"salesTax\": 15.72,\n    \"costCentre\": \"DEV-TEAM\",\n    \"taxRate\": 0.15\n  },\n  \"meta\": {\n    \"correlationId\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"processingTimeMs\": 45,\n    \"warnings\": []\n  }\n}",
+        "example_other": "{\n  \"classification\": \"other\",\n  \"other\": {\n    \"rawTags\": {\n      \"reservation_date\": \"2024-12-25\",\n      \"venue\": \"The French Café\"\n    }\n  },\n  \"meta\": {\n    \"correlationId\": \"550e8400-e29b-41d4-a716-446655440001\",\n    \"processingTimeMs\": 12,\n    \"warnings\": [\"Non-expense content stored for future processing\"]\n  }\n}"
+      },
+      {
+        "file": "project-context/adr/ADR-0010-test-strategy-coverage.md",
+        "decision": "Three-Tier Testing Strategy (Unit, Integration, E2E)",
+        "rationale": "Integration tests validate full request → response pipeline with in-memory DB, covering API contracts, persistence, and error handling",
+        "context": "Contract tests (Tier 2) test API endpoints with in-memory database for full pipeline validation",
+        "key_excerpt": "Integration Tests: Test full request → response pipeline with in-memory database. Components: API endpoints, full processing pipeline (validate → extract → normalize → persist → respond), database persistence, error handling. Technology: xUnit + WebApplicationFactory. Coverage Target: 60%+ (happy path + critical error scenarios).",
+        "test_structure": "public class ParseEndpointTests : IClassFixture<WebApplicationFactory<Program>>\n{\n    private readonly HttpClient _client;\n\n    public ParseEndpointTests(WebApplicationFactory<Program> factory)\n    {\n        _client = factory.CreateClient();\n    }\n\n    [Fact]\n    public async Task ParseEndpoint_ExpenseClassification_ReturnsExpenseResponse()\n    {\n        // Arrange\n        var request = new { content = \"...\", tax_rate = 0.15 };\n\n        // Act\n        var response = await _client.PostAsJsonAsync(\"/api/v1/parse\", request);\n\n        // Assert\n        response.StatusCode.Should().Be(HttpStatusCode.OK);\n        var result = await response.Content.ReadFromJsonAsync<ParseResponse>();\n        result.Classification.Should().Be(\"expense\");\n    }\n}"
+      },
+      {
+        "file": "project-context/adr/ADR-0008-parsing-validation-rules.md",
+        "decision": "Stack-based Tag Validation (rejects overlapping tags)",
+        "context": "Tag validation must detect overlapping tags (not just unclosed), requiring stack-based algorithm"
+      },
+      {
+        "file": "project-context/adr/ADR-0009-tax-calculation-rounding.md",
+        "decision": "Banker's Rounding (MidpointRounding.ToEven) for all tax calculations",
+        "context": "Tax calculations must use Banker's Rounding for unbiased rounding over many operations"
+      },
+      {
+        "file": "project-context/adr/ADR-0005-versioning-via-uri.md",
+        "decision": "URI versioning (/api/v1/)",
+        "context": "All API endpoints use URI versioning for clear version indication"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M2 — API Contracts",
+      "sub_section": "Contract Tests (10+ tests)",
+      "requirement": "Write comprehensive contract tests for /api/v1/parse endpoint covering request/response validation, error handling, full pipeline integration with in-memory DB. Target: 10+ contract tests."
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "ParseEndpointTests.cs",
+      "description": "Contract test class with 10+ test methods for /api/v1/parse endpoint",
+      "location": "tests/Flowingly.ParsingService.IntegrationTests/Api/",
+      "test_count": "10+ test methods",
+      "properties": {
+        "test_framework": "xUnit",
+        "test_fixture": "WebApplicationFactory<Program>",
+        "assertion_library": "FluentAssertions",
+        "database": "In-memory SQLite (Data Source=:memory:)",
+        "test_categories": [
+          "Happy path (expense classification)",
+          "Happy path (other classification)",
+          "Validation errors (unclosed tags, missing total)",
+          "Tax calculation verification (Banker's Rounding)",
+          "Correlation ID verification",
+          "Response structure validation (expense XOR other)",
+          "Tax rate precedence (request > config)",
+          "Cost centre default (UNKNOWN when missing)",
+          "Error code mapping (400 for validation errors)"
+        ]
+      }
+    },
+    {
+      "item": "Flowingly.ParsingService.IntegrationTests.csproj",
+      "description": "Integration test project with WebApplicationFactory setup",
+      "location": "tests/Flowingly.ParsingService.IntegrationTests/",
+      "properties": {
+        "target_framework": "net8.0",
+        "nuget_packages": [
+          "Microsoft.AspNetCore.Mvc.Testing",
+          "xunit",
+          "xunit.runner.visualstudio",
+          "FluentAssertions",
+          "Microsoft.EntityFrameworkCore.InMemory (or Sqlite In-Memory)"
+        ]
+      }
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ Integration test project created (Flowingly.ParsingService.IntegrationTests)",
+    "✅ WebApplicationFactory configured with in-memory database",
+    "✅ 10+ contract test methods created covering all scenarios",
+    "✅ Happy path tests: Expense classification returns ExpenseResponse with correct structure",
+    "✅ Happy path tests: Other classification returns OtherResponse with correct structure",
+    "✅ Validation tests: Unclosed tag returns HTTP 400 with error code UNCLOSED_TAGS",
+    "✅ Validation tests: Missing <total> returns HTTP 400 with error code MISSING_TOTAL",
+    "✅ Tax calculation test: Verifies Banker's Rounding (e.g., 120.50 @ 0.15 = 104.78 excl, 15.72 tax)",
+    "✅ Correlation ID test: Every response includes unique meta.correlationId",
+    "✅ Response structure test: Expense response has expense field, not other field",
+    "✅ Response structure test: Other response has other field, not expense field",
+    "✅ Tax rate precedence test: Request tax_rate parameter overrides config default",
+    "✅ Cost centre default test: Missing <cost_centre> defaults to UNKNOWN",
+    "✅ All tests use FluentAssertions for readable assertions",
+    "✅ All tests follow Arrange-Act-Assert (AAA) pattern",
+    "✅ All tests currently PASS (GREEN - implementation from task_035, task_036 complete)",
+    "✅ Tests run successfully: dotnet test (with PATH export)",
+    "✅ Solution builds with 0 warnings"
+  ],
+
+  "business_rules": [
+    "POST /api/v1/parse is the only endpoint (URI versioning per ADR-0005)",
+    "Request body: { content: string (required), tax_rate?: number (optional) }",
+    "Response classification: 'expense' XOR 'other' (never both per ADR-0007)",
+    "Expense response MUST include: classification, expense, meta",
+    "Other response MUST include: classification, other, meta",
+    "meta MUST include: correlationId (GUID), processingTimeMs (int), warnings (array)",
+    "Unclosed/overlapping tags → HTTP 400 with error code UNCLOSED_TAGS",
+    "Missing <total> in expense → HTTP 400 with error code MISSING_TOTAL",
+    "Missing <cost_centre> → default to 'UNKNOWN' (not an error)",
+    "Tax rate precedence: request parameter > config default (0.15)",
+    "Banker's Rounding (MidpointRounding.ToEven) for all tax calculations",
+    "Correlation ID must be unique for each request (traceability)",
+    "Full pipeline tested: validate → extract → normalize → persist → respond"
+  ],
+
+  "technical_notes": {
+    "dotnet_commands": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet new xunit -n Flowingly.ParsingService.IntegrationTests -o tests/Flowingly.ParsingService.IntegrationTests\nexport PATH=\"$HOME/.dotnet:$PATH\" && dotnet sln add tests/Flowingly.ParsingService.IntegrationTests/Flowingly.ParsingService.IntegrationTests.csproj\nexport PATH=\"$HOME/.dotnet:$PATH\" && dotnet add tests/Flowingly.ParsingService.IntegrationTests package Microsoft.AspNetCore.Mvc.Testing\nexport PATH=\"$HOME/.dotnet:$PATH\" && dotnet add tests/Flowingly.ParsingService.IntegrationTests package FluentAssertions\nexport PATH=\"$HOME/.dotnet:$PATH\" && dotnet test tests/Flowingly.ParsingService.IntegrationTests",
+    "test_framework": "xUnit with WebApplicationFactory for integration testing",
+    "database_setup": "Use in-memory SQLite (Data Source=:memory:) for fast, isolated tests. Configure in WebApplicationFactory setup.",
+    "test_naming_convention": "ParseEndpoint_Scenario_ExpectedOutcome (e.g., ParseEndpoint_ExpenseClassification_ReturnsExpenseResponse)",
+    "assertion_style": "FluentAssertions for readable test code (response.StatusCode.Should().Be(HttpStatusCode.OK))",
+    "test_categories": "Use [Trait(\"Category\", \"Contract\")] for test categorization",
+    "environment": "CRITICAL: All dotnet commands MUST include PATH export: export PATH=\"$HOME/.dotnet:$PATH\" && dotnet <command>"
+  },
+
+  "code_examples": {
+    "test_project_setup": "// Program.cs must expose for WebApplicationFactory\npublic partial class Program { } // Make Program accessible to tests",
+    "test_class_structure": "using Xunit;\nusing FluentAssertions;\nusing Microsoft.AspNetCore.Mvc.Testing;\nusing System.Net.Http.Json;\nusing System.Net;\nusing Flowingly.ParsingService.Contracts;\n\npublic class ParseEndpointTests : IClassFixture<WebApplicationFactory<Program>>\n{\n    private readonly HttpClient _client;\n\n    public ParseEndpointTests(WebApplicationFactory<Program> factory)\n    {\n        // Setup in-memory database if needed in factory customization\n        _client = factory.CreateClient();\n    }\n\n    [Fact]\n    [Trait(\"Category\", \"Contract\")]\n    public async Task ParseEndpoint_ExpenseClassification_ReturnsExpenseResponse()\n    {\n        // Arrange\n        var request = new ParseRequest\n        {\n            Content = \"Expense for <vendor>Mojo Coffee</vendor> total <total>120.50</total> <cost_centre>DEV</cost_centre>\",\n            TaxRate = 0.15m\n        };\n\n        // Act\n        var response = await _client.PostAsJsonAsync(\"/api/v1/parse\", request);\n\n        // Assert\n        response.StatusCode.Should().Be(HttpStatusCode.OK);\n        var result = await response.Content.ReadFromJsonAsync<ExpenseResponse>();\n        result.Should().NotBeNull();\n        result.Classification.Should().Be(\"expense\");\n        result.Expense.Should().NotBeNull();\n        result.Expense.Vendor.Should().Be(\"Mojo Coffee\");\n        result.Expense.Total.Should().Be(120.50m);\n        result.Expense.TotalExclTax.Should().Be(104.78m); // Banker's Rounding\n        result.Expense.SalesTax.Should().Be(15.72m);\n        result.Expense.CostCentre.Should().Be(\"DEV\");\n        result.Meta.Should().NotBeNull();\n        result.Meta.CorrelationId.Should().NotBeNullOrEmpty();\n    }\n\n    [Fact]\n    [Trait(\"Category\", \"Contract\")]\n    public async Task ParseEndpoint_UnclosedTag_Returns400WithErrorCode()\n    {\n        // Arrange\n        var request = new ParseRequest\n        {\n            Content = \"<total>120\"\n        };\n\n        // Act\n        var response = await _client.PostAsJsonAsync(\"/api/v1/parse\", request);\n\n        // Assert\n        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);\n        var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();\n        error.Should().NotBeNull();\n        error.ErrorCode.Should().Be(\"UNCLOSED_TAGS\");\n        error.Message.Should().Contain(\"tag\");\n    }\n}",
+    "in_memory_database_setup": "// Custom WebApplicationFactory for in-memory DB\npublic class TestWebApplicationFactory : WebApplicationFactory<Program>\n{\n    protected override void ConfigureWebHost(IWebHostBuilder builder)\n    {\n        builder.ConfigureServices(services =>\n        {\n            // Remove existing DbContext registration\n            var descriptor = services.SingleOrDefault(\n                d => d.ServiceType == typeof(DbContextOptions<ParsingDbContext>));\n            if (descriptor != null) services.Remove(descriptor);\n\n            // Add in-memory database\n            services.AddDbContext<ParsingDbContext>(options =>\n            {\n                options.UseSqlite(\"Data Source=:memory:\");\n            });\n\n            // Ensure database is created\n            var sp = services.BuildServiceProvider();\n            using var scope = sp.CreateScope();\n            var db = scope.ServiceProvider.GetRequiredService<ParsingDbContext>();\n            db.Database.OpenConnection(); // Keep in-memory DB alive\n            db.Database.EnsureCreated();\n        });\n    }\n}",
+    "tax_calculation_test": "[Theory]\n[InlineData(120.50, 0.15, 104.78, 15.72)] // Banker's Rounding test case\n[InlineData(100.00, 0.15, 86.96, 13.04)]\n[Trait(\"Category\", \"Contract\")]\npublic async Task ParseEndpoint_TaxCalculation_UsesBankersRounding(\n    decimal totalIncl,\n    decimal taxRate,\n    decimal expectedExcl,\n    decimal expectedTax)\n{\n    // Arrange\n    var request = new ParseRequest\n    {\n        Content = $\"<total>{totalIncl}</total>\",\n        TaxRate = taxRate\n    };\n\n    // Act\n    var response = await _client.PostAsJsonAsync(\"/api/v1/parse\", request);\n\n    // Assert\n    response.StatusCode.Should().Be(HttpStatusCode.OK);\n    var result = await response.Content.ReadFromJsonAsync<ExpenseResponse>();\n    result.Expense.TotalExclTax.Should().Be(expectedExcl);\n    result.Expense.SalesTax.Should().Be(expectedTax);\n}",
+    "correlation_id_test": "[Fact]\n[Trait(\"Category\", \"Contract\")]\npublic async Task ParseEndpoint_AllRequests_IncludeUniqueCorrelationId()\n{\n    // Arrange\n    var request1 = new ParseRequest { Content = \"<total>100</total>\" };\n    var request2 = new ParseRequest { Content = \"<total>200</total>\" };\n\n    // Act\n    var response1 = await _client.PostAsJsonAsync(\"/api/v1/parse\", request1);\n    var response2 = await _client.PostAsJsonAsync(\"/api/v1/parse\", request2);\n\n    // Assert\n    var result1 = await response1.Content.ReadFromJsonAsync<ExpenseResponse>();\n    var result2 = await response2.Content.ReadFromJsonAsync<ExpenseResponse>();\n\n    result1.Meta.CorrelationId.Should().NotBeNullOrEmpty();\n    result2.Meta.CorrelationId.Should().NotBeNullOrEmpty();\n    result1.Meta.CorrelationId.Should().NotBe(result2.Meta.CorrelationId);\n}"
+  },
+
+  "test_scenarios": [
+    {
+      "name": "ParseEndpoint_ExpenseClassification_ReturnsExpenseResponse",
+      "input": "{ content: \"<vendor>Mojo Coffee</vendor> <total>120.50</total> <cost_centre>DEV</cost_centre>\", tax_rate: 0.15 }",
+      "expected": "HTTP 200, ExpenseResponse with expense field populated, no other field",
+      "reason": "Happy path for expense classification"
+    },
+    {
+      "name": "ParseEndpoint_OtherClassification_ReturnsOtherResponse",
+      "input": "{ content: \"<reservation_date>2024-12-25</reservation_date> <venue>The French Café</venue>\" }",
+      "expected": "HTTP 200, OtherResponse with other field populated, no expense field",
+      "reason": "Happy path for non-expense classification"
+    },
+    {
+      "name": "ParseEndpoint_UnclosedTag_Returns400WithErrorCode",
+      "input": "{ content: \"<total>120\" }",
+      "expected": "HTTP 400, error code UNCLOSED_TAGS, message contains 'tag'",
+      "reason": "Validation error for unclosed tag"
+    },
+    {
+      "name": "ParseEndpoint_OverlappingTags_Returns400",
+      "input": "{ content: \"<a><b></a></b>\" }",
+      "expected": "HTTP 400, error code UNCLOSED_TAGS (overlapping tags detected by stack validator)",
+      "reason": "Validation error for overlapping tags (ADR-0008)"
+    },
+    {
+      "name": "ParseEndpoint_MissingTotal_Returns400",
+      "input": "{ content: \"<vendor>Test</vendor>\" }",
+      "expected": "HTTP 400, error code MISSING_TOTAL",
+      "reason": "Expense requires <total>, missing should be validation error"
+    },
+    {
+      "name": "ParseEndpoint_MissingCostCentre_DefaultsToUnknown",
+      "input": "{ content: \"<total>100</total>\" }",
+      "expected": "HTTP 200, expense.costCentre = 'UNKNOWN'",
+      "reason": "Missing <cost_centre> defaults to UNKNOWN (not an error)"
+    },
+    {
+      "name": "ParseEndpoint_TaxCalculation_UsesBankersRounding",
+      "input": "{ content: \"<total>120.50</total>\", tax_rate: 0.15 }",
+      "expected": "HTTP 200, totalExclTax = 104.78, salesTax = 15.72 (Banker's Rounding)",
+      "reason": "Verify tax calculation uses Banker's Rounding (ADR-0009)"
+    },
+    {
+      "name": "ParseEndpoint_TaxRatePrecedence_RequestWins",
+      "input": "{ content: \"<total>100</total>\", tax_rate: 0.10 } (config default = 0.15)",
+      "expected": "HTTP 200, expense.taxRate = 0.10 (request parameter wins)",
+      "reason": "Tax rate precedence: request > config (PRD Section 4.2)"
+    },
+    {
+      "name": "ParseEndpoint_TaxRateMissing_UsesConfigDefault",
+      "input": "{ content: \"<total>100</total>\" } (config default = 0.15)",
+      "expected": "HTTP 200, expense.taxRate = 0.15 (config default used)",
+      "reason": "Tax rate fallback to config default when request omits it"
+    },
+    {
+      "name": "ParseEndpoint_CorrelationId_UniquePerRequest",
+      "input": "Two separate requests with same content",
+      "expected": "Both responses have different meta.correlationId values",
+      "reason": "Correlation IDs must be unique for traceability"
+    },
+    {
+      "name": "ParseEndpoint_ResponseStructure_ExpenseXOROther",
+      "input": "Expense content",
+      "expected": "Response has expense field, NOT other field (exclusive)",
+      "reason": "Verify response contract (ADR-0007): expense XOR other, never both"
+    }
+  ],
+
+  "validation": {
+    "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test tests/Flowingly.ParsingService.IntegrationTests --filter \"Category=Contract\"",
+    "expected_output": "10+ tests PASSED (GREEN)",
+    "failure_is_success": false
+  },
+
+  "next_task": {
+    "id": "task_039",
+    "name": "Review API Contract",
+    "why": "Contract tests are complete (task_037) and Swagger examples are ready (task_038), now review full API contract for completeness and consistency before M2 DoD gate (task_040)",
+    "dependencies": ["task_037", "task_038"]
+  }
+}
