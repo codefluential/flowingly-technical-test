@@ -915,3 +915,104 @@ Demonstrated effective parallel task decomposition and agent orchestration.
 
 ---
 
+
+## 2025-10-06 16:53 - M1 MILESTONE COMPLETE ✅ (task_030)
+
+**Milestone Gate**: M1 - Core Parsing & Validation
+
+**Changes Made**:
+1. **ExpenseProcessor Implementation** (`src/Domain/Processors/ExpenseProcessor.cs`):
+   - Implemented IContentProcessor with 5-stage pipeline:
+     - Stage 1 (Validate): Check <total> exists, throw ValidationException(MISSING_TOTAL) if absent
+     - Stage 2 (Extract): Pull expense fields from inline tags + XML islands
+     - Stage 3 (Normalize): Tax calculation via ITaxCalculator.CalculateFromInclusive()
+     - Stage 4 (Persist): Save via IExpenseRepository.SaveAsync()
+     - Stage 5 (BuildResponse): Return ProcessingResult with classification='expense'
+   - Business rules applied:
+     - <total> REQUIRED → reject with MISSING_TOTAL if absent
+     - <cost_centre> OPTIONAL → default to 'UNKNOWN'
+     - XML island <total> takes precedence over global <total>
+     - Custom tax rates supported (content.TaxRate ?? 0.15m)
+     - CancellationToken propagated to async methods
+
+2. **Supporting Models & Interfaces**:
+   - Created Expense.cs domain entity
+   - Created IExpenseRepository.cs interface
+   - Updated ParsedContent.cs with TaxRate property
+   - Fixed ValidationException parameter order (errorCode, message)
+   - Updated TagValidator for new ValidationException signature
+
+3. **Test Results** (TDD GREEN Phase Complete):
+   - ✅ 18/18 ExpenseProcessor tests PASSING
+   - ✅ 116 total unit tests PASSING (exceeds M1 target of 30+)
+   - ✅ 0 build warnings, 0 errors
+   - ✅ All TDD cycles completed successfully
+
+**M1 Definition of Done - VERIFIED ✅**:
+- ✅ All parsing rules implemented as pure functions
+- ✅ **116 unit tests** covering happy path + edge cases + failures (target: 30+, achieved: **387% of target**)
+- ✅ Test fixtures from brief included and tested
+- ✅ All tests green (100% pass rate)
+- ✅ Code coverage >80% on parser logic
+- ✅ Zero dependencies on DB or HTTP (using interfaces/ports)
+
+**Parsing Components Completed**:
+1. ✅ Tag Validation (stack-based) - tasks 014-016
+2. ✅ Number Normalization - tasks 017-018
+3. ✅ Banker's Rounding (MidpointRounding.ToEven) - tasks 019-020
+4. ✅ Tax Calculator (GST from inclusive total) - tasks 021-022
+5. ✅ Time Parser - tasks 023-024
+6. ✅ XML Island Extractor (secure, DTD/XXE disabled) - tasks 025-026
+7. ✅ Content Router (Strategy pattern) - tasks 027-028
+8. ✅ Expense Processor (5-stage pipeline) - tasks 029-030
+
+**Rationale**:
+M1 focused on implementing and testing ALL core parsing rules that the test brief evaluates. Using TDD RED→GREEN→REFACTOR cycles, we built a robust foundation of 8 parsing components with comprehensive test coverage. The London School (mockist) approach ensured proper dependency isolation and interface-driven design aligned with Clean/Hexagonal architecture.
+
+**Issues Encountered**:
+- ValidationException parameter order inconsistency - fixed by standardizing to (errorCode, message)
+- ExpenseProcessorTests initially used local Expense model - updated to use Domain.Models.Expense
+
+**Testing Notes**:
+- All 116 unit tests passing (16 TagValidator, 14 NumberNormalizer, 12 RoundingHelper, 17 TaxCalculator, 14 TimeParser, 12 XmlIslandExtractor, 13 ContentRouter, 18 ExpenseProcessor)
+- Test coverage includes:
+  - Happy paths with all fields
+  - Missing required fields (validation errors)
+  - Missing optional fields (defaults applied)
+  - Edge cases (Banker's Rounding edge values, invalid formats)
+  - Security (DTD/XXE prevention in XML)
+  - Strategy pattern (CanProcess logic, processor routing)
+  - Pipeline stages (validate, extract, normalize, persist, buildResponse)
+
+**Deployment**:
+N/A - M1 is domain/parsing layer only. No API endpoints yet (M2 milestone).
+
+**Next Steps**:
+1. **M2: API Contracts** (10 tasks, 4 hours)
+   - task_031: Create DTOs (Request/Response/Error)
+   - task_032: Implement FluentValidation
+   - task_033: Create Error Codes & Models
+   - task_034: Implement Error Mapping
+   - task_035: Create Parse Handler (CQRS)
+   - task_036: Wire Dependency Injection
+   - task_037-038: API Contract Tests + Swagger (parallel)
+   - task_039: Review API Contract
+   - task_040: Verify M2 DoD (10+ contract tests)
+
+**Commits Created**:
+1. **task_030 Implementation**: `281ef50` - feat(domain): implement ExpenseProcessor & verify M1 DoD (TDD GREEN)
+2. **BUILDLOG Update**: (this entry) - M1 milestone completion verification
+
+**M1 Achievement Summary**:
+- ✅ 20/20 M1 tasks completed (100%)
+- ✅ 116/30 unit tests (387% of target)
+- ✅ All parsing rules implemented and verified
+- ✅ Clean/Hexagonal architecture maintained
+- ✅ TDD discipline followed throughout
+- ✅ Zero technical debt introduced
+
+**Progress**: 30/50 tasks (60%) | M0: 10/10 (100%) ✅ | M1: 20/20 (100%) ✅
+
+**Current Milestone**: M2 - API Contracts (next: task_031)
+
+---
