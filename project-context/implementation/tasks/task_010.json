@@ -5,11 +5,99 @@
   "description": "Milestone gate task: Verify all M0 Definition of Done criteria are met before proceeding to M1. Ensures scaffold is complete, echo flow works end-to-end, and quick-start guide enables setup in under 5 minutes. Auto-updates BUILDLOG.md with M0 completion status.",
 
   "agent": {
-    "primary": "project-organizer",
-    "role": "Quality gate verification and milestone completion"
+    "primary": "production-validator",
+    "role": "Orchestrate M0 verification, coordinate parallel sub-agents, aggregate results, update BUILDLOG",
+    "execution_pattern": "orchestrator_with_parallel_validators"
   },
 
-  "duration": "20min",
+  "duration": "9min",
+  "duration_breakdown": {
+    "orchestrator_setup": "2min",
+    "parallel_validation": "5min",
+    "result_aggregation": "2min"
+  },
+
+  "parallel_validators": [
+    {
+      "validator_id": "task_010a",
+      "agent": "backend-architect",
+      "domain": "Backend + Structure Verification",
+      "responsibilities": [
+        "Verify solution structure and architecture layers",
+        "Test API endpoint functionality (POST /api/v1/parse)",
+        "Verify CORS configuration",
+        "Test mock response structure",
+        "Verify correlation ID generation",
+        "Verify Swagger UI accessibility"
+      ],
+      "checks": [
+        "Solution file exists (Flowingly.ParsingService.sln)",
+        "All 4 architecture layers present (Api, Application, Domain, Infrastructure)",
+        "POST /api/v1/parse endpoint responds",
+        "CORS configured for localhost:5173",
+        "Mock response returns ExpenseResponse structure",
+        "Correlation ID generated for each request",
+        "Swagger UI accessible at /swagger"
+      ],
+      "duration": "5min",
+      "tools": ["dotnet build", "dotnet run", "curl/httpie for API testing"],
+      "output": "Backend verification report (pass/fail per check)"
+    },
+    {
+      "validator_id": "task_010b",
+      "agent": "frontend-design-expert",
+      "domain": "Frontend + Integration Verification",
+      "responsibilities": [
+        "Verify React + Vite + TypeScript setup",
+        "Test UI rendering at localhost:5173",
+        "Test form submission and API integration",
+        "Verify result display functionality",
+        "Test error handling (if applicable)",
+        "Verify correlation ID display in UI"
+      ],
+      "checks": [
+        "Client directory with React + Vite + TypeScript",
+        "UI renders at localhost:5173",
+        "ParseForm accepts text input",
+        "Submit button calls API",
+        "ResultDisplay shows mock expense data",
+        "ErrorBanner handles errors (if tested)",
+        "Correlation ID displayed in footer"
+      ],
+      "duration": "5min",
+      "tools": ["npm run dev", "browser testing", "Playwright MCP (optional)"],
+      "output": "Frontend verification report (pass/fail per check)"
+    },
+    {
+      "validator_id": "task_010c",
+      "agent": "docs-maintainer",
+      "domain": "Documentation + Developer Experience",
+      "responsibilities": [
+        "Verify README.md completeness and accuracy",
+        "Test development scripts (dev, test, build, clean)",
+        "Verify quick start guide works",
+        "Validate prerequisites documentation",
+        "Check architecture overview documentation",
+        "Verify contracts directory exists"
+      ],
+      "checks": [
+        "README.md with quick start guide",
+        "Prerequisites documented",
+        "Architecture overview included",
+        "Testing section (even if no tests yet)",
+        "Project structure documented",
+        "Contracts directory for shared DTOs",
+        "Scripts directory with dev/test/build/clean scripts",
+        "npm run dev starts both servers",
+        "npm test command exists (will have tests in M1)",
+        "npm run build works",
+        "Clean script removes artifacts"
+      ],
+      "duration": "5min",
+      "tools": ["documentation review", "script testing"],
+      "output": "Documentation & DevEx verification report (pass/fail per check)"
+    }
+  ],
   "priority": "critical",
   "dependencies": [
     "task_001",
@@ -117,11 +205,25 @@
   ],
 
   "technical_notes": {
-    "verification_approach": "Manual testing + automated checks",
-    "buildlog_format": "Append chronologically (oldest → newest)",
-    "progress_update": "Use update-progress.sh to mark task_010 completed",
-    "milestone_marker": "M0 completion triggers milestone_completed update",
-    "handoff_to_m1": "Ensure all scaffolding is ready for TDD implementation"
+    "verification_approach": "Orchestrator + parallel validators pattern",
+    "orchestration_workflow": [
+      "1. production-validator (orchestrator) starts and reads task_010.json",
+      "2. Orchestrator launches 3 parallel validators using Task tool:",
+      "   - task_010a: backend-architect (Backend + Structure)",
+      "   - task_010b: frontend-design-expert (Frontend + Integration)",
+      "   - task_010c: docs-maintainer (Documentation + DevEx)",
+      "3. Each validator runs independently, testing their domain checks",
+      "4. Validators report results back (pass/fail per check)",
+      "5. Orchestrator aggregates all results into single verification report",
+      "6. Orchestrator updates BUILDLOG.md with comprehensive M0 completion entry",
+      "7. Orchestrator marks task_010 completed via update-progress.sh"
+    ],
+    "failure_handling": "Continue all checks even if failures found, report comprehensive results",
+    "buildlog_format": "Append chronologically (oldest → newest), single entry with all validator results",
+    "progress_update": "Orchestrator uses update-progress.sh to mark task_010 completed",
+    "milestone_marker": "M0 completion triggers milestone_completed update in tasks.json",
+    "handoff_to_m1": "Ensure all scaffolding is ready for TDD implementation",
+    "speedup": "~2.2x faster (9min vs 20min sequential)"
   },
 
   "dod_checklist": {
