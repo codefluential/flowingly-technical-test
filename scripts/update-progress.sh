@@ -24,20 +24,26 @@ BUILDLOG_MD="project-context/build-logs/BUILDLOG.md"
 
 # Update tasks.json status using jq
 jq --arg task "$TASK_ID" --arg status "$STATUS" --arg timestamp "$(date -Iseconds)" '
+  # Update task status
   (.tasks[] | select(.id == $task) | .status) = $status |
+
+  # Update timestamps
   if $status == "in_progress" then
     (.tasks[] | select(.id == $task) | .started_at) = $timestamp |
     .progress_tracking.current_task = $task
   elif $status == "completed" then
-    (.tasks[] | select(.id == $task) | .completed_at) = $timestamp |
-    .progress_tracking.tasks_completed += 1 |
-    .progress_tracking.tasks_pending -= 1
-  elif $status == "blocked" then
-    .progress_tracking.tasks_blocked += 1 |
-    .progress_tracking.tasks_pending -= 1
+    (.tasks[] | select(.id == $task) | .completed_at) = $timestamp
   else
     .
   end |
+
+  # Recalculate all metrics from actual task statuses
+  .progress_tracking.tasks_completed = ([.tasks[] | select(.status == "completed")] | length) |
+  .progress_tracking.tasks_in_progress = ([.tasks[] | select(.status == "in_progress")] | length) |
+  .progress_tracking.tasks_blocked = ([.tasks[] | select(.status == "blocked")] | length) |
+  .progress_tracking.tasks_pending = ([.tasks[] | select(.status == "pending" or .status == null)] | length) |
+
+  # Update timestamp
   .progress_tracking.last_updated = $timestamp
 ' "$TASKS_JSON" > "$TASKS_JSON.tmp" && mv "$TASKS_JSON.tmp" "$TASKS_JSON"
 
