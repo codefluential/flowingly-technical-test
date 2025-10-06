@@ -1,0 +1,434 @@
+{
+  "task_id": "task_040a",
+  "name": "Code Review Remediation - Critical & Major Issues",
+  "milestone": "M3",
+  "agent": "general-purpose",
+  "description": "Verify and remediate all critical and major issues identified in independent code review. Execute fixes in parallel waves based on dependency chain. Ensure all changes are tested and validated.",
+  "duration": "3-4h",
+  "prerequisites": {
+    "tasks": ["task_040"],
+    "knowledge": [
+      "ADR-0006: API Key Authentication",
+      "ADR-0007: Response Contract Design",
+      "ADR-0008: Parsing & Validation Rules",
+      "PRD v0.3 Section 4.1: API Contract",
+      "PRD v0.3 Section 4.2: Parsing Rules"
+    ],
+    "files_to_review": [
+      "project-context/implementation/M3_CODE_REVIEW_FINDINGS.md"
+    ]
+  },
+  "context": {
+    "background": "Independent code review identified 10 issues (8 critical/major, 2 moderate) across security, API contracts, parsing, and error handling. Issues must be verified to exist before remediation, then fixed in parallel waves to minimize total execution time.",
+    "current_state": "M2 Complete - API contracts defined, contract tests passing. M3 UI work blocked until backend issues resolved.",
+    "why_now": "Code review findings must be addressed before final UI integration and E2E testing. Fixes enable proper frontend development and ensure submittable quality.",
+    "prd_sections": [
+      "Section 4.1: API Contract - Response structure with expense XOR other",
+      "Section 4.2: Parsing Rules - Tag validation, XML security, number normalization",
+      "Section 5: NFR - API key authentication, error contracts"
+    ],
+    "adr_references": [
+      "ADR-0006: API Key Authentication (Production-only header-based auth)",
+      "ADR-0007: Response Contract Design (Discriminated union, type-safe responses)",
+      "ADR-0008: Parsing & Validation Rules (Stack-based tags, secure XML)"
+    ],
+    "test_brief_pages": ["Page 3: Submission requirements, quality expectations"]
+  },
+  "objectives": [
+    "Verify each reported issue exists in current codebase (read files, confirm symptoms)",
+    "Execute remediation in 5 parallel waves per dependency chain",
+    "Ensure all fixes include appropriate tests (unit, integration, or contract)",
+    "Validate fixes don't introduce regressions (run full test suite after each wave)",
+    "Update documentation (BUILDLOG) with changes and rationale"
+  ],
+  "deliverables": [
+    {
+      "type": "code",
+      "files": [
+        "src/Api/Program.cs (API key middleware)",
+        "src/Api/appsettings.json (Parsing config section)",
+        "src/Api/Middleware/ExceptionMappingMiddleware.cs (XML exception mapping)",
+        "contracts/Responses/ExpenseData.cs (add missing fields)",
+        "contracts/Responses/ResponseMeta.cs (add ProcessingTimeMs)",
+        "src/Domain/Models/Expense.cs (add Currency, Source)",
+        "src/Application/Handlers/ParseMessageCommandHandler.cs (field mapping, tax config, processingTimeMs)",
+        "src/Domain/Processors/ExpenseProcessor.cs (number normalization, time parser)",
+        "src/Infrastructure/Repositories/InMemoryExpenseRepository.cs (thread safety)",
+        "client/src/api/parseClient.ts (error format alignment)"
+      ],
+      "description": "Updated source files with all verified issue fixes"
+    },
+    {
+      "type": "tests",
+      "files": [
+        "tests/Api.Tests/ParseEndpointTests.cs (API key auth tests)",
+        "tests/Application.Tests/ParseHandlerTests.cs (tax config precedence)",
+        "tests/Domain.Tests/ExpenseProcessorTests.cs (number normalization, time parsing)",
+        "tests/Infrastructure.Tests/InMemoryRepositoryTests.cs (concurrent save test)"
+      ],
+      "description": "New and updated tests verifying all fixes"
+    },
+    {
+      "type": "documentation",
+      "files": ["project-context/build-logs/BUILDLOG.md"],
+      "description": "Entry documenting code review remediation with issue list and resolution summary"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC1",
+      "description": "All 8 critical/major issues verified to exist (read source files, confirm symptoms match review)",
+      "validation": "Verification checklist in M3_CODE_REVIEW_FINDINGS.md updated with file paths and line numbers"
+    },
+    {
+      "id": "AC2",
+      "description": "Wave 1 (Response Contract) complete: ExpenseData, ResponseMeta, Expense model, Handler updated",
+      "validation": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~ParseMessageCommandHandlerTests | grep 'Test run successful'"
+    },
+    {
+      "id": "AC3",
+      "description": "Wave 2 (Parsing) complete: NumberNormalizer wired, TimeParser wired, Thread safety fixed",
+      "validation": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~ExpenseProcessorTests | grep '$35,000.00' && grep 'ConcurrentDictionary'"
+    },
+    {
+      "id": "AC4",
+      "description": "Wave 3 (Error Handling) complete: XML exceptions map to 400, Frontend error format aligned",
+      "validation": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~ExceptionMappingMiddlewareTests | grep 'MALFORMED_XML'"
+    },
+    {
+      "id": "AC5",
+      "description": "Wave 4 (Config & Security) complete: API key middleware added, Tax rate config implemented",
+      "validation": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~ApiKeyAuthTests && grep 'Security:ApiKey' src/Api/appsettings.json"
+    },
+    {
+      "id": "AC6",
+      "description": "Full test suite passes (unit + contract + integration)",
+      "validation": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test | grep 'Passed!' | wc -l | grep -E '[0-9]{2,}'"
+    },
+    {
+      "id": "AC7",
+      "description": "Manual smoke test: Submit expense with '$35,000.00' total, verify correct GST calculation",
+      "validation": "Manual: POST to /api/v1/parse with {\"text\":\"<total>$35,000.00</total>\"}, expect totalExclTax=30434.78, salesTax=4565.22"
+    },
+    {
+      "id": "AC8",
+      "description": "BUILDLOG.md updated with remediation summary",
+      "validation": "grep 'Code Review Remediation' project-context/build-logs/BUILDLOG.md"
+    }
+  ],
+  "implementation_steps": [
+    {
+      "step": 1,
+      "title": "Issue Verification Phase",
+      "description": "Read M3_CODE_REVIEW_FINDINGS.md and verify each issue exists",
+      "actions": [
+        "Read project-context/implementation/M3_CODE_REVIEW_FINDINGS.md (full document)",
+        "For each issue #1-9:",
+        "  - Read affected file(s) listed in 'Files Affected'",
+        "  - Confirm symptom exists (e.g., missing field, hard-coded value, wrong exception mapping)",
+        "  - Document verification: ✅ CONFIRMED or ❌ RESOLVED or 🔍 NEEDS_INSPECTION",
+        "Create verification summary table in BUILDLOG.md"
+      ],
+      "subagent": "general-purpose",
+      "validation": "Verification table shows status for all 9 issues with file paths and line numbers"
+    },
+    {
+      "step": 2,
+      "title": "Wave 1: Response Contract Foundation (2 hours)",
+      "description": "Fix Issue #2 - Add missing fields to response contract and domain model",
+      "actions": [
+        "Update contracts/Responses/ExpenseData.cs:",
+        "  - Add: public string PaymentMethod { get; set; }",
+        "  - Add: public decimal TaxRate { get; set; }",
+        "  - Add: public string Currency { get; set; } = \"NZD\";",
+        "  - Add: public string Source { get; set; } (values: 'expense-xml' | 'inline')",
+        "  - Add: public string Date { get; set; }",
+        "  - Add: public string? Time { get; set; }",
+        "Update contracts/Responses/ResponseMeta.cs:",
+        "  - Add: public int ProcessingTimeMs { get; set; }",
+        "Update src/Domain/Models/Expense.cs:",
+        "  - Add: public string Currency { get; set; } = \"NZD\";",
+        "  - Add: public string Source { get; set; } = \"inline\";",
+        "Update src/Application/Handlers/ParseMessageCommandHandler.cs:",
+        "  - Add Stopwatch to track processing time",
+        "  - Map all new fields in BuildResponse method",
+        "  - Set meta.ProcessingTimeMs = (int)stopwatch.ElapsedMilliseconds",
+        "Update contract tests to verify all fields present"
+      ],
+      "subagent": "backend-architect",
+      "validation": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~ParseMessageCommandHandlerTests"
+    },
+    {
+      "step": 3,
+      "title": "Wave 2: Parsing Fixes (1 hour, parallel)",
+      "description": "Fix Issues #3, #8, #9 - Number normalization, time parser, thread safety",
+      "parallel_substeps": [
+        {
+          "substep": "3a",
+          "title": "Fix Issue #3: Wire NumberNormalizer",
+          "agent": "coder",
+          "actions": [
+            "Update src/Domain/Processors/ExpenseProcessor.cs:",
+            "  - Add constructor parameter: NumberNormalizer numberNormalizer",
+            "  - Store in private readonly field: _numberNormalizer",
+            "  - Line 99: Replace decimal.Parse(total) with _numberNormalizer.Normalize(total)",
+            "  - Line 118: Replace decimal.Parse(totalMatch...) with _numberNormalizer.Normalize(totalMatch...)",
+            "Add integration test: ParseEndpointTests with input \"<total>$35,000.00</total>\"",
+            "  - Verify: response.expense.total == 35000.00m",
+            "  - Verify: response.expense.totalExclTax == 30434.78m (NZ GST 15%)",
+            "  - Verify: response.expense.salesTax == 4565.22m"
+          ],
+          "validation": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter 'FullyQualifiedName~ExpenseProcessorTests&DisplayName~currency_symbols'"
+        },
+        {
+          "substep": "3b",
+          "title": "Fix Issue #8: Wire TimeParser",
+          "agent": "coder",
+          "actions": [
+            "Update src/Domain/Processors/ExpenseProcessor.cs:",
+            "  - Add constructor parameter: ITimeParser timeParser",
+            "  - Store in private readonly field: _timeParser",
+            "  - Lines 104-105: Replace direct copy with:",
+            "    ```csharp",
+            "    if (content.InlineTags.TryGetValue(\"time\", out var time))",
+            "    {",
+            "        var parsedTime = _timeParser.Parse(time);",
+            "        expense.Time = parsedTime.IsValid ? parsedTime.Value : null;",
+            "        // TODO: Add warning to ProcessingResult if !IsValid",
+            "    }",
+            "    ```",
+            "Update ProcessingResult model to include Warnings list",
+            "Update Handler to pass warnings to ResponseMeta",
+            "Add test: TimeParser rejects \"7.30pm\" (ambiguous), accepts \"19:30\""
+          ],
+          "validation": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~TimeParserTests"
+        },
+        {
+          "substep": "3c",
+          "title": "Fix Issue #9: Thread Safety",
+          "agent": "coder",
+          "actions": [
+            "Update src/Infrastructure/Repositories/InMemoryExpenseRepository.cs:",
+            "  - Line 12: Replace Dictionary with ConcurrentDictionary",
+            "  - Update SaveAsync to use _expenses.AddOrUpdate pattern",
+            "Add concurrent test: Task.WhenAll with 100 parallel saves",
+            "  - Verify: All 100 expenses saved without loss or corruption"
+          ],
+          "validation": "grep 'ConcurrentDictionary' src/Infrastructure/Repositories/InMemoryExpenseRepository.cs"
+        }
+      ],
+      "validation": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter 'Category=Unit|Category=Integration' | grep 'Passed!'"
+    },
+    {
+      "step": 4,
+      "title": "Wave 3: Error Handling (30 min, parallel)",
+      "description": "Fix Issues #4, #5 - XML exception mapping, frontend error format",
+      "parallel_substeps": [
+        {
+          "substep": "4a",
+          "title": "Fix Issue #4: XML Exception Mapping",
+          "agent": "backend-architect",
+          "actions": [
+            "Update src/Api/Middleware/ExceptionMappingMiddleware.cs:",
+            "  - GetStatusCode: Add case for XmlException → 400",
+            "  - GetStatusCode: Add case for ArgumentException (from XML parser) → 400",
+            "  - MapToErrorResponse: Add XmlException case with MALFORMED_XML error code",
+            "Add test: POST malformed XML → 400 with ErrorCode=MALFORMED_XML"
+          ],
+          "validation": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~ExceptionMappingMiddlewareTests"
+        },
+        {
+          "substep": "4b",
+          "title": "Fix Issue #5: Frontend Error Format",
+          "agent": "frontend-design-expert",
+          "actions": [
+            "Update client/src/api/parseClient.ts lines 50-56:",
+            "  - Read ErrorResponse as { CorrelationId, ErrorCode, Message, Details }",
+            "  - Update ApiError construction:",
+            "    ```typescript",
+            "    const errorData: ErrorResponse = await response.json();",
+            "    throw new ApiError(",
+            "      errorData.Message,",
+            "      errorData.ErrorCode,",
+            "      errorData.CorrelationId",
+            "    );",
+            "    ```",
+            "Update client/src/types/api.ts ErrorResponse interface to match backend"
+          ],
+          "validation": "Manually test: Submit invalid request, verify error displays correctly in UI"
+        }
+      ],
+      "validation": "Frontend displays validation errors correctly; backend returns 400 for malformed XML"
+    },
+    {
+      "step": 5,
+      "title": "Wave 4: Configuration & Security (1 hour, parallel)",
+      "description": "Fix Issues #1, #6 - API key auth, tax rate configuration",
+      "parallel_substeps": [
+        {
+          "substep": "5a",
+          "title": "Fix Issue #1: API Key Authentication",
+          "agent": "backend-architect",
+          "actions": [
+            "Update src/Api/appsettings.json:",
+            "  - Add Security section: { \"Security\": { \"ApiKey\": \"\" } }",
+            "Update src/Api/Program.cs (after line 77, before routing):",
+            "  - Add API key middleware from ADR-0006 (lines 198-237)",
+            "  - Skip auth in Development environment",
+            "  - Require X-API-Key header in Production",
+            "  - Return 401 UNAUTHORIZED if key invalid/missing",
+            "Add tests:",
+            "  - Development: Request without key → 200 (allowed)",
+            "  - Production + valid key → 200",
+            "  - Production + invalid key → 401",
+            "  - Production + missing key → 401"
+          ],
+          "validation": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~ApiKeyAuthTests"
+        },
+        {
+          "substep": "5b",
+          "title": "Fix Issue #6: Tax Rate Configuration",
+          "agent": "backend-architect",
+          "actions": [
+            "Update src/Api/appsettings.json:",
+            "  - Add Parsing section:",
+            "    ```json",
+            "    \"Parsing\": {",
+            "      \"DefaultTaxRate\": 0.15,",
+            "      \"DefaultCurrency\": \"NZD\",",
+            "      \"StrictTaxRate\": false",
+            "    }",
+            "    ```",
+            "Update src/Application/Handlers/ParseMessageCommandHandler.cs:",
+            "  - Inject IConfiguration",
+            "  - Implement tax rate precedence (lines 45-48):",
+            "    1. Request.TaxRate (wins if present)",
+            "    2. Config Parsing:DefaultTaxRate",
+            "    3. If both null + StrictTaxRate=true → throw ValidationException(MISSING_TAXRATE)",
+            "    4. If both null + StrictTaxRate=false → fallback to 0.15",
+            "Add tests for all 4 precedence scenarios"
+          ],
+          "validation": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter 'FullyQualifiedName~TaxRatePrecedenceTests'"
+        }
+      ],
+      "validation": "Config tests pass; API key auth enforced in Production"
+    },
+    {
+      "step": 6,
+      "title": "Full Test Suite & Validation",
+      "description": "Run complete test suite and manual smoke tests",
+      "actions": [
+        "Run full .NET test suite:",
+        "  export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --verbosity normal",
+        "  - Verify: All unit tests pass",
+        "  - Verify: All contract tests pass",
+        "  - Verify: New integration tests pass",
+        "Manual smoke test (backend running on localhost:5000):",
+        "  1. POST /api/v1/parse with { \"text\": \"<total>$35,000.00</total>\" }",
+        "  2. Verify response:",
+        "     - expense.total == 35000.00",
+        "     - expense.totalExclTax == 30434.78",
+        "     - expense.salesTax == 4565.22",
+        "     - meta.processingTimeMs > 0",
+        "  3. POST with malformed XML → verify 400 with MALFORMED_XML",
+        "  4. POST with invalid time \"7.30pm\" → verify time=null, warning present",
+        "Frontend smoke test:",
+        "  1. Submit valid expense → verify all fields display",
+        "  2. Submit invalid expense → verify error displays correctly"
+      ],
+      "validation": "All tests passing, smoke tests successful"
+    },
+    {
+      "step": 7,
+      "title": "Documentation Update",
+      "description": "Update BUILDLOG.md with remediation summary",
+      "actions": [
+        "Append to project-context/build-logs/BUILDLOG.md:",
+        "  ---",
+        "  ## Code Review Remediation (M3 Entry Point)",
+        "  **Date**: [today]",
+        "  **Task**: task_040a - Code Review Remediation",
+        "  **Duration**: [actual time]",
+        "  ",
+        "  ### Issues Resolved",
+        "  **Critical (5 issues)**:",
+        "  1. ✅ API Key Authentication - Implemented ADR-0006 middleware",
+        "  2. ✅ Response Contract Fields - Added 7 missing fields to ExpenseData/ResponseMeta",
+        "  3. ✅ Number Normalization - Wired NumberNormalizer to handle currency symbols",
+        "  4. ✅ XML Exception Mapping - Map XmlException to 400 MALFORMED_XML",
+        "  5. ✅ Frontend Error Format - Aligned with backend ErrorResponse contract",
+        "  ",
+        "  **Major (3 issues)**:",
+        "  6. ✅ Tax Rate Config - Implemented precedence logic + StrictTaxRate toggle",
+        "  7. ✅ Time Parser Wiring - Integrated ITimeParser with warning generation",
+        "  8. ✅ Tag Validator Error Codes - [SKIPPED if not confirmed, or describe fix]",
+        "  ",
+        "  **Moderate (1 issue)**:",
+        "  9. ✅ Thread Safety - Replaced Dictionary with ConcurrentDictionary",
+        "  ",
+        "  ### Test Results",
+        "  - Unit tests: [count] passing",
+        "  - Contract tests: [count] passing",
+        "  - Integration tests: [count] passing",
+        "  - **Total**: [count] tests passing",
+        "  ",
+        "  ### Notes",
+        "  - Issue #7 (Tag Validator) verification pending - requires code inspection",
+        "  - All other issues confirmed and resolved",
+        "  - Frontend now properly handles backend error responses",
+        "  - API ready for Production deployment with auth middleware"
+      ],
+      "validation": "BUILDLOG.md contains detailed remediation summary"
+    }
+  ],
+  "testing": {
+    "unit_tests": [
+      "ExpenseProcessorTests - Currency symbol normalization ($35,000.00 → 35000.00)",
+      "TimeParserTests - Ambiguous time rejection (7.30pm → null + warning)",
+      "TaxRatePrecedenceTests - All 4 config scenarios",
+      "InMemoryRepositoryTests - Concurrent save test (100 parallel operations)"
+    ],
+    "integration_tests": [
+      "ParseEndpointTests - API key auth (Dev bypass, Prod enforcement)",
+      "ParseEndpointTests - Currency normalization end-to-end",
+      "ExceptionMappingMiddlewareTests - XML exception → 400 MALFORMED_XML"
+    ],
+    "manual_tests": [
+      "Smoke Test: Submit $35,000.00 expense → verify GST calculation",
+      "Smoke Test: Malformed XML → verify 400 error with code",
+      "Smoke Test: Frontend error display → verify validation errors show"
+    ]
+  },
+  "common_issues": [
+    {
+      "issue": "dotnet command not found",
+      "solution": "CRITICAL: All dotnet commands must include: export PATH=\"$HOME/.dotnet:$PATH\" &&"
+    },
+    {
+      "issue": "Issue not found in codebase",
+      "solution": "Mark as ❌ RESOLVED in verification table, skip remediation for that issue"
+    },
+    {
+      "issue": "Test failures after Wave N",
+      "solution": "Stop execution, debug failing test, ensure fix doesn't introduce regression before proceeding"
+    },
+    {
+      "issue": "Frontend build errors",
+      "solution": "Ensure TypeScript types updated to match backend contract changes (ExpenseData fields)"
+    }
+  ],
+  "reference_files": [
+    "project-context/implementation/M3_CODE_REVIEW_FINDINGS.md (primary issue list)",
+    "project-context/adr/ADR-0006-api-key-authentication.md (auth middleware code)",
+    "project-context/adr/ADR-0007-response-contract-design.md (response structure)",
+    "project-context/specifications/prd-technical_spec.md (API contract, parsing rules)",
+    "src/Domain/Normalizers/NumberNormalizer.cs (existing normalization logic)",
+    "src/Domain/Parsers/TimeParser.cs (existing time parsing logic)"
+  ],
+  "agent_notes": {
+    "execution_mode": "Parallel waves - coordinate multiple subagents for efficiency",
+    "verification_first": "MUST verify each issue exists before attempting fix (avoid wasted work)",
+    "test_after_each_wave": "Run relevant tests after each wave to catch regressions early",
+    "documentation_required": "BUILDLOG.md entry is mandatory deliverable"
+  }
+}
