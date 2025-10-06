@@ -1,6 +1,10 @@
 using FluentAssertions;
 using Moq;
 using Xunit;
+using Flowingly.ParsingService.Domain.Processors;
+using Flowingly.ParsingService.Domain.Models;
+using Flowingly.ParsingService.Domain.Interfaces;
+using Flowingly.ParsingService.Domain.Exceptions;
 
 namespace Flowingly.ParsingService.Tests.Processors;
 
@@ -29,137 +33,8 @@ namespace Flowingly.ParsingService.Tests.Processors;
 /// </summary>
 public class ExpenseProcessorTests
 {
-    #region Test Helper Models (will be moved to Domain in task_030)
-
-    /// <summary>
-    /// Represents parsed content with inline tags and XML islands
-    /// </summary>
-    public class ParsedContent
-    {
-        public Dictionary<string, string> InlineTags { get; init; } = new();
-        public List<XmlIsland> XmlIslands { get; init; } = new();
-        public string RawText { get; init; } = string.Empty;
-        public decimal TaxRate { get; init; } = 0.15m; // Default NZ GST
-    }
-
-    /// <summary>
-    /// Represents an extracted XML island
-    /// </summary>
-    public class XmlIsland
-    {
-        public string Name { get; init; } = string.Empty;
-        public string Content { get; init; } = string.Empty;
-    }
-
-    /// <summary>
-    /// Result from content processing
-    /// </summary>
-    public class ProcessingResult
-    {
-        public string Classification { get; init; } = string.Empty;
-        public object? Data { get; init; }
-        public bool Success { get; init; }
-        public string ErrorCode { get; init; } = string.Empty;
-    }
-
-    /// <summary>
-    /// Expense domain entity
-    /// </summary>
-    public class Expense
-    {
-        public Guid Id { get; set; }
-        public string Vendor { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public decimal Total { get; set; }
-        public decimal TotalExclTax { get; set; }
-        public decimal SalesTax { get; set; }
-        public string CostCentre { get; set; } = "UNKNOWN";
-        public string Date { get; set; } = string.Empty;
-        public string Time { get; set; } = string.Empty;
-        public string PaymentMethod { get; set; } = string.Empty;
-        public decimal TaxRate { get; set; } = 0.15m;
-    }
-
-    /// <summary>
-    /// Tax calculation result
-    /// </summary>
-    public class TaxCalculationResult
-    {
-        public decimal TaxInclusive { get; init; }
-        public decimal TaxExclusive { get; init; }
-        public decimal Gst { get; init; }
-        public decimal TaxRate { get; init; }
-    }
-
-    /// <summary>
-    /// Validation exception with error codes
-    /// </summary>
-    public class ValidationException : Exception
-    {
-        public string ErrorCode { get; }
-
-        public ValidationException(string errorCode, string message) : base(message)
-        {
-            ErrorCode = errorCode;
-        }
-    }
-
-    /// <summary>
-    /// Tax calculator interface (Port)
-    /// </summary>
-    public interface ITaxCalculator
-    {
-        TaxCalculationResult CalculateFromInclusive(decimal taxInclusive, decimal taxRate = 0.15m);
-    }
-
-    /// <summary>
-    /// Expense repository interface (Port)
-    /// </summary>
-    public interface IExpenseRepository
-    {
-        Task<Guid> SaveAsync(Expense expense, CancellationToken ct);
-    }
-
-    /// <summary>
-    /// Strategy interface for content processors
-    /// </summary>
-    public interface IContentProcessor
-    {
-        string ContentType { get; }
-        bool CanProcess(ParsedContent content);
-        Task<ProcessingResult> ProcessAsync(ParsedContent content, CancellationToken ct);
-    }
-
-    /// <summary>
-    /// ExpenseProcessor - processes expense content through validation pipeline
-    /// </summary>
-    public class ExpenseProcessor : IContentProcessor
-    {
-        private readonly ITaxCalculator _taxCalculator;
-        private readonly IExpenseRepository _repository;
-
-        public string ContentType => "expense";
-
-        public ExpenseProcessor(ITaxCalculator taxCalculator, IExpenseRepository repository)
-        {
-            _taxCalculator = taxCalculator;
-            _repository = repository;
-        }
-
-        public bool CanProcess(ParsedContent content)
-        {
-            // Will be implemented in task_030 (GREEN phase)
-            throw new NotImplementedException("ExpenseProcessor.CanProcess not yet implemented");
-        }
-
-        public async Task<ProcessingResult> ProcessAsync(ParsedContent content, CancellationToken ct)
-        {
-            // Will be implemented in task_030 (GREEN phase)
-            throw new NotImplementedException("ExpenseProcessor.ProcessAsync not yet implemented");
-        }
-    }
-
-    #endregion
+    // All test helper models now imported from Domain layer
+    // See using statements at top of file
 
     #region Happy Path Tests
 

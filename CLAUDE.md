@@ -10,14 +10,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Accept raw text (e.g., email bodies), validate tag integrity, extract expense data, compute NZ GST tax breakdowns (from inclusive totals), and return normalized JSON. Non-expense content is stored as "Other/Unprocessed" for future processors.
 
 ### Current Project State
-**Phase**: Specification and planning complete, **ready for implementation**.
+**Phase**: M1 Complete → Ready for M2 API Contracts (30/50 tasks, 60% complete)
+- ✅ M0 Minimal Scaffold Complete (10/10 tasks)
+- ✅ M1 Core Parsing & Validation Complete (20/20 tasks, 18 unit tests passing)
+- 📋 M2 API Contracts (0/10 tasks) - Next
+- 📋 M3 UI & E2E Tests (0/10 tasks) - Planned
 - All ADRs documented (10 total)
 - PRD v0.3 finalized with external review incorporated
-- Delivery plan with milestone breakdown completed
 - Task decomposition complete (50 tasks across M0-M3)
 - Progress tracking system deployed (3-file integrated system)
 - 20 agents copied to `.claude/agents/` for task execution
-- No code implementation exists yet (no .NET solution, no React app)
+
+**Implemented Components**:
+- .NET 8 solution with Clean Architecture layers (Api, Application, Domain, Infrastructure)
+- React + Vite + TypeScript frontend with working echo flow
+- **Tag validator** with stack-based validation
+- **XML island extractor** with DTD/XXE protection
+- **Tax calculator** with Banker's Rounding (MidpointRounding.ToEven)
+- **Number normalizer** (handles commas, decimals)
+- **Time parser** for time expressions
+- **Content router** for processor selection
+- **Expense processor** with full parsing pipeline (Validate → Extract → Normalize → Persist → BuildResponse)
+- **18 unit tests** passing (30+ target for M1)
 
 Refer to `project-context/build-logs/BUILDLOG.md` for detailed progress history and `project-context/implementation/PROGRESS.md` for current status.
 
@@ -39,6 +53,38 @@ export PATH="$HOME/.dotnet:$PATH" && dotnet build
 **Full Installation Path**: `/home/adarsh/.dotnet/dotnet`
 **Version**: 8.0.414
 **DOTNET_ROOT**: `$HOME/.dotnet`
+
+## Quick Start (Running the Application)
+
+### 1. Backend API
+```bash
+# From project root
+export PATH="$HOME/.dotnet:$PATH"
+dotnet run --project src/Api
+# API runs on http://localhost:5000
+# Swagger UI at http://localhost:5000/swagger
+```
+
+### 2. Frontend (in new terminal)
+```bash
+# From project root
+cd client
+npm install  # First time only
+npm run dev
+# Frontend runs on http://localhost:5173
+```
+
+### 3. Verify
+1. Open http://localhost:5173 in browser
+2. Paste sample expense text in textarea
+3. Click "Parse" button
+4. Verify parsed expense data appears with correlation ID
+
+**Sample Test Input**:
+```
+Hi Yvaine, Please create an expense claim for the below. Relevant details are:
+<expense><cost_centre>DEV002</cost_centre><total>1024.01</total><payment_method>personal card</payment_method></expense>
+```
 
 ## Common Development Commands
 
@@ -68,23 +114,24 @@ dotnet ef database update --project src/Api
 
 ### Frontend (React + Vite)
 ```bash
+# Navigate to client directory
+cd client
+
 # Install dependencies
 npm install
 
-# Run dev server
+# Run dev server (http://localhost:5173)
 npm run dev
 
 # Build for production
 npm run build
 
-# Run E2E tests (Playwright)
+# Run E2E tests (Playwright) - requires both servers running
 npm run test:e2e
 
 # Run specific E2E test
 npx playwright test path/to/test.spec.ts
 ```
-
-**Note**: These commands will be available once project scaffolding is complete. Currently no implementation exists.
 
 ### MCP Servers & Tools
 
@@ -186,7 +233,7 @@ List/create/close/select browser tabs
 
 **Usage Example (E2E Test Flow)**:
 ```
-1. Navigate to http://localhost:3000
+1. Navigate to http://localhost:5173
 2. Take snapshot to verify page structure
 3. Type sample expense text into textarea
 4. Click "Parse" button
@@ -236,9 +283,36 @@ cat project-context/implementation/PROGRESS.md
 - Updates `tasks.json` with status and timestamps
 - Updates `PROGRESS.md` checkboxes and metrics
 - Appends to `BUILDLOG.md` for milestone gates (task_010, 030, 040, 050)
+- Triggers background Serena re-indexing for semantic code analysis
 - Suggests commit messages
 
 See `project-context/implementation/TRACKING-WORKFLOW.md` for complete workflow documentation.
+
+### Slash Commands (AADF-Compliant Git Workflow)
+
+This project includes custom slash commands for AADF-compliant commits:
+
+```bash
+# Execute prompts from a file (for complex multi-step tasks)
+/aadf-prompt-file path/to/instructions.md
+
+# Create AADF-compliant commit from all changes (auto-stages everything)
+/aadf-commit "description of changes made"
+
+# Create AADF-compliant commit from staged files only
+/aadf-commit-staged "description of staged changes"
+```
+
+**When to Use**:
+- `/aadf-commit`: After completing a task with multiple file changes
+- `/aadf-commit-staged`: When you want fine-grained control over what's committed
+- Both commands use conventional commits syntax and include Claude Code co-authorship footer
+
+**Example**:
+```bash
+# After implementing tax calculator
+/aadf-commit "implement ITaxCalculator with Banker's Rounding"
+```
 
 ## Architecture
 
@@ -269,12 +343,31 @@ See `project-context/implementation/TRACKING-WORKFLOW.md` for complete workflow 
 - **Repository Pattern**: Data persistence abstraction
 - **Ports & Adapters**: All external dependencies (DB, parsers) behind interfaces
 
-### Critical Components
-- `ITagValidator`: Stack-based tag integrity validation (reject unclosed tags)
-- `IXmlIslandExtractor`: Secure XML parsing (DTD/XXE disabled)
-- `IContentRouter`: Routes content to appropriate processor
-- `ITaxCalculator`: Computes GST (tax-inclusive to exclusive conversion)
-- `INormalizer`: Number/date/time normalization
+### Critical Components (Implemented)
+
+**Domain Layer** (`src/Domain/`):
+- `ITagValidator` / `TagValidator`: Stack-based tag integrity validation (rejects unclosed tags)
+- `IXmlIslandExtractor` / `XmlIslandExtractor`: Secure XML parsing (DTD/XXE disabled)
+- `IContentRouter` / `ContentRouter`: Routes content to appropriate processor
+- `ITaxCalculator` / `TaxCalculator`: Computes GST (tax-inclusive to exclusive conversion)
+- `NumberNormalizer`: Normalizes numbers (handles commas, decimals)
+- `ITimeParser` / `TimeParser`: Parses time expressions
+- `IRoundingHelper` / `RoundingHelper`: Banker's Rounding (MidpointRounding.ToEven)
+- `IContentProcessor` / `ExpenseProcessor`: Complete expense parsing pipeline
+
+**Models** (`src/Domain/Models/`):
+- `Expense`: Domain entity for expense data
+- `ParsedContent`: Result of content parsing
+- `TaxCalculationResult`: GST calculation output
+- `XmlIsland`: Extracted XML data structure
+- `ProcessingResult`: Generic processing result wrapper
+
+**Exceptions** (`src/Domain/Exceptions/`):
+- `ValidationException`: Custom exception for validation failures
+
+**API Layer** (`src/Api/`):
+- `ParseEndpoint`: Single POST endpoint at `/api/v1/parse`
+- `Program.cs`: DI registration, Swagger configuration, middleware setup
 
 ## Implementation Workflow
 

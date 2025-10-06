@@ -57,8 +57,8 @@ public class TagValidator : ITagValidator
         if (stack.Count == 0 || stack.Peek() != tagName)
         {
             throw new ValidationException(
-                FormatMismatchedTagError(tagName),
-                ErrorCode);
+                ErrorCode,
+                FormatMismatchedTagError(tagName));
         }
         stack.Pop();
     }
@@ -71,8 +71,8 @@ public class TagValidator : ITagValidator
         if (stack.Count > 0)
         {
             throw new ValidationException(
-                FormatUnclosedTagsError(stack),
-                ErrorCode);
+                ErrorCode,
+                FormatUnclosedTagsError(stack));
         }
     }
 

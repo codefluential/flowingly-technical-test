@@ -20,4 +20,10 @@ public class ParsedContent
     /// Gets the original raw text content.
     /// </summary>
     public string RawText { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets the tax rate to be used for calculations (e.g., 0.15 for NZ GST 15%).
+    /// Default: 0.15
+    /// </summary>
+    public decimal TaxRate { get; init; } = 0.15m;
 }

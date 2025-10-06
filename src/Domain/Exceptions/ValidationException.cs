@@ -7,7 +7,7 @@ public class ValidationException : Exception
 {
     public string ErrorCode { get; }
 
-    public ValidationException(string message, string errorCode) : base(message)
+    public ValidationException(string errorCode, string message) : base(message)
     {
         ErrorCode = errorCode;
     }
