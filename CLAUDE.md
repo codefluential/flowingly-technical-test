@@ -10,51 +10,50 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Accept raw text (e.g., email bodies), validate tag integrity, extract expense data, compute NZ GST tax breakdowns (from inclusive totals), and return normalized JSON. Non-expense content is stored as "Other/Unprocessed" for future processors.
 
 ### Current Project State
-**Phase**: M1 Complete → Ready for M2 API Contracts (30/50 tasks, 60% complete)
+**Phase**: ✅ M2 Complete → Ready for M3 UI & E2E Tests (40/50 tasks, 80% complete)
 - ✅ M0 Minimal Scaffold Complete (10/10 tasks)
-- ✅ M1 Core Parsing & Validation Complete (20/20 tasks, 18 unit tests passing)
-- 📋 M2 API Contracts (0/10 tasks) - Next
-- 📋 M3 UI & E2E Tests (0/10 tasks) - Planned
+- ✅ M1 Core Parsing & Validation Complete (20/20 tasks, 116 unit tests)
+- ✅ M2 API Contracts Complete (10/10 tasks, 13 contract tests)
+- 📋 M3 UI & E2E Tests (0/10 tasks) - Next
+- **129 tests passing** (116 unit + 13 contract, 287% of M0-M2 target)
+- **All 3 sample emails from test brief working** (inline tags, XML islands, error handling)
 - All ADRs documented (10 total)
-- PRD v0.3 finalized with external review incorporated
-- Task decomposition complete (50 tasks across M0-M3)
-- Progress tracking system deployed (3-file integrated system)
-- 20 agents copied to `.claude/agents/` for task execution
+- Progress tracking system with duration metrics
 
 **Implemented Components**:
 - .NET 8 solution with Clean Architecture layers (Api, Application, Domain, Infrastructure)
-- React + Vite + TypeScript frontend with working echo flow
+- React 19 + Vite + TypeScript frontend with functional parsing UI
 - **Tag validator** with stack-based validation
 - **XML island extractor** with DTD/XXE protection
 - **Tax calculator** with Banker's Rounding (MidpointRounding.ToEven)
 - **Number normalizer** (handles commas, decimals)
 - **Time parser** for time expressions
-- **Content router** for processor selection
+- **Content router** for processor selection (Expense vs Other)
 - **Expense processor** with full parsing pipeline (Validate → Extract → Normalize → Persist → BuildResponse)
-- **18 unit tests** passing (30+ target for M1)
+- **Error handling** with structured error responses (MISSING_TOTAL, INVALID_TAG, etc.)
+- **RESTful API** with Swagger documentation at `/swagger`
 
 Refer to `project-context/build-logs/BUILDLOG.md` for detailed progress history and `project-context/implementation/PROGRESS.md` for current status.
 
-## Environment Setup
+## Quick Start (Running the Application)
 
-### .NET 8 Path Configuration
-**CRITICAL**: dotnet is installed at `/home/adarsh/.dotnet/dotnet` (version 8.0.414) but requires PATH configuration.
+### Prerequisites
+- .NET 8 SDK (version 8.0.414)
+- Node.js 18+
+- Git
 
-**For all bash commands using dotnet**, prefix with:
+**CRITICAL - .NET Path Configuration**: dotnet is installed at `/home/adarsh/.dotnet/dotnet` and requires PATH setup.
+
+Add to `~/.bashrc` (permanent):
 ```bash
-export PATH="$HOME/.dotnet:$PATH"
+export DOTNET_ROOT=$HOME/.dotnet
+export PATH="$DOTNET_ROOT:$PATH"
 ```
 
-**Example**:
+Or prefix commands (temporary):
 ```bash
 export PATH="$HOME/.dotnet:$PATH" && dotnet build
 ```
-
-**Full Installation Path**: `/home/adarsh/.dotnet/dotnet`
-**Version**: 8.0.414
-**DOTNET_ROOT**: `$HOME/.dotnet`
-
-## Quick Start (Running the Application)
 
 ### 1. Backend API
 ```bash
@@ -80,44 +79,59 @@ npm run dev
 3. Click "Parse" button
 4. Verify parsed expense data appears with correlation ID
 
-**Sample Test Input**:
+**Sample Test Input** (from test brief):
 ```
+Sample 1 (XML Island):
 Hi Yvaine, Please create an expense claim for the below. Relevant details are:
 <expense><cost_centre>DEV002</cost_centre><total>1024.01</total><payment_method>personal card</payment_method></expense>
+
+Sample 2 (Inline Tags):
+Hi Yvaine, Please create an expense claim. <vendor>Mojo Coffee</vendor> <total>120.50</total> <payment_method>personal card</payment_method>
+
+Sample 3 (Error - Missing Total):
+Hi Yvaine, Please create an expense claim. <vendor>Starbucks</vendor> <payment_method>personal card</payment_method>
+→ Returns 400 Bad Request with MISSING_TOTAL error code
 ```
 
-## Common Development Commands
+## Development Commands
 
 ### Backend (.NET 8)
 ```bash
 # IMPORTANT: Always export PATH first
 export PATH="$HOME/.dotnet:$PATH"
 
-# Build and run (once solution is created)
+# Build solution
 dotnet build
+
+# Run API (http://localhost:5000)
 dotnet run --project src/Api
 
-# Run tests
+# Run with hot reload
+dotnet watch --project src/Api
+
+# Run all tests (129 currently: 116 unit + 13 contract)
 dotnet test
 
-# Run specific test
+# Run specific test category
+dotnet test --filter Category=Unit
+dotnet test --filter Category=Contract
+
+# Run specific test by name pattern
 dotnet test --filter "FullyQualifiedName~TestName"
 
-# Run tests by category
-dotnet test --filter "Category=Unit"
-dotnet test --filter "Category=Contract"
+# Run single test file
+dotnet test --filter "FullyQualifiedName~TagValidatorTests"
 
-# Database migrations (EF Core)
+# Database migrations (when EF Core is configured)
 dotnet ef migrations add MigrationName --project src/Infrastructure
 dotnet ef database update --project src/Api
 ```
 
 ### Frontend (React + Vite)
 ```bash
-# Navigate to client directory
 cd client
 
-# Install dependencies
+# Install dependencies (first time only)
 npm install
 
 # Run dev server (http://localhost:5173)
@@ -126,11 +140,40 @@ npm run dev
 # Build for production
 npm run build
 
-# Run E2E tests (Playwright) - requires both servers running
+# Preview production build
+npm run preview
+
+# Run E2E tests (M3 milestone - not yet implemented)
 npm run test:e2e
 
 # Run specific E2E test
 npx playwright test path/to/test.spec.ts
+```
+
+### Common Development Scenarios
+
+**Port conflict (address already in use)**:
+```bash
+# Find process using port 5000 (backend)
+lsof -i :5000
+kill -9 <PID>
+
+# Find process using port 5173 (frontend)
+lsof -i :5173
+kill -9 <PID>
+```
+
+**CORS issues** (frontend can't reach backend):
+- Verify backend is running at http://localhost:5000
+- Check `src/Api/Program.cs` has CORS policy configured
+- Frontend is configured for http://localhost:5173 in CORS policy
+
+**Tests failing after code changes**:
+```bash
+# Clean and rebuild
+dotnet clean
+dotnet build
+dotnet test --no-build
 ```
 
 ### MCP Servers & Tools
@@ -170,11 +213,12 @@ List all memories
 - Language: C#, 20+ tools available
 - See `project-context/learnings/serena-mcp-guide.md` for comprehensive guide
 
-**Re-indexing** (for updated code symbols):
-- **Automatic**: Re-indexes after EVERY completed task (runs in background, non-blocking)
-- **Manual**: Run `./scripts/reindex-serena.sh` for immediate foreground re-indexing
-- **Trigger**: `update-progress.sh <task_id> completed` auto-starts background re-indexing
-- **Performance**: Background process doesn't slow down workflow
+**Re-indexing** (when code symbols change):
+- **Automatic**: Triggered by `update-progress.sh <task_id> completed` (runs in background, non-blocking)
+- **Manual**: Run `./scripts/reindex-serena.sh` when needed (foreground, immediate)
+- **When needed**: After adding new classes, methods, or interfaces; renaming symbols
+- **When NOT needed**: After editing method bodies, changing strings/comments, running tests
+- **Performance**: Background indexing completes in ~10-30 seconds without blocking workflow
 
 **Best Practices**:
 - Start with `get_symbols_overview` before reading full files
@@ -382,34 +426,29 @@ This project includes custom slash commands for AADF-compliant commits:
 The project uses a **50-task decomposition system** with 4 milestone gates (M0, M1, M2, M3):
 
 **Milestone Structure**:
-- **M0: Minimal Scaffold** (10 tasks, 4 hours) - Solution structure, echo flow, README
-- **M1: Core Parsing & Validation** (20 tasks, 1 day) - TDD cycles for parsers, 30+ unit tests
-- **M2: API Contracts** (10 tasks, 4 hours) - DTOs, validation, error handling, 10+ contract tests
-- **M3: UI & E2E Tests** (10 tasks, 4 hours) - Enhanced UI, 5+ E2E tests, **SUBMITTABLE**
+- **M0: Minimal Scaffold** (10 tasks, 4 hours) - ✅ Complete
+- **M1: Core Parsing & Validation** (20 tasks, 1 day) - ✅ Complete (116 unit tests)
+- **M2: API Contracts** (10 tasks, 4 hours) - ✅ Complete (13 contract tests)
+- **M3: UI & E2E Tests** (10 tasks, 4 hours) - 📋 Next (Enhanced UI, 5+ E2E tests, **SUBMITTABLE**)
 
-**Task Execution Flow** (Just-In-Time Task Creation):
-1. **Check task file exists**: Look for `project-context/implementation/tasks/task_XXX.json`. Also check `project-context/implementation/tasks/tasks.json` for task dependencies.
-2. **If task file missing**:
-   - Extract metadata from `tasks.json`
-   - Create task file using `TASK_CREATION_GUIDE.md` (5-10 min)
-   - Validate against quality checklist
-   - Commit task file: `git add tasks/task_XXX.json && git commit`
-3. **If task file exists**: Read for full context (PRD sections, ADRs, deliverables, acceptance criteria)
-4. **⚠️ MANDATORY: Discuss with user BEFORE execution**:
-   - Present task summary (ID, name, agent, deliverables, duration)
-   - Verify agent selection is appropriate for task type
-   - Confirm approach and get explicit approval to proceed
-   - If parallel tasks, confirm parallel execution is acceptable
-   - **NEVER skip this step - always wait for user approval**
-5. Mark task in-progress: `./scripts/update-progress.sh task_XXX in_progress`
-6. Execute task following acceptance criteria (use specialized agent if assigned)
-7. Mark completed: `./scripts/update-progress.sh task_XXX completed [test_type] [count]`
-8. Commit implementation, then commit progress files separately
-9. Move to next task in sequence
+**Task Files**: Each task has a JSON file at `project-context/implementation/tasks/task_XXX.json` containing:
+- Full context (PRD sections, ADRs, dependencies)
+- Deliverables and acceptance criteria
+- Agent assignment and estimated duration
+- Traceability to specifications
 
-**Parallel Execution Groups**: 15+ tasks can run concurrently (defined in tasks.json). Respect dependencies.
+**Task Execution**:
+1. Read task file: `project-context/implementation/tasks/task_XXX.json`
+2. Check dependencies in `tasks.json`
+3. Mark in-progress: `./scripts/update-progress.sh task_XXX in_progress`
+4. Execute following acceptance criteria (use specialized agent if assigned)
+5. Run tests and verify deliverables
+6. Mark completed: `./scripts/update-progress.sh task_XXX completed [test_type] [count]`
+7. Commit implementation, then progress files separately
 
-**Milestone Gates (DoD Tasks)**: task_010, task_030, task_040, task_050 verify milestone completion and auto-update BUILDLOG.
+**Parallel Execution**: Some tasks can run concurrently (defined in `tasks.json` dependencies).
+
+**Milestone Gates**: task_010, task_030, task_040, task_050 verify DoD completion and update BUILDLOG.
 
 ### TDD Workflow
 **M1 uses strict TDD cycles** (RED → GREEN → REFACTOR):
@@ -489,20 +528,10 @@ Balance between markdown guides and code comments—choose the most maintainable
    - Requirements: `project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf`
 
 4. **Implementation System** at `project-context/implementation/`
-   - `tasks/tasks.json`: 50-task orchestration with dependencies
-   - `PROGRESS.md`: Real-time progress dashboard
-   - `TRACKING-WORKFLOW.md`: Tracking system documentation
-   - `tasks/TASK_CREATION_GUIDE.md`: **Comprehensive guide for creating task files**
-   - Individual task files: Self-contained context for agent execution
-
-5. **Task Creation Guide** at `project-context/implementation/tasks/TASK_CREATION_GUIDE.md`
-   - **Complete methodology** for creating self-contained task files
-   - **Source documents catalog**: PRD, ADRs, test brief, delivery plan
-   - **Field-by-field guide**: Every JSON field explained with examples
-   - **Task type patterns**: M0 scaffold, M1 TDD (RED/GREEN/REFACTOR), M2 API, M3 UI/E2E
-   - **Step-by-step creation process**: From extracting metadata to validation
-   - **Quality checklist**: Ensure context completeness, traceability, actionability
-   - **Use this guide** when creating new task files (46 remaining tasks)
+   - `tasks/tasks.json`: 50-task orchestration with dependencies and parallel execution groups
+   - `tasks/task_XXX.json`: Individual task files with full context for agent execution
+   - `PROGRESS.md`: Real-time progress dashboard with test counts and duration metrics
+   - `TRACKING-WORKFLOW.md`: Progress tracking system documentation
 
 **These are the key documents** — always reference these before planning or implementing tasks.
 
@@ -520,21 +549,25 @@ Balance between markdown guides and code comments—choose the most maintainable
 ## Technology Stack
 
 ### Backend
-- .NET 8 (Minimal API or Controllers)
-- xUnit, FluentAssertions, FluentValidation
-- Serilog (structured logging with correlation IDs)
-- EF Core with Postgres
-- Swashbuckle (Swagger/OpenAPI)
+- **.NET 8** (Minimal API)
+- **xUnit** + **FluentAssertions** (Testing)
+- **FluentValidation** (Request validation)
+- **Serilog** (Structured logging with correlation IDs)
+- **Entity Framework Core** (ORM)
+- **SQLite** (Local development database)
+- **PostgreSQL** (Production database on Render)
+- **Swashbuckle** (Swagger/OpenAPI documentation)
 
 ### Frontend
-- React + Vite + TypeScript
-- Playwright for E2E testing
+- **React 19**
+- **Vite** (Build tool)
+- **TypeScript** (Type safety)
+- **Playwright** (E2E testing - M3 milestone)
 
 ### Deployment
 - **Platform**: Render (free tier)
-- **Database**: Render Postgres (free tier)
-- **Environments**: Local dev + Render prod (main branch)
-- **CI/CD**: GitHub Actions with Render integration
+- **Database**: Render PostgreSQL (free tier)
+- **CI/CD**: GitHub Actions with Render integration (planned)
 
 ## Specification Scope
 
