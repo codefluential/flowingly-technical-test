@@ -1,0 +1,249 @@
+{
+  "task_id": "task_022",
+  "milestone": "M1",
+  "name": "Implement ITaxCalculator",
+  "description": "Implement ITaxCalculator interface to calculate NZ GST from tax-inclusive totals using Banker's Rounding (GREEN phase of TDD). Make all 7 tests from task_021 pass with minimal, production-ready implementation.",
+
+  "agent": {
+    "primary": "coder",
+    "role": "Domain service implementation - TDD GREEN phase"
+  },
+
+  "duration": "1h",
+  "priority": "critical",
+  "dependencies": ["task_021"],
+  "parallel_group": null,
+  "tdd_phase": "GREEN",
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 4.2: Parsing & Validation Rules - Banker's Rounding at business boundaries",
+        "Section 4.2: Tax Rate Precedence - Request parameter > Config default (0.15)"
+      ],
+      "requirements": [
+        "Default tax rate: 0.15 (15% NZ GST)",
+        "Calculate tax_exclusive = tax_inclusive / (1 + tax_rate)",
+        "Calculate sales_tax = tax_inclusive - tax_exclusive",
+        "Use Banker's Rounding (MidpointRounding.ToEven) for all monetary calculations",
+        "Round both tax_exclusive and sales_tax to 2 decimal places",
+        "Support custom tax rates (not just 0.15)",
+        "Validate tax-inclusive amount is non-negative",
+        "Validate tax rate is between 0 and 1 (0% to 100%)"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 3,
+      "requirement": "GST calculation from tax-inclusive totals with proper rounding",
+      "grading_criteria": "Tax calculation accuracy is a core graded component"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0009-bankers-rounding.md",
+        "decision": "Use Banker's Rounding (MidpointRounding.ToEven) for all tax calculations",
+        "rationale": "Statistically unbiased over many operations; reduces cumulative rounding errors",
+        "context": "When rounding 0.5, round to nearest even number (e.g., 2.125 → 2.12, 2.135 → 2.14)",
+        "key_excerpt": "Apply Banker's Rounding at business boundaries (after tax calculation, before persistence/response)",
+        "implementation_code": "var totalExclTax = totalInclTax / (1 + taxRate);\ntotalExclTax = Math.Round(totalExclTax, 2, MidpointRounding.ToEven);\n\nvar salesTax = totalInclTax - totalExclTax;\nsalesTax = Math.Round(salesTax, 2, MidpointRounding.ToEven);"
+      },
+      {
+        "file": "project-context/adr/ADR-0002-architecture-style.md",
+        "decision": "Clean/Hexagonal Architecture with Ports & Adapters",
+        "relevance": "ITaxCalculator is a Domain Port (interface), TaxCalculator is Domain service with no external dependencies"
+      },
+      {
+        "file": "project-context/adr/ADR-0010-test-strategy-coverage.md",
+        "decision": "TDD with London School approach (RED-GREEN-REFACTOR)",
+        "context": "GREEN phase: Simplest implementation that makes all tests pass"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M1 — Core Parsing & Validation",
+      "sub_section": "GST Tax Calculation (TDD GREEN phase)",
+      "requirement": "Implement calculator to make tests pass using formula: totalExclTax = totalIncl / (1 + taxRate), salesTax = totalIncl - totalExclTax, with Banker's Rounding"
+    },
+    "red_phase_context": {
+      "task": "task_021",
+      "test_file": "api/tests/Flowingly.ParsingService.Tests/Services/TaxCalculatorTests.cs",
+      "test_count": "7 tests (RED)",
+      "current_status": "All tests failing, awaiting implementation"
+    },
+    "banker_rounding_helper_context": {
+      "task": "task_020",
+      "implementation": "api/src/Flowingly.ParsingService.Domain/Helpers/RoundingHelper.cs",
+      "status": "Completed - RoundingHelper.RoundToEven available for use",
+      "usage": "RoundingHelper.RoundToEven(value, 2) for currency rounding"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "ITaxCalculator.cs",
+      "description": "Interface defining tax calculation contract",
+      "location": "api/src/Flowingly.ParsingService.Domain/Services/",
+      "methods": [
+        "TaxCalculationResult CalculateFromInclusive(decimal taxInclusive, decimal taxRate = 0.15m)"
+      ]
+    },
+    {
+      "item": "TaxCalculator.cs",
+      "description": "Concrete implementation of ITaxCalculator",
+      "location": "api/src/Flowingly.ParsingService.Domain/Services/",
+      "properties": {
+        "stateless": true,
+        "no_external_dependencies": true,
+        "pure_domain_logic": true
+      }
+    },
+    {
+      "item": "TaxCalculationResult.cs",
+      "description": "Value object for tax calculation results",
+      "location": "api/src/Flowingly.ParsingService.Domain/Models/",
+      "properties": {
+        "TaxExclusive": "decimal",
+        "Gst": "decimal",
+        "TaxInclusive": "decimal",
+        "TaxRate": "decimal"
+      }
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ ITaxCalculator interface created with CalculateFromInclusive method",
+    "✅ TaxCalculator class implements ITaxCalculator",
+    "✅ TaxCalculationResult value object created with required properties",
+    "✅ All 7 tests from task_021 now PASS (GREEN)",
+    "✅ Banker's Rounding used via RoundingHelper.RoundToEven or Math.Round with MidpointRounding.ToEven",
+    "✅ GST calculation formula correct: totalExclTax = totalIncl / (1 + taxRate), salesTax = totalIncl - totalExclTax",
+    "✅ Input validation: negative amounts rejected with ArgumentException",
+    "✅ Input validation: invalid tax rates (< 0 or > 1) rejected with ArgumentException",
+    "✅ Default tax rate of 0.15 used when not specified",
+    "✅ Custom tax rates supported (not hardcoded to 0.15)",
+    "✅ No external dependencies (pure domain logic)",
+    "✅ Stateless implementation (thread-safe)",
+    "✅ Solution builds with 0 warnings, 0 errors"
+  ],
+
+  "business_rules": [
+    "Default tax rate: 0.15 (15% NZ GST)",
+    "Tax-exclusive = tax-inclusive / (1 + tax_rate)",
+    "GST = tax-inclusive - tax-exclusive",
+    "ALL rounding uses Banker's Rounding (MidpointRounding.ToEven)",
+    "Both tax_exclusive and sales_tax rounded independently to 2 decimal places",
+    "Tax-inclusive amount MUST be non-negative (>= 0)",
+    "Tax rate MUST be between 0 and 1 (0% to 100%)",
+    "Implementation MUST be deterministic (same input → same output)",
+    "No external dependencies (pure domain service)",
+    "Thread-safe (stateless implementation)",
+    "Use RoundingHelper.RoundToEven from task_020 for consistency"
+  ],
+
+  "code_examples": {
+    "interface": "using Flowingly.ParsingService.Domain.Models;\n\nnamespace Flowingly.ParsingService.Domain.Services;\n\npublic interface ITaxCalculator\n{\n    /// <summary>\n    /// Calculates tax breakdown from tax-inclusive total using NZ GST calculation.\n    /// </summary>\n    /// <param name=\"taxInclusive\">Tax-inclusive total amount (must be non-negative)</param>\n    /// <param name=\"taxRate\">Tax rate as decimal (e.g., 0.15 for 15%). Default: 0.15 (NZ GST)</param>\n    /// <returns>Tax calculation result with exclusive amount and GST</returns>\n    /// <exception cref=\"ArgumentException\">Thrown if taxInclusive is negative or taxRate is invalid</exception>\n    TaxCalculationResult CalculateFromInclusive(decimal taxInclusive, decimal taxRate = 0.15m);\n}",
+
+    "implementation": "using Flowingly.ParsingService.Domain.Helpers;\nusing Flowingly.ParsingService.Domain.Models;\n\nnamespace Flowingly.ParsingService.Domain.Services;\n\npublic class TaxCalculator : ITaxCalculator\n{\n    public TaxCalculationResult CalculateFromInclusive(decimal taxInclusive, decimal taxRate = 0.15m)\n    {\n        // Validate inputs\n        if (taxInclusive < 0)\n            throw new ArgumentException(\"Tax-inclusive amount must be non-negative\", nameof(taxInclusive));\n\n        if (taxRate < 0 || taxRate > 1)\n            throw new ArgumentException(\"Tax rate must be between 0 and 1\", nameof(taxRate));\n\n        // Calculate tax-exclusive amount\n        var taxExclusive = taxInclusive / (1 + taxRate);\n        taxExclusive = RoundingHelper.RoundToEven(taxExclusive, 2);\n\n        // Calculate GST\n        var gst = taxInclusive - taxExclusive;\n        gst = RoundingHelper.RoundToEven(gst, 2);\n\n        return new TaxCalculationResult\n        {\n            TaxExclusive = taxExclusive,\n            Gst = gst,\n            TaxInclusive = taxInclusive,\n            TaxRate = taxRate\n        };\n    }\n}",
+
+    "value_object": "namespace Flowingly.ParsingService.Domain.Models;\n\n/// <summary>\n/// Represents the result of a tax calculation.\n/// </summary>\npublic class TaxCalculationResult\n{\n    /// <summary>\n    /// Tax-exclusive amount (base amount before tax)\n    /// </summary>\n    public decimal TaxExclusive { get; init; }\n\n    /// <summary>\n    /// GST/sales tax amount\n    /// </summary>\n    public decimal Gst { get; init; }\n\n    /// <summary>\n    /// Tax-inclusive amount (total paid including tax)\n    /// </summary>\n    public decimal TaxInclusive { get; init; }\n\n    /// <summary>\n    /// Tax rate used in calculation (e.g., 0.15 for 15%)\n    /// </summary>\n    public decimal TaxRate { get; init; }\n}",
+
+    "usage_example": "// Example 1: Standard GST calculation\nvar calculator = new TaxCalculator();\nvar result = calculator.CalculateFromInclusive(115.00m); // Uses default 0.15\n// result.TaxExclusive = 100.00\n// result.Gst = 15.00\n\n// Example 2: Custom tax rate\nvar result2 = calculator.CalculateFromInclusive(120.00m, 0.20m);\n// result2.TaxExclusive = 100.00\n// result2.Gst = 20.00\n\n// Example 3: Banker's Rounding edge case\nvar result3 = calculator.CalculateFromInclusive(100.25m, 0.15m);\n// 100.25 / 1.15 = 87.173913...\n// Rounds to 87.17 (Banker's Rounding)\n// result3.TaxExclusive = 87.17\n// result3.Gst = 13.08"
+  },
+
+  "tdd_workflow": {
+    "current_phase": "GREEN - Make tests pass with minimal implementation",
+    "previous_phase": "task_021 - RED - Tests written and failing",
+    "next_phase": "task_023 - RED - Time Parser Tests (next TDD cycle)",
+    "principle": "Simplest implementation that makes all tests pass",
+    "green_phase_rules": [
+      "Make all RED tests pass",
+      "No gold-plating or premature optimization",
+      "Keep implementation simple and readable",
+      "Use existing RoundingHelper for consistency",
+      "Ensure proper input validation (tests verify this)",
+      "No refactoring yet (that's next phase if needed)"
+    ]
+  },
+
+  "implementation_notes": {
+    "formula": [
+      "tax_exclusive = tax_inclusive / (1 + tax_rate)",
+      "gst = tax_inclusive - tax_exclusive",
+      "Both values rounded to 2 decimals using Banker's Rounding"
+    ],
+    "rounding_strategy": [
+      "Use RoundingHelper.RoundToEven(value, 2) for consistency with task_020",
+      "Alternative: Math.Round(value, 2, MidpointRounding.ToEven) if RoundingHelper not used",
+      "Apply rounding AFTER calculation, not during intermediate steps"
+    ],
+    "validation_requirements": [
+      "taxInclusive >= 0 (non-negative)",
+      "taxRate >= 0 and taxRate <= 1 (0% to 100%)",
+      "Throw ArgumentException with descriptive message for invalid inputs"
+    ],
+    "edge_cases_handled": [
+      "Zero amount (0.00) → returns 0.00 exclusive, 0.00 GST",
+      "Small amounts (< 1.00) → proper precision maintained",
+      "Midpoint rounding cases (e.g., 87.055 → 87.06 even)",
+      "Custom tax rates (not hardcoded to 0.15)",
+      "Negative amounts → ArgumentException",
+      "Invalid tax rates → ArgumentException"
+    ],
+    "design_considerations": [
+      "Stateless class (no instance fields)",
+      "Pure function (same input → same output)",
+      "No external dependencies (pure domain logic)",
+      "Thread-safe by design (stateless)",
+      "Can be registered as singleton in DI container"
+    ]
+  },
+
+  "technical_requirements": {
+    "dotnet_commands": {
+      "test": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~TaxCalculator",
+      "build": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build api/src/Flowingly.ParsingService.Domain",
+      "test_verbose": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~TaxCalculator --logger \"console;verbosity=detailed\""
+    },
+    "namespaces": [
+      "Flowingly.ParsingService.Domain.Services (interface and implementation)",
+      "Flowingly.ParsingService.Domain.Models (value object)",
+      "Flowingly.ParsingService.Domain.Helpers (RoundingHelper usage)"
+    ],
+    "dependencies": [
+      "RoundingHelper (from task_020) for Banker's Rounding"
+    ]
+  },
+
+  "validation": {
+    "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~TaxCalculator",
+    "expected_output": "Test Run Successful.\nTotal tests: 7\n     Passed: 7",
+    "secondary_validation": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build api/src/Flowingly.ParsingService.Domain",
+    "expected_build_output": "Build succeeded.\n    0 Warning(s)\n    0 Error(s)"
+  },
+
+  "definition_of_done": [
+    "✅ ITaxCalculator.cs created in Domain/Services/",
+    "✅ TaxCalculator.cs created in Domain/Services/",
+    "✅ TaxCalculationResult.cs created in Domain/Models/",
+    "✅ All 7 tests from task_021 now PASS (GREEN)",
+    "✅ Banker's Rounding correctly implemented using RoundingHelper",
+    "✅ GST calculation formula verified (totalExclTax = totalIncl / (1 + taxRate))",
+    "✅ Input validation implemented (negative amounts, invalid rates)",
+    "✅ Default tax rate of 0.15 works correctly",
+    "✅ Custom tax rates supported and tested",
+    "✅ No external dependencies (pure domain logic)",
+    "✅ Solution builds with 0 warnings, 0 errors",
+    "✅ Progress updated: ./scripts/update-progress.sh task_022 completed",
+    "✅ Commit created with descriptive message and co-authorship footer"
+  ],
+
+  "next_task": {
+    "id": "task_023",
+    "name": "Write Time Parser Tests (TDD)",
+    "why": "Tax calculator cycle complete (RED-GREEN), move to next parser (Time Parser RED phase)",
+    "tdd_phase": "RED",
+    "parallel_eligible": true,
+    "parallel_group": "M1_parallel_2"
+  }
+}
