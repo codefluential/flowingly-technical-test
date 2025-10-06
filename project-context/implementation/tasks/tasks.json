@@ -7,18 +7,18 @@
   "aadf_compliant": true,
   "tdd_approach": true,
   "progress_tracking": {
-    "last_updated": "2025-10-06T14:20:25+13:00",
+    "last_updated": "2025-10-06T14:59:07+13:00",
     "current_milestone": "M1",
-    "current_task": "task_012",
-    "tasks_completed": 13,
-    "tasks_in_progress": 0,
-    "tasks_pending": 37,
+    "current_task": "task_017",
+    "tasks_completed": 16,
+    "tasks_in_progress": 2,
+    "tasks_pending": 32,
     "tasks_blocked": 0,
     "tests_passing": {
-      "unit": 0,
+      "unit": 10,
       "contract": 0,
       "e2e": 0,
-      "total": 0
+      "total": 10
     },
     "milestones_completed": [
       "M0"
@@ -337,7 +337,10 @@
         "task_013"
       ],
       "parallel_group": "M1_parallel_1",
-      "tdd_phase": "red"
+      "tdd_phase": "red",
+      "status": "completed",
+      "started_at": "2025-10-06T14:54:46+13:00",
+      "completed_at": "2025-10-06T14:59:07+13:00"
     },
     {
       "id": "task_015",
@@ -376,7 +379,10 @@
         "task_013"
       ],
       "parallel_group": "M1_parallel_1",
-      "tdd_phase": "red"
+      "tdd_phase": "red",
+      "status": "completed",
+      "started_at": "2025-10-06T14:55:39+13:00",
+      "completed_at": "2025-10-06T14:58:26+13:00"
     },
     {
       "id": "task_018",
@@ -402,7 +408,10 @@
         "task_013"
       ],
       "parallel_group": "M1_parallel_1",
-      "tdd_phase": "red"
+      "tdd_phase": "red",
+      "status": "completed",
+      "started_at": "2025-10-06T14:49:32+13:00",
+      "completed_at": "2025-10-06T14:58:25+13:00"
     },
     {
       "id": "task_020",
@@ -454,7 +463,9 @@
         "task_013"
       ],
       "parallel_group": "M1_parallel_2",
-      "tdd_phase": "red"
+      "tdd_phase": "red",
+      "status": "in_progress",
+      "started_at": "2025-10-06T14:49:32+13:00"
     },
     {
       "id": "task_024",
@@ -480,7 +491,9 @@
         "task_013"
       ],
       "parallel_group": "M1_parallel_2",
-      "tdd_phase": "red"
+      "tdd_phase": "red",
+      "status": "in_progress",
+      "started_at": "2025-10-06T14:49:33+13:00"
     },
     {
       "id": "task_026",
