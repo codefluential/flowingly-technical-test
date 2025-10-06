@@ -32,7 +32,17 @@ jq --arg task "$TASK_ID" --arg status "$STATUS" --arg timestamp "$(date -Isecond
     (.tasks[] | select(.id == $task) | .started_at) = $timestamp |
     .progress_tracking.current_task = $task
   elif $status == "completed" then
-    (.tasks[] | select(.id == $task) | .completed_at) = $timestamp
+    (.tasks[] | select(.id == $task) | .completed_at) = $timestamp |
+    # Calculate duration_minutes if started_at exists
+    (.tasks[] | select(.id == $task)) |= (
+      if .started_at != null and .completed_at != null then
+        .duration_minutes = (
+          (((.completed_at | fromdateiso8601) - (.started_at | fromdateiso8601)) / 60) | round
+        )
+      else
+        .
+      end
+    )
   else
     .
   end |
