@@ -28,32 +28,30 @@ jq --arg task "$TASK_ID" --arg status "$STATUS" --arg timestamp "$(date -u +%Y-%
   # Update task status
   (.tasks[] | select(.id == $task) | .status) = $status |
 
-  # Update timestamps
-  if $status == "in_progress" then
+  # Update timestamps based on status
+  (if $status == "in_progress" then
     (.tasks[] | select(.id == $task) | .started_at) = $timestamp |
     .progress_tracking.current_task = $task
   elif $status == "completed" then
-    (.tasks[] | select(.id == $task) | .completed_at) = $timestamp |
-    # Calculate duration_minutes if started_at exists
-    # Need to handle both Z and +XX:XX timezone formats
+    (.tasks[] | select(.id == $task) | .completed_at) = $timestamp
+  else
+    .
+  end) |
+
+  # Calculate duration for completed tasks
+  (if $status == "completed" then
     (.tasks[] | select(.id == $task)) |= (
       if .started_at != null and .completed_at != null then
-        # Convert both timestamps to epoch and calculate difference
-        (.started_at as $start | .completed_at as $end |
-          # Try to parse, fallback to 0 if format is incompatible
-          try (
-            .duration_minutes = ((($end | fromdateiso8601) - ($start | fromdateiso8601)) / 60) | round
-          ) catch (
-            .duration_minutes = null
-          )
-        )
+        (.started_at | fromdateiso8601) as $start_epoch |
+        (.completed_at | fromdateiso8601) as $end_epoch |
+        .duration_minutes = (($end_epoch - $start_epoch) / 60 | round)
       else
         .
       end
     )
   else
     .
-  end |
+  end) |
 
   # Recalculate all metrics from actual task statuses
   .progress_tracking.tasks_completed = ([.tasks[] | select(.status == "completed")] | length) |
