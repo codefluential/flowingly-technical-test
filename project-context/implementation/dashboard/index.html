@@ -628,6 +628,42 @@
                 const isCompleted = progress.milestones_completed.includes(milestoneKey);
                 const isActive = milestoneKey === currentMilestone;
 
+                // Calculate milestone-specific duration metrics
+                let milestoneActualMinutes = 0;
+                let milestoneEstimatedMinutes = 0;
+                let milestoneRemainingMinutes = 0;
+
+                milestoneTasks.forEach(task => {
+                    // Parse estimated duration
+                    const estMatch = task.duration.match(/(\d+(\.\d+)?)\s*(h|min)/);
+                    if (estMatch) {
+                        const value = parseFloat(estMatch[1]);
+                        const unit = estMatch[3];
+                        const estMinutes = unit === 'h' ? value * 60 : value;
+                        milestoneEstimatedMinutes += estMinutes;
+
+                        if (task.status !== 'completed') {
+                            milestoneRemainingMinutes += estMinutes;
+                        }
+                    }
+
+                    // Calculate actual duration for completed tasks
+                    if (task.status === 'completed' && task.started_at && task.completed_at) {
+                        const start = new Date(task.started_at);
+                        const end = new Date(task.completed_at);
+                        const durationMs = end - start;
+                        const durationMinutes = Math.round(durationMs / 60000);
+                        milestoneActualMinutes += durationMinutes;
+                    }
+                });
+
+                // Calculate estimated completion time
+                const now = new Date();
+                const estimatedCompletion = new Date(now.getTime() + milestoneRemainingMinutes * 60000);
+                const completionTime = milestoneRemainingMinutes > 0
+                    ? estimatedCompletion.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    : 'Completed';
+
                 milestonesHtml += `
                     <div class="tab-content ${isActive ? 'active' : ''}" id="content-${milestoneKey}">
                         <div class="milestone-header-info">
@@ -636,7 +672,17 @@
                             </div>
                             <div class="milestone-meta">
                                 <span>${completedTasks}/${milestoneTasks.length} tasks</span>
-                                <span>${milestone.duration}</span>
+                                <span title="Original estimate from delivery plan">${milestone.duration}</span>
+                            </div>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 12px 15px; border-radius: 4px; margin-bottom: 15px; font-size: 13px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span><strong>Actual:</strong> ${formatDuration(milestoneActualMinutes)}</span>
+                                <span><strong>Estimated Total:</strong> ${formatDuration(milestoneEstimatedMinutes)}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span><strong>Remaining:</strong> ${formatDuration(milestoneRemainingMinutes)}</span>
+                                <span><strong>Est. Completion:</strong> ${completionTime}</span>
                             </div>
                         </div>
                         <div class="filter-controls">
