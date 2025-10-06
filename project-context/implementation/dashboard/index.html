@@ -250,17 +250,21 @@
 
         .task.ready-to-start {
             border-left-color: #28a745;
-            background: linear-gradient(90deg, #d4edda 0%, #e7f5e9 50%, #d4edda 100%);
+            border-left-width: 5px;
+            background: linear-gradient(90deg, #c3e6cb 0%, #d4edda 25%, #e7f5e9 50%, #d4edda 75%, #c3e6cb 100%);
             background-size: 200% 100%;
-            animation: readyPulse 3s ease-in-out infinite;
+            animation: readyPulse 2s ease-in-out infinite;
+            box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.1);
         }
 
         @keyframes readyPulse {
             0%, 100% {
                 background-position: 0% 50%;
+                box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.1);
             }
             50% {
                 background-position: 100% 50%;
+                box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.25);
             }
         }
 
@@ -330,6 +334,19 @@
         .badge.ready {
             background: #28a745;
             color: white;
+            animation: badgePulse 2s ease-in-out infinite;
+            font-weight: 700;
+        }
+
+        @keyframes badgePulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.85;
+                transform: scale(1.05);
+            }
         }
 
         .dependencies {
@@ -646,7 +663,8 @@
                             <div class="task-title">
                                 ${task.status === 'completed' ? '✅' :
                                   task.status === 'in_progress' ? '🔄' :
-                                  task.status === 'blocked' ? '⚠️' : '⏳'}
+                                  task.status === 'blocked' ? '⚠️' :
+                                  isReadyToStart ? '🚀' : '⏳'}
                                 ${task.id}: ${task.name}${dependenciesHtml}
                             </div>
                             <div class="task-meta">
