@@ -1,0 +1,278 @@
+{
+  "task_id": "task_021",
+  "milestone": "M1",
+  "name": "Write Tax Calculator Tests (TDD)",
+  "description": "Write comprehensive unit tests for NZ GST tax calculator BEFORE implementation. Tests calculate GST from tax-inclusive totals using Banker's Rounding. Tests MUST fail initially (RED phase of TDD).",
+
+  "agent": {
+    "primary": "tdd-london-swarm",
+    "role": "TDD Test Implementation (London School - mockist style)"
+  },
+
+  "duration": "1h",
+  "priority": "critical",
+  "dependencies": ["task_020"],
+  "parallel_group": "M1_parallel_2",
+  "tdd_phase": "RED",
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 12: Tax Calculation - GST computation from tax-inclusive totals",
+        "Section 12.1: Banker's Rounding (MidpointRounding.ToEven) - Round 0.5 to nearest even number",
+        "Section 13: BDD Scenarios - Tax calculation examples with expected outputs"
+      ],
+      "requirements": [
+        "Default tax rate: 0.15 (15% NZ GST)",
+        "Calculate tax_exclusive = tax_inclusive / 1.15",
+        "Calculate gst = tax_inclusive - tax_exclusive",
+        "Use Banker's Rounding (MidpointRounding.ToEven) for all calculations",
+        "Support custom tax rates (not just 0.15)",
+        "Return TaxCalculationResult with exclusive amount and GST amount"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 3,
+      "requirement": "GST calculation from tax-inclusive totals with proper rounding",
+      "grading_criteria": "Tax calculation accuracy is a core graded component"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0009-banker-rounding.md",
+        "decision": "Use Banker's Rounding (MidpointRounding.ToEven) for all tax calculations",
+        "rationale": "Reduces cumulative rounding bias in financial calculations",
+        "context": "When rounding 0.5, round to nearest even number (e.g., 2.5 → 2, 3.5 → 4)",
+        "key_excerpt": "Math.Round(value, 2, MidpointRounding.ToEven) for all currency rounding",
+        "implementation_example": "decimal taxExclusive = Math.Round(taxInclusive / (1 + taxRate), 2, MidpointRounding.ToEven);\ndecimal gst = Math.Round(taxInclusive - taxExclusive, 2, MidpointRounding.ToEven);"
+      },
+      {
+        "file": "project-context/adr/ADR-0002-architecture-style.md",
+        "decision": "Clean/Hexagonal Architecture with Ports & Adapters",
+        "relevance": "TaxCalculator is a Domain service (Port), pure logic with no external dependencies"
+      },
+      {
+        "file": "project-context/adr/ADR-0010-test-strategy-coverage.md",
+        "decision": "TDD with London School (mockist) approach",
+        "relevance": "Defines how to structure tax calculator tests"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M1 — Core Parsing & Validation",
+      "sub_section": "Tax Calculation (TDD RED phase)",
+      "requirement": "Write tests for GST calculation from inclusive totals using Banker's Rounding"
+    },
+    "banker_rounding_context": {
+      "task": "task_020",
+      "implementation": "RoundingHelper.cs with Banker's Rounding",
+      "status": "Completed - RoundingHelper available for use in TaxCalculator",
+      "usage": "RoundingHelper.RoundToEven(value, 2) for currency rounding"
+    }
+  },
+
+  "test_scenarios": [
+    {
+      "name": "Calculate_GST_From_Inclusive_Total_115",
+      "input": { "tax_inclusive": 115.00, "tax_rate": 0.15 },
+      "expected": { "tax_exclusive": 100.00, "gst": 15.00 },
+      "reason": "Standard GST calculation: 115 / 1.15 = 100, GST = 15"
+    },
+    {
+      "name": "Calculate_GST_With_Banker_Rounding_Round_Down",
+      "input": { "tax_inclusive": 100.25, "tax_rate": 0.15 },
+      "expected": { "tax_exclusive": 87.17, "gst": 13.08 },
+      "reason": "100.25 / 1.15 = 87.173913... rounds to 87.17, GST = 13.08"
+    },
+    {
+      "name": "Calculate_GST_With_Banker_Rounding_Round_Up",
+      "input": { "tax_inclusive": 100.35, "tax_rate": 0.15 },
+      "expected": { "tax_exclusive": 87.26, "gst": 13.09 },
+      "reason": "100.35 / 1.15 = 87.26087... rounds to 87.26, GST = 13.09"
+    },
+    {
+      "name": "Calculate_GST_With_Banker_Rounding_Midpoint_Even",
+      "input": { "tax_inclusive": 100.115, "tax_rate": 0.15 },
+      "expected": { "tax_exclusive": 87.05, "gst": 13.07 },
+      "reason": "Banker's Rounding: midpoint rounds to nearest even (87.055 → 87.06 is even)"
+    },
+    {
+      "name": "Calculate_GST_With_Custom_Tax_Rate",
+      "input": { "tax_inclusive": 120.00, "tax_rate": 0.20 },
+      "expected": { "tax_exclusive": 100.00, "gst": 20.00 },
+      "reason": "Support custom tax rates: 120 / 1.20 = 100, GST = 20"
+    },
+    {
+      "name": "Calculate_GST_For_Zero_Amount",
+      "input": { "tax_inclusive": 0.00, "tax_rate": 0.15 },
+      "expected": { "tax_exclusive": 0.00, "gst": 0.00 },
+      "reason": "Edge case: zero amount should return zero"
+    },
+    {
+      "name": "Calculate_GST_For_Small_Amount_With_Precision",
+      "input": { "tax_inclusive": 1.15, "tax_rate": 0.15 },
+      "expected": { "tax_exclusive": 1.00, "gst": 0.15 },
+      "reason": "Small amounts should round correctly"
+    },
+    {
+      "name": "Reject_Negative_Tax_Inclusive_Amount",
+      "input": { "tax_inclusive": -100.00, "tax_rate": 0.15 },
+      "expected": "ArgumentException",
+      "reason": "Tax-inclusive amount must be non-negative"
+    },
+    {
+      "name": "Reject_Negative_Tax_Rate",
+      "input": { "tax_inclusive": 100.00, "tax_rate": -0.15 },
+      "expected": "ArgumentException",
+      "reason": "Tax rate must be non-negative"
+    },
+    {
+      "name": "Reject_Tax_Rate_Greater_Than_One",
+      "input": { "tax_inclusive": 100.00, "tax_rate": 1.5 },
+      "expected": "ArgumentException",
+      "reason": "Tax rate must be between 0 and 1 (0% to 100%)"
+    }
+  ],
+
+  "deliverables": [
+    {
+      "item": "TaxCalculatorTests.cs",
+      "description": "xUnit test class with FluentAssertions",
+      "location": "api/tests/Flowingly.ParsingService.Tests/Services/",
+      "test_count": "10+ test methods"
+    },
+    {
+      "item": "Failing tests",
+      "description": "All tests must FAIL initially (RED phase)",
+      "validation": "Test runner shows RED for all tax calculator tests"
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ 10+ test methods created covering all scenarios",
+    "✅ All tests use FluentAssertions syntax",
+    "✅ All tests currently FAIL (no implementation yet)",
+    "✅ Test names follow Given_When_Then or Should pattern",
+    "✅ Each test has clear Arrange-Act-Assert structure",
+    "✅ Tests verify GST calculation from tax-inclusive totals",
+    "✅ Tests verify Banker's Rounding is used (MidpointRounding.ToEven)",
+    "✅ Tests verify custom tax rates are supported",
+    "✅ Tests verify edge cases (zero, negative, invalid rates)",
+    "✅ Tests verify input validation (negative amounts, invalid rates)"
+  ],
+
+  "business_rules": [
+    "Default tax rate is 0.15 (15% NZ GST)",
+    "Tax-exclusive = tax-inclusive / (1 + tax_rate)",
+    "GST = tax-inclusive - tax-exclusive",
+    "ALL rounding uses Banker's Rounding (MidpointRounding.ToEven)",
+    "Currency values rounded to 2 decimal places",
+    "Tax-inclusive amount must be non-negative",
+    "Tax rate must be between 0 and 1 (0% to 100%)",
+    "Calculation must be deterministic and repeatable",
+    "Use RoundingHelper.RoundToEven from task_020 for rounding"
+  ],
+
+  "code_examples": {
+    "test_structure": "// Arrange\nvar calculator = new TaxCalculator();\nvar taxInclusive = 115.00m;\nvar taxRate = 0.15m;\n\n// Act\nvar result = calculator.CalculateFromInclusive(taxInclusive, taxRate);\n\n// Assert\nresult.TaxExclusive.Should().Be(100.00m);\nresult.Gst.Should().Be(15.00m);",
+
+    "banker_rounding_test": "// Test Banker's Rounding: 87.055 rounds to 87.06 (even)\nvar calculator = new TaxCalculator();\nvar result = calculator.CalculateFromInclusive(100.115m, 0.15m);\nresult.TaxExclusive.Should().Be(87.06m); // Rounds to even",
+
+    "interface": "public interface ITaxCalculator\n{\n    TaxCalculationResult CalculateFromInclusive(decimal taxInclusive, decimal taxRate = 0.15m);\n}",
+
+    "result_type": "public class TaxCalculationResult\n{\n    public decimal TaxExclusive { get; init; }\n    public decimal Gst { get; init; }\n    public decimal TaxInclusive { get; init; }\n    public decimal TaxRate { get; init; }\n}",
+
+    "validation_test": "// Test negative amount validation\nvar calculator = new TaxCalculator();\nAction act = () => calculator.CalculateFromInclusive(-100.00m, 0.15m);\nact.Should().Throw<ArgumentException>()\n   .WithMessage(\"*Tax-inclusive amount must be non-negative*\");"
+  },
+
+  "tdd_workflow": {
+    "current_phase": "RED - Write failing tests",
+    "next_phase": "task_022 - GREEN - Implement to make tests pass",
+    "principle": "Never write implementation before tests fail",
+    "red_phase_rules": [
+      "Write tests that define expected behavior",
+      "All tests must FAIL (no implementation exists)",
+      "Cover happy path, edge cases, and validation",
+      "Use descriptive test names",
+      "Minimal test setup (no complex mocking for calculator)"
+    ]
+  },
+
+  "testing_requirements": {
+    "test_types": ["unit"],
+    "min_coverage": "100% of public methods (ITaxCalculator.CalculateFromInclusive)",
+    "required_scenarios": [
+      "Standard GST calculation (115 → 100 + 15)",
+      "Banker's Rounding verification (multiple midpoint cases)",
+      "Custom tax rates (not just 0.15)",
+      "Zero amount edge case",
+      "Small amounts with precision",
+      "Negative amount validation",
+      "Invalid tax rate validation (negative, > 1)"
+    ],
+    "test_validation": {
+      "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~TaxCalculator",
+      "expected_output": "10+ tests FAILED (RED)",
+      "failure_is_success": true
+    }
+  },
+
+  "validation": {
+    "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~TaxCalculator",
+    "expected_output": "Total tests: 10+\n     Failed: 10+",
+    "failure_is_success": true,
+    "notes": "Tests SHOULD fail because ITaxCalculator is not yet implemented"
+  },
+
+  "definition_of_done": [
+    "✅ TaxCalculatorTests.cs created in tests/Services/",
+    "✅ 10+ test methods covering all scenarios",
+    "✅ All tests use FluentAssertions",
+    "✅ All tests FAIL (RED phase complete)",
+    "✅ Test names are descriptive and follow convention",
+    "✅ Tests verify Banker's Rounding behavior",
+    "✅ Tests verify custom tax rates",
+    "✅ Tests verify input validation",
+    "✅ Tests are well-organized and readable",
+    "✅ Progress updated: ./scripts/update-progress.sh task_021 completed unit 10",
+    "✅ Commit created with descriptive message and co-authorship footer"
+  ],
+
+  "implementation_notes": {
+    "formula": [
+      "tax_exclusive = tax_inclusive / (1 + tax_rate)",
+      "gst = tax_inclusive - tax_exclusive",
+      "Both values rounded to 2 decimals using Banker's Rounding"
+    ],
+    "rounding_examples": [
+      "2.125 rounds to 2.12 (even)",
+      "2.135 rounds to 2.14 (even)",
+      "2.145 rounds to 2.14 (even)",
+      "2.155 rounds to 2.16 (even)"
+    ],
+    "test_data_calculation": [
+      "100.25 / 1.15 = 87.173913...",
+      "Round to 2 decimals: 87.17",
+      "GST = 100.25 - 87.17 = 13.08"
+    ],
+    "edge_cases_to_test": [
+      "Zero amount",
+      "Very small amounts (< 1)",
+      "Large amounts (> 1000000)",
+      "Negative amounts (should reject)",
+      "Invalid tax rates (negative, > 1, should reject)",
+      "Tax rate of 0 (no tax)",
+      "Midpoint values that test Banker's Rounding"
+    ]
+  },
+
+  "next_task": {
+    "id": "task_022",
+    "name": "Implement ITaxCalculator",
+    "why": "Tests are failing (RED), now make them pass (GREEN)",
+    "tdd_phase": "GREEN",
+    "parallel_eligible": true,
+    "parallel_group": "M1_parallel_2"
+  }
+}

@@ -1,0 +1,280 @@
+{
+  "task_id": "task_016",
+  "milestone": "M1",
+  "name": "Verify Tag Validation Quality",
+  "description": "Code quality review and refactoring of TagValidator implementation (REFACTOR phase of TDD). Ensure code meets SOLID principles, is well-documented, and handles all edge cases properly.",
+
+  "agent": {
+    "primary": "code-analyzer",
+    "role": "Code quality specialist - TDD REFACTOR phase"
+  },
+
+  "duration": "20min",
+  "priority": "high",
+  "dependencies": ["task_015"],
+  "parallel_group": null,
+  "tdd_phase": "REFACTOR",
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 10.1: Tag Validation Rules - Stack-based validator required",
+        "Section 4.2: Parsing & Validation Rules - Stack-based scan, balanced & properly nested tags"
+      ],
+      "requirements": [
+        "Stack-based integrity check for tag validation",
+        "Code must be maintainable and follow SOLID principles",
+        "Error messages should be clear and actionable",
+        "Implementation should be performant for large inputs"
+      ]
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0008-parsing-validation-rules.md",
+        "decision": "Stack-Based Tag Validation (Not Regex Balance)",
+        "rationale": "Simple regex or balance counting cannot detect overlapping tags",
+        "context": "REFACTOR phase should verify stack-based algorithm is correctly implemented"
+      },
+      {
+        "file": "project-context/adr/ADR-0002-architecture-style.md",
+        "decision": "Clean/Hexagonal Architecture with Ports & Adapters",
+        "relevance": "TagValidator should have no external dependencies, pure domain logic"
+      },
+      {
+        "file": "project-context/adr/ADR-0010-test-strategy-coverage.md",
+        "decision": "TDD Approach with RED-GREEN-REFACTOR",
+        "context": "REFACTOR phase focuses on code quality without changing behavior"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M1 — Core Parsing & Validation",
+      "sub_section": "Tag Validation (TDD REFACTOR phase)",
+      "requirement": "Review and improve code quality while maintaining test coverage"
+    },
+    "green_phase_context": {
+      "task": "task_015",
+      "implementation_file": "api/src/Flowingly.ParsingService.Domain/Services/TagValidator.cs",
+      "test_file": "api/tests/Flowingly.ParsingService.Tests/Validators/TagValidatorTests.cs",
+      "test_count": "10 tests passing (GREEN)",
+      "current_status": "All tests passing, ready for refactoring"
+    }
+  },
+
+  "review_areas": [
+    {
+      "area": "SOLID Principles",
+      "checks": [
+        "Single Responsibility: TagValidator only validates tags, nothing else",
+        "Open/Closed: Design allows extension without modification",
+        "Liskov Substitution: ITagValidator interface is properly implemented",
+        "Interface Segregation: Interface has minimal, focused contract",
+        "Dependency Inversion: No concrete dependencies, only abstractions"
+      ]
+    },
+    {
+      "area": "Code Clarity",
+      "checks": [
+        "Variable names are self-documenting",
+        "Logic flow is easy to follow",
+        "Complex algorithms have explanatory comments",
+        "Magic strings/numbers extracted to constants",
+        "Method complexity is reasonable (low cyclomatic complexity)"
+      ]
+    },
+    {
+      "area": "Error Handling",
+      "checks": [
+        "Error messages are specific and actionable",
+        "Error codes are consistent (UNCLOSED_TAGS)",
+        "Edge cases properly handled (null, empty, malformed input)",
+        "No exceptions thrown for expected error cases"
+      ]
+    },
+    {
+      "area": "Performance",
+      "checks": [
+        "Regex compiled once (static field)",
+        "No unnecessary allocations in hot path",
+        "Stack operations efficient (O(1) push/pop)",
+        "Overall complexity is O(n) where n is tag count"
+      ]
+    },
+    {
+      "area": "Testing",
+      "checks": [
+        "All tests still pass after refactoring",
+        "Test coverage remains 100% for public methods",
+        "No behavior changes (only structure improvements)",
+        "Tests are well-organized and readable"
+      ]
+    }
+  ],
+
+  "deliverables": [
+    {
+      "item": "Code Review Report",
+      "description": "Analysis of TagValidator implementation quality",
+      "format": "Markdown or inline comments",
+      "contents": [
+        "SOLID principle adherence assessment",
+        "Code clarity and readability review",
+        "Performance considerations",
+        "Refactoring recommendations (if any)",
+        "Approval for production readiness"
+      ]
+    },
+    {
+      "item": "Refactored Code (if needed)",
+      "description": "Improved TagValidator implementation",
+      "location": "api/src/Flowingly.ParsingService.Domain/Services/TagValidator.cs",
+      "constraints": [
+        "All tests must still pass",
+        "No behavior changes",
+        "Only structural improvements"
+      ]
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ Code review completed for TagValidator.cs",
+    "✅ SOLID principles verified and documented",
+    "✅ Code clarity assessed (variable names, logic flow, comments)",
+    "✅ Error handling reviewed (messages, codes, edge cases)",
+    "✅ Performance characteristics verified (O(n) complexity, no waste)",
+    "✅ All 10 tests still pass after any refactoring",
+    "✅ No behavior changes (tests verify this)",
+    "✅ Production readiness approved OR refactoring recommendations provided",
+    "✅ If refactored: commit with clear description of improvements"
+  ],
+
+  "business_rules": [
+    "REFACTOR phase MUST NOT change behavior (tests prove this)",
+    "All tests must remain green throughout refactoring",
+    "Code must be production-ready after this phase",
+    "Focus on maintainability and readability",
+    "Performance improvements allowed if tests still pass",
+    "No new features added in REFACTOR phase"
+  ],
+
+  "technical_requirements": {
+    "quality_gates": [
+      "All unit tests pass (10/10 green)",
+      "Code builds with 0 warnings, 0 errors",
+      "No code smells (long methods, deep nesting, duplication)",
+      "Performance remains O(n) or better",
+      "No external dependencies introduced"
+    ],
+    "refactoring_techniques": [
+      "Extract Method (if validator logic is complex)",
+      "Extract Constant (for regex pattern, error messages)",
+      "Rename Variable (for clarity)",
+      "Add XML documentation comments",
+      "Simplify conditional logic"
+    ],
+    "dotnet_commands": {
+      "test": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~TagValidator",
+      "build": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build api/src/Flowingly.ParsingService.Domain",
+      "test_verbose": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~TagValidator --logger \"console;verbosity=detailed\""
+    }
+  },
+
+  "code_review_checklist": {
+    "structure": [
+      "Class is in correct namespace (Flowingly.ParsingService.Domain.Services)",
+      "Interface properly defined (ITagValidator)",
+      "ValidationResult value object properly used",
+      "No unnecessary fields or properties"
+    ],
+    "algorithm": [
+      "Stack-based LIFO correctly implemented",
+      "Regex pattern correct: <(/?)(\\w+)>",
+      "Opening tags pushed to stack",
+      "Closing tags validated against stack top",
+      "Unclosed tags detected at end"
+    ],
+    "edge_cases": [
+      "Null content handled gracefully",
+      "Empty content returns success",
+      "No tags in content returns success",
+      "Unexpected closing tag handled",
+      "Mismatched closing tag handled"
+    ],
+    "code_style": [
+      "Consistent naming conventions",
+      "Proper indentation and formatting",
+      "Clear separation of concerns",
+      "No dead code or commented-out blocks",
+      "XML documentation on public methods"
+    ]
+  },
+
+  "tdd_workflow": {
+    "current_phase": "REFACTOR - Improve code quality without changing behavior",
+    "previous_phase": "task_015 - GREEN - Implementation complete, tests passing",
+    "next_phase": "Move to next TDD cycle (task_017 - Number Normalization RED)",
+    "principle": "Refactor with confidence - tests prove behavior unchanged",
+    "refactor_rules": [
+      "Tests must pass before refactoring starts",
+      "Tests must pass after each refactoring step",
+      "Make small, incremental improvements",
+      "Commit after each successful refactoring",
+      "If tests fail, revert immediately"
+    ]
+  },
+
+  "validation": {
+    "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~TagValidator",
+    "expected_output": "Test Run Successful.\nTotal tests: 10\n     Passed: 10",
+    "secondary_validation": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build api/src/Flowingly.ParsingService.Domain",
+    "expected_build_output": "Build succeeded.\n    0 Warning(s)\n    0 Error(s)"
+  },
+
+  "definition_of_done": [
+    "✅ Code review completed with documented findings",
+    "✅ SOLID principles verified",
+    "✅ Code clarity assessed and approved",
+    "✅ Performance characteristics documented",
+    "✅ All 10 tests still pass (GREEN maintained)",
+    "✅ No behavior changes (tests prove this)",
+    "✅ If refactored: improvements documented in commit message",
+    "✅ Production readiness approved",
+    "✅ Progress updated: ./scripts/update-progress.sh task_016 completed",
+    "✅ Commit created (if code changed) or review report documented"
+  ],
+
+  "implementation_notes": {
+    "focus_areas": [
+      "Review stack-based algorithm implementation",
+      "Verify regex pattern correctness and compilation",
+      "Check error message quality and specificity",
+      "Assess variable naming and code readability",
+      "Verify no external dependencies introduced",
+      "Confirm thread-safety (stateless validator)"
+    ],
+    "common_refactorings": [
+      "Extract regex pattern to named constant",
+      "Add XML documentation to public methods",
+      "Extract error message formatting to helper method",
+      "Simplify nested if-else logic",
+      "Add region markers for logical sections"
+    ],
+    "anti_patterns_to_check": [
+      "Magic strings (hardcoded error messages)",
+      "Deep nesting (>3 levels)",
+      "Long methods (>50 lines)",
+      "Duplicate code",
+      "Unclear variable names"
+    ]
+  },
+
+  "next_task": {
+    "id": "task_017",
+    "name": "Write Number Normalization Tests (TDD)",
+    "why": "Tag validation cycle complete (RED-GREEN-REFACTOR), move to next parser",
+    "tdd_phase": "RED",
+    "parallel_eligible": true,
+    "parallel_group": "M1_parallel_1"
+  }
+}

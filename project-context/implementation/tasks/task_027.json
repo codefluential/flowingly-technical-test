@@ -1,0 +1,312 @@
+{
+  "task_id": "task_027",
+  "milestone": "M1",
+  "name": "Write Content Router Tests (TDD)",
+  "description": "Write comprehensive unit tests for ContentRouter BEFORE implementation. Router analyzes parsed content and selects appropriate IContentProcessor (ExpenseProcessor vs OtherProcessor) using Strategy pattern. Tests MUST fail initially (RED phase of TDD).",
+
+  "agent": {
+    "primary": "tdd-london-swarm",
+    "role": "TDD Test Implementation (London School - mockist style)"
+  },
+
+  "duration": "45min",
+  "priority": "critical",
+  "dependencies": ["task_015", "task_018", "task_026"],
+  "parallel_group": null,
+  "tdd_phase": "RED",
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 4.2: Parsing & Validation Rules - Tag precedence and content classification",
+        "Section 7: Patterns - Strategy pattern for processor selection",
+        "Section 4.1: Request/Response Contracts - Classification-specific responses (expense XOR other)"
+      ],
+      "requirements": [
+        "Classify content as 'expense' or 'other' based on tags present",
+        "Route expense content (has <total> or <expense> island) to ExpenseProcessor",
+        "Route other content (no <total>) to OtherProcessor",
+        "Use Strategy pattern with IContentProcessor interface",
+        "Support future processors (ReservationProcessor, etc.) without modifying router"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 2,
+      "requirement": "Parse and classify expense vs non-expense content",
+      "grading_criteria": "Content routing and classification is core graded component"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0003-processor-strategy-pattern.md",
+        "decision": "Implement Strategy Pattern for Content Classification",
+        "rationale": "Modular processing so new content types can be added later with minimal coupling",
+        "context": "ContentRouter analyzes parsed content and delegates to appropriate IContentProcessor",
+        "key_excerpt": "ExpenseProcessor.CanProcess() returns true if <total> tag present OR <expense> XML island exists. OtherProcessor.CanProcess() always returns true (fallback).",
+        "implementation_example": "public async Task<ProcessingResult> RouteAsync(ParsedContent content, CancellationToken ct)\n{\n    var processor = _processors.FirstOrDefault(p => p.CanProcess(content))\n                    ?? _processors.First(p => p.ContentType == \"other\");\n    return await processor.ProcessAsync(content, ct);\n}"
+      },
+      {
+        "file": "project-context/adr/ADR-0007-response-contract.md",
+        "decision": "Classification-Specific Response Design (expense XOR other)",
+        "relevance": "Router must select processor that returns correct response shape"
+      },
+      {
+        "file": "project-context/adr/ADR-0002-architecture-style.md",
+        "decision": "Clean/Hexagonal Architecture with Ports & Adapters",
+        "relevance": "ContentRouter is a Domain service, IContentProcessor is a Port"
+      },
+      {
+        "file": "project-context/adr/ADR-0010-test-strategy-coverage.md",
+        "decision": "TDD with London School (mockist) approach",
+        "relevance": "Use mocks for IContentProcessor implementations in tests"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M1 — Core Parsing & Validation",
+      "sub_section": "Content Router (TDD RED phase)",
+      "requirement": "Write tests for content classification and processor selection logic"
+    },
+    "dependency_context": {
+      "task_015": "TagValidator implemented - router can assume tags are validated",
+      "task_018": "NumberNormalizer implemented - router receives normalized tag values",
+      "task_026": "XmlIslandExtractor implemented - router receives extracted XML islands"
+    }
+  },
+
+  "test_scenarios": [
+    {
+      "name": "Route_To_ExpenseProcessor_When_Total_Tag_Present",
+      "input": {
+        "inline_tags": { "total": "100.00", "vendor": "Mojo Coffee" },
+        "xml_islands": []
+      },
+      "expected": "ExpenseProcessor.CanProcess() returns true, ExpenseProcessor.ProcessAsync() called",
+      "reason": "Presence of <total> tag indicates expense content"
+    },
+    {
+      "name": "Route_To_ExpenseProcessor_When_Expense_Island_Present",
+      "input": {
+        "inline_tags": { "vendor": "Mojo Coffee" },
+        "xml_islands": [{ "name": "expense", "content": "<total>100</total>" }]
+      },
+      "expected": "ExpenseProcessor.CanProcess() returns true, ExpenseProcessor.ProcessAsync() called",
+      "reason": "Presence of <expense> XML island indicates expense content"
+    },
+    {
+      "name": "Route_To_OtherProcessor_When_No_Expense_Indicators",
+      "input": {
+        "inline_tags": { "reservation_date": "2024-12-25", "party_size": "4" },
+        "xml_islands": []
+      },
+      "expected": "ExpenseProcessor.CanProcess() returns false, OtherProcessor.CanProcess() returns true, OtherProcessor.ProcessAsync() called",
+      "reason": "No <total> or <expense> island means non-expense content"
+    },
+    {
+      "name": "Route_To_ExpenseProcessor_When_Both_Total_And_Island_Present",
+      "input": {
+        "inline_tags": { "total": "50.00" },
+        "xml_islands": [{ "name": "expense", "content": "<total>100</total>" }]
+      },
+      "expected": "ExpenseProcessor.CanProcess() returns true, ExpenseProcessor.ProcessAsync() called",
+      "reason": "Either <total> or <expense> island is sufficient for expense classification"
+    },
+    {
+      "name": "Route_To_OtherProcessor_When_Empty_Content",
+      "input": {
+        "inline_tags": {},
+        "xml_islands": []
+      },
+      "expected": "OtherProcessor.CanProcess() returns true (fallback), OtherProcessor.ProcessAsync() called",
+      "reason": "Empty content falls back to OtherProcessor"
+    },
+    {
+      "name": "Route_To_First_Matching_Processor_In_Order",
+      "input": {
+        "inline_tags": { "total": "100.00" },
+        "xml_islands": []
+      },
+      "expected": "First processor where CanProcess() == true is selected",
+      "reason": "Router uses FirstOrDefault() pattern - order matters"
+    },
+    {
+      "name": "Invoke_ProcessAsync_With_Correct_ParsedContent",
+      "input": {
+        "inline_tags": { "total": "100.00", "vendor": "Mojo" },
+        "xml_islands": []
+      },
+      "expected": "Selected processor's ProcessAsync() receives exact ParsedContent object",
+      "reason": "Router must pass through ParsedContent unchanged"
+    },
+    {
+      "name": "Propagate_CancellationToken_To_Processor",
+      "input": {
+        "inline_tags": { "total": "100.00" },
+        "xml_islands": [],
+        "cancellation_token": "valid token"
+      },
+      "expected": "ProcessAsync() receives same CancellationToken",
+      "reason": "Support cancellation throughout async pipeline"
+    },
+    {
+      "name": "Return_ProcessingResult_From_Selected_Processor",
+      "input": {
+        "inline_tags": { "total": "100.00" },
+        "xml_islands": []
+      },
+      "expected": "Router returns ProcessingResult from processor unchanged",
+      "reason": "Router delegates fully to processor"
+    }
+  ],
+
+  "deliverables": [
+    {
+      "item": "ContentRouterTests.cs",
+      "description": "xUnit test class with FluentAssertions and Moq for mocking processors",
+      "location": "api/tests/Flowingly.ParsingService.Tests/Services/",
+      "test_count": "9+ test methods"
+    },
+    {
+      "item": "Failing tests",
+      "description": "All tests must FAIL initially (RED phase)",
+      "validation": "Test runner shows RED for all content router tests"
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ 9+ test methods created covering all scenarios",
+    "✅ All tests use FluentAssertions and Moq for mocking",
+    "✅ All tests currently FAIL (no implementation yet)",
+    "✅ Test names follow Given_When_Then or Should pattern",
+    "✅ Each test has clear Arrange-Act-Assert structure",
+    "✅ Tests mock IContentProcessor implementations",
+    "✅ Tests verify CanProcess() is called on processors",
+    "✅ Tests verify ProcessAsync() is called on selected processor",
+    "✅ Tests verify expense vs other routing logic",
+    "✅ Tests verify fallback to OtherProcessor when no match"
+  ],
+
+  "business_rules": [
+    "Content with <total> tag OR <expense> island → route to ExpenseProcessor",
+    "Content without expense indicators → route to OtherProcessor",
+    "Router iterates processors in order, selects first where CanProcess() == true",
+    "OtherProcessor is fallback (CanProcess() always returns true)",
+    "Router delegates ProcessAsync() to selected processor",
+    "Router passes ParsedContent unchanged to processor",
+    "Router passes CancellationToken to processor",
+    "Router returns ProcessingResult from processor unchanged",
+    "Router has no business logic - pure strategy selection and delegation",
+    "Future processors can be added by implementing IContentProcessor"
+  ],
+
+  "code_examples": {
+    "test_structure": "// Arrange\nvar mockExpenseProcessor = new Mock<IContentProcessor>();\nmockExpenseProcessor.Setup(p => p.ContentType).Returns(\"expense\");\nmockExpenseProcessor.Setup(p => p.CanProcess(It.IsAny<ParsedContent>())).Returns(true);\nmockExpenseProcessor.Setup(p => p.ProcessAsync(It.IsAny<ParsedContent>(), It.IsAny<CancellationToken>()))\n    .ReturnsAsync(new ProcessingResult { Classification = \"expense\" });\n\nvar processors = new[] { mockExpenseProcessor.Object };\nvar router = new ContentRouter(processors);\nvar content = new ParsedContent { InlineTags = new() { [\"total\"] = \"100.00\" } };\n\n// Act\nvar result = await router.RouteAsync(content, CancellationToken.None);\n\n// Assert\nmockExpenseProcessor.Verify(p => p.CanProcess(content), Times.Once);\nmockExpenseProcessor.Verify(p => p.ProcessAsync(content, It.IsAny<CancellationToken>()), Times.Once);\nresult.Classification.Should().Be(\"expense\");",
+
+    "interface": "public interface IContentProcessor\n{\n    string ContentType { get; }\n    bool CanProcess(ParsedContent content);\n    Task<ProcessingResult> ProcessAsync(ParsedContent content, CancellationToken ct);\n}",
+
+    "router_interface": "public class ContentRouter\n{\n    private readonly IEnumerable<IContentProcessor> _processors;\n\n    public ContentRouter(IEnumerable<IContentProcessor> processors)\n    {\n        _processors = processors;\n    }\n\n    public async Task<ProcessingResult> RouteAsync(ParsedContent content, CancellationToken ct)\n    {\n        var processor = _processors.FirstOrDefault(p => p.CanProcess(content))\n                        ?? _processors.First(p => p.ContentType == \"other\");\n        return await processor.ProcessAsync(content, ct);\n    }\n}",
+
+    "parsed_content": "public class ParsedContent\n{\n    public Dictionary<string, string> InlineTags { get; init; } = new();\n    public List<XmlIsland> XmlIslands { get; init; } = new();\n    public string RawText { get; init; } = string.Empty;\n}\n\npublic class XmlIsland\n{\n    public string Name { get; init; } = string.Empty;\n    public string Content { get; init; } = string.Empty;\n}",
+
+    "processing_result": "public class ProcessingResult\n{\n    public string Classification { get; init; } = string.Empty;\n    public object Data { get; init; } = null;\n    public bool Success { get; init; }\n    public string ErrorCode { get; init; } = string.Empty;\n}"
+  },
+
+  "tdd_workflow": {
+    "current_phase": "RED - Write failing tests",
+    "next_phase": "task_028 - GREEN - Implement to make tests pass",
+    "principle": "Never write implementation before tests fail",
+    "red_phase_rules": [
+      "Write tests that define expected behavior",
+      "All tests must FAIL (no implementation exists)",
+      "Use mocks for IContentProcessor implementations",
+      "Test router logic, not processor logic (separate concerns)",
+      "Focus on strategy selection and delegation, not processing"
+    ]
+  },
+
+  "testing_requirements": {
+    "test_types": ["unit"],
+    "mocking_strategy": "London School - mock all IContentProcessor dependencies",
+    "min_coverage": "100% of ContentRouter public methods (RouteAsync)",
+    "required_scenarios": [
+      "Route to ExpenseProcessor when <total> tag present",
+      "Route to ExpenseProcessor when <expense> island present",
+      "Route to OtherProcessor when no expense indicators",
+      "Route to ExpenseProcessor when both <total> and island present",
+      "Route to OtherProcessor when empty content (fallback)",
+      "Select first matching processor (order matters)",
+      "Pass ParsedContent unchanged to processor",
+      "Pass CancellationToken to processor",
+      "Return ProcessingResult from processor"
+    ],
+    "test_validation": {
+      "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~ContentRouter",
+      "expected_output": "9+ tests FAILED (RED)",
+      "failure_is_success": true
+    }
+  },
+
+  "validation": {
+    "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~ContentRouter",
+    "expected_output": "Total tests: 9+\n     Failed: 9+",
+    "failure_is_success": true,
+    "notes": "Tests SHOULD fail because ContentRouter is not yet implemented"
+  },
+
+  "definition_of_done": [
+    "✅ ContentRouterTests.cs created in tests/Services/",
+    "✅ 9+ test methods covering all scenarios",
+    "✅ All tests use FluentAssertions and Moq",
+    "✅ All tests FAIL (RED phase complete)",
+    "✅ Test names are descriptive and follow convention",
+    "✅ Tests properly mock IContentProcessor implementations",
+    "✅ Tests verify CanProcess() and ProcessAsync() calls",
+    "✅ Tests verify routing logic (expense vs other)",
+    "✅ Tests are well-organized and readable",
+    "✅ Progress updated: ./scripts/update-progress.sh task_027 completed unit 9",
+    "✅ Commit created with descriptive message and co-authorship footer"
+  ],
+
+  "implementation_notes": {
+    "router_algorithm": [
+      "1. Receive ParsedContent and CancellationToken",
+      "2. Iterate registered IContentProcessor instances",
+      "3. Call CanProcess(content) on each processor in order",
+      "4. Select first processor where CanProcess() returns true",
+      "5. If no processor matches, select OtherProcessor (fallback)",
+      "6. Call ProcessAsync(content, ct) on selected processor",
+      "7. Return ProcessingResult from processor"
+    ],
+    "expense_classification_rules": [
+      "<total> tag present → expense",
+      "<expense> XML island present → expense",
+      "Both <total> and <expense> → expense",
+      "Neither → other (fallback)"
+    ],
+    "mocking_pattern": [
+      "Mock IContentProcessor for each test",
+      "Setup ContentType property",
+      "Setup CanProcess() return value (true/false)",
+      "Setup ProcessAsync() return value",
+      "Verify CanProcess() was called",
+      "Verify ProcessAsync() was called on correct processor"
+    ],
+    "edge_cases_to_test": [
+      "Empty ParsedContent (no tags, no islands)",
+      "Multiple processors registered (order matters)",
+      "Cancellation token propagation",
+      "ProcessingResult return value propagation",
+      "Null/empty tag values",
+      "Multiple XML islands"
+    ]
+  },
+
+  "next_task": {
+    "id": "task_028",
+    "name": "Implement ContentRouter",
+    "why": "Tests are failing (RED), now make them pass (GREEN)",
+    "tdd_phase": "GREEN",
+    "parallel_eligible": false
+  }
+}
