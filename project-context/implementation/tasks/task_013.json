@@ -1,0 +1,155 @@
+{
+  "task_id": "task_013",
+  "milestone": "M1",
+  "name": "Setup xUnit + FluentAssertions",
+  "description": "Configure xUnit test project with FluentAssertions for M1 TDD cycles. Create base test infrastructure, install packages, and establish test patterns for domain logic testing.",
+
+  "agent": {
+    "primary": "tdd-london-swarm",
+    "role": "Test infrastructure setup and TDD framework configuration"
+  },
+
+  "duration": "30min",
+  "priority": "critical",
+  "dependencies": ["task_002"],
+  "parallel_group": null,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 4: Technology Stack - xUnit for testing",
+        "Section 13: Testing Strategy - Unit test coverage targets"
+      ],
+      "requirements": [
+        "Use xUnit as test framework",
+        "FluentAssertions for readable assertions",
+        "Target 80%+ code coverage for domain logic",
+        "Support TDD RED-GREEN-REFACTOR cycles"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 2,
+      "requirement": "Test coverage is a graded component",
+      "grading_criteria": "Comprehensive test suite demonstrates code quality"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0010-test-strategy-coverage.md",
+        "decision": "Three-tier testing strategy with xUnit + FluentAssertions",
+        "context": "Unit Tests (Domain Logic) section defines test framework requirements",
+        "key_excerpt": "Technology: xUnit + FluentAssertions. Coverage Target: 80%+ code coverage. Test domain logic in isolation without external dependencies."
+      },
+      {
+        "file": "project-context/adr/ADR-0002-architecture-style.md",
+        "decision": "Clean/Hexagonal Architecture",
+        "relevance": "Test project structure aligns with architecture layers"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M1 — Core Parsing & Validation",
+      "sub_section": "Test Infrastructure",
+      "requirement": "Setup test framework before TDD cycles begin"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "Flowingly.ParsingService.UnitTests.csproj",
+      "description": "xUnit test project for unit tests",
+      "location": "tests/Flowingly.ParsingService.UnitTests/",
+      "properties": {
+        "framework": "net8.0",
+        "packages": [
+          "xunit (2.6+)",
+          "xunit.runner.visualstudio (2.5+)",
+          "FluentAssertions (6.12+)",
+          "Microsoft.NET.Test.Sdk (17.8+)"
+        ]
+      }
+    },
+    {
+      "item": "Test directory structure",
+      "description": "Organized folders matching architecture layers",
+      "location": "tests/Flowingly.ParsingService.UnitTests/",
+      "structure": [
+        "tests/",
+        "tests/Flowingly.ParsingService.UnitTests/",
+        "tests/Flowingly.ParsingService.UnitTests/Domain/",
+        "tests/Flowingly.ParsingService.UnitTests/Application/",
+        "tests/Flowingly.ParsingService.UnitTests/Flowingly.ParsingService.UnitTests.csproj"
+      ]
+    },
+    {
+      "item": "BaseTest.cs (optional)",
+      "description": "Base test class with common setup/teardown if needed",
+      "location": "tests/Flowingly.ParsingService.UnitTests/",
+      "optional": true
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ Unit test project created with correct naming convention",
+    "✅ xUnit package installed and referenced",
+    "✅ FluentAssertions package installed and referenced",
+    "✅ Test project added to solution file",
+    "✅ Test project references Domain and Application projects",
+    "✅ Directory structure matches architecture layers (Domain/, Application/)",
+    "✅ dotnet test command runs successfully (even with 0 tests)",
+    "✅ Solution builds with 0 warnings"
+  ],
+
+  "business_rules": [
+    "Test project name follows convention: Flowingly.ParsingService.UnitTests",
+    "Must target .NET 8.0 (same as application projects)",
+    "xUnit is MANDATORY (not NUnit or MSTest)",
+    "FluentAssertions is MANDATORY for readable assertions",
+    "Test directory structure mirrors application structure",
+    "All tests must be discoverable by dotnet test command"
+  ],
+
+  "technical_notes": {
+    "dotnet_commands": [
+      "cd tests/",
+      "dotnet new xunit -n Flowingly.ParsingService.UnitTests",
+      "cd Flowingly.ParsingService.UnitTests",
+      "dotnet add package FluentAssertions",
+      "cd ../../",
+      "dotnet sln add tests/Flowingly.ParsingService.UnitTests/Flowingly.ParsingService.UnitTests.csproj",
+      "dotnet add tests/Flowingly.ParsingService.UnitTests/Flowingly.ParsingService.UnitTests.csproj reference src/Domain/Flowingly.ParsingService.Domain.csproj",
+      "dotnet add tests/Flowingly.ParsingService.UnitTests/Flowingly.ParsingService.UnitTests.csproj reference src/Application/Flowingly.ParsingService.Application.csproj"
+    ],
+    "nuget_packages": {
+      "xunit": "2.6.0 or later",
+      "xunit.runner.visualstudio": "2.5.0 or later",
+      "FluentAssertions": "6.12.0 or later",
+      "Microsoft.NET.Test.Sdk": "17.8.0 or later"
+    },
+    "test_naming_convention": "MethodUnderTest_Scenario_ExpectedResult or Given_When_Then"
+  },
+
+  "code_examples": {
+    "test_class_structure": "using FluentAssertions;\nusing Xunit;\n\nnamespace Flowingly.ParsingService.UnitTests.Domain\n{\n    public class SampleTests\n    {\n        [Fact]\n        public void SampleTest_ValidInput_ReturnsTrue()\n        {\n            // Arrange\n            var input = \"test\";\n\n            // Act\n            var result = input.Length > 0;\n\n            // Assert\n            result.Should().BeTrue();\n        }\n    }\n}",
+    "fluent_assertions_syntax": "result.Should().Be(expected);\nresult.Should().NotBeNull();\nresult.Should().BeOfType<ExpectedType>();\naction.Should().Throw<ExceptionType>().WithMessage(\"*expected*\");"
+  },
+
+  "tdd_workflow": {
+    "preparation": "Setup test infrastructure (this task)",
+    "next_phase": "task_014 - RED - Write failing tag validation tests",
+    "principle": "Test infrastructure ready before writing any tests"
+  },
+
+  "validation": {
+    "command": "dotnet test tests/Flowingly.ParsingService.UnitTests/ --verbosity normal",
+    "expected_output": "Test run succeeds (0 tests run is OK at this stage)",
+    "build_check": "dotnet build Flowingly.ParsingService.sln should succeed with 0 warnings"
+  },
+
+  "next_task": {
+    "id": "task_014",
+    "name": "Write Tag Validation Tests (TDD RED)",
+    "why": "Test infrastructure ready, now begin TDD cycles with tag validation tests"
+  }
+}

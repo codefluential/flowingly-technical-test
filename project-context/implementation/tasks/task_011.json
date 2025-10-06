@@ -1,0 +1,141 @@
+{
+  "task_id": "task_011",
+  "milestone": "M1",
+  "name": "Create Test Fixtures from Brief",
+  "description": "Extract sample email content from test brief PDF and create reusable test fixture files for use across unit, integration, and E2E tests. Foundation for all M1 TDD test writing.",
+
+  "agent": {
+    "primary": "tester",
+    "role": "Test fixture extraction and organization"
+  },
+
+  "duration": "30min",
+  "priority": "critical",
+  "dependencies": ["task_010"],
+  "parallel_group": null,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 13: Testing Strategy - Sample email fixtures requirement",
+        "Section 13: BDD Scenarios - Test cases for expense classification"
+      ],
+      "requirements": [
+        "Store sample emails from project brief in /fixtures/ directory",
+        "Create fixtures for E2E tests",
+        "Support both expense and other/unprocessed content types",
+        "Fixtures must match actual email examples from brief"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "pages": [1, 2, 3],
+      "requirement": "Sample email examples provided in test brief must be extracted as fixtures",
+      "grading_criteria": "Test coverage uses realistic data from brief"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0010-test-strategy-coverage.md",
+        "decision": "Three-tier testing strategy (unit, integration, E2E)",
+        "context": "Sample Email Fixtures section defines fixture requirements",
+        "key_excerpt": "Store sample emails from project brief in /fixtures/ directory for E2E tests. Fixtures: sample-email-1-expense.txt, sample-email-2-other.txt"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M1 — Core Parsing & Validation",
+      "sub_section": "Test Fixtures",
+      "requirement": "Create test data foundation for TDD cycles"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "fixtures/",
+      "description": "Directory for test fixture files",
+      "location": "project root",
+      "structure": [
+        "fixtures/",
+        "fixtures/sample-email-1-expense.txt",
+        "fixtures/sample-email-2-other.txt",
+        "fixtures/README.md"
+      ]
+    },
+    {
+      "item": "sample-email-1-expense.txt",
+      "description": "Expense classification sample from test brief",
+      "location": "fixtures/",
+      "content_source": "Test brief PDF - expense email example",
+      "properties": {
+        "classification": "expense",
+        "contains_tags": true,
+        "required_fields": ["vendor", "total", "cost_centre"],
+        "tax_calculation": true
+      }
+    },
+    {
+      "item": "sample-email-2-other.txt",
+      "description": "Other/unprocessed classification sample from test brief",
+      "location": "fixtures/",
+      "content_source": "Test brief PDF - non-expense email example",
+      "properties": {
+        "classification": "other",
+        "contains_tags": false,
+        "required_fields": [],
+        "tax_calculation": false
+      }
+    },
+    {
+      "item": "fixtures/README.md",
+      "description": "Documentation for fixture files and usage",
+      "location": "fixtures/",
+      "content": "Explains fixture purpose, format, and how to use in tests"
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ fixtures/ directory created in project root",
+    "✅ sample-email-1-expense.txt contains valid expense email content from brief",
+    "✅ sample-email-2-other.txt contains valid non-expense email content from brief",
+    "✅ README.md documents fixture structure and usage",
+    "✅ Fixtures are valid UTF-8 text files",
+    "✅ All required fields for expense classification present in sample-email-1",
+    "✅ Fixtures can be read by test frameworks (xUnit, Playwright)"
+  ],
+
+  "business_rules": [
+    "Fixtures must match exact content from test brief PDF (no modifications)",
+    "Expense fixture MUST include: <vendor>, <total>, <cost_centre> tags",
+    "Expense fixture total must be tax-inclusive (for GST calculation tests)",
+    "Other fixture must NOT contain expense-related tags",
+    "Fixtures stored as plain text files (not JSON or other formats)",
+    "UTF-8 encoding for all fixture files"
+  ],
+
+  "technical_notes": {
+    "file_format": "Plain text (.txt files)",
+    "encoding": "UTF-8",
+    "usage_in_tests": {
+      "csharp_xunit": "File.ReadAllText(\"fixtures/sample-email-1-expense.txt\")",
+      "typescript_playwright": "import { readFileSync } from 'fs'; const content = readFileSync('./fixtures/sample-email-1-expense.txt', 'utf-8');"
+    },
+    "naming_convention": "sample-email-{number}-{classification}.txt"
+  },
+
+  "fixture_examples": {
+    "expense_structure": "Hi everyone,\nExpense for <vendor>Mojo Coffee</vendor> total <total>120.50</total>\n<description>Team lunch</description> <cost_centre>DEV</cost_centre>\nThanks!",
+    "other_structure": "Hi team,\nCan someone book a table at The Grove for Friday?\nThanks!"
+  },
+
+  "validation": {
+    "command": "ls -la fixtures/ && cat fixtures/sample-email-1-expense.txt && cat fixtures/sample-email-2-other.txt",
+    "expected_output": "Fixtures directory exists with 3-4 files (2 email samples + README), content visible"
+  },
+
+  "next_task": {
+    "id": "task_012",
+    "name": "Design Test Strategy",
+    "why": "Fixtures available, now design how to use them in test organization"
+  }
+}
