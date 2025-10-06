@@ -44,39 +44,44 @@
 - [x] task_010: ✅ Verify M0 DoD (GATE)
 
 **DoD Criteria**:
-- [ ] `dotnet run` + `npm run dev` work without setup
-- [ ] Echo flow works end-to-end
-- [ ] README has 3-step quick start
-- [ ] Zero external dependencies
+- [x] `dotnet run` + `npm run dev` work without setup ✅
+- [x] Echo flow works end-to-end ✅
+- [x] README has 3-step quick start ✅
+- [x] Zero external dependencies ✅
 
 ---
 
 ### ✅ M1: Core Parsing & Validation (20/20 tasks - 100%)
 **Target**: 1 day | **Status**: Complete
 
+**Setup Tasks**:
+- [x] task_011: Create Test Fixtures from Brief ✅
+- [x] task_012: Design Test Strategy ✅
+- [x] task_013: Setup xUnit + FluentAssertions ✅
+
 **TDD Cycles**:
-- [ ] Tag Validation: task_014 (RED) → task_015 (GREEN) → task_016 (REFACTOR)
-- [ ] Number Normalization: task_017 (RED) → task_018 (GREEN)
-- [ ] Banker's Rounding: task_019 (RED) → task_020 (GREEN)
-- [ ] Tax Calculator: task_021 (RED) → task_022 (GREEN)
-- [ ] Time Parser: task_023 (RED) → task_024 (GREEN)
-- [ ] XML Extractor: task_025 (RED) → task_026 (GREEN)
-- [ ] Content Router: task_027 (RED) → task_028 (GREEN)
-- [ ] Expense Processor: task_029 (RED) → task_030 (GREEN + M1 DoD)
+- [x] Tag Validation: task_014 (RED) → task_015 (GREEN) → task_016 (REFACTOR) ✅
+- [x] Number Normalization: task_017 (RED) → task_018 (GREEN) ✅
+- [x] Banker's Rounding: task_019 (RED) → task_020 (GREEN) ✅
+- [x] Tax Calculator: task_021 (RED) → task_022 (GREEN) ✅
+- [x] Time Parser: task_023 (RED) → task_024 (GREEN) ✅
+- [x] XML Extractor: task_025 (RED) → task_026 (GREEN) ✅
+- [x] Content Router: task_027 (RED) → task_028 (GREEN) ✅
+- [x] Expense Processor: task_029 (RED) → task_030 (GREEN + M1 DoD) ✅
 
 **Test Coverage Target**: 30+ unit tests
-- [ ] Tag validation: 7+ tests
-- [ ] Number normalization: 4+ tests
-- [ ] Banker's Rounding: 10+ tests
-- [ ] Tax calculator: 4+ tests
-- [ ] Time parser: 5+ tests
+- [x] Tag validation: 7+ tests ✅
+- [x] Number normalization: 4+ tests ✅
+- [x] Banker's Rounding: 10+ tests ✅
+- [x] Tax calculator: 4+ tests ✅
+- [x] Time parser: 5+ tests ✅
 
 **DoD Criteria**:
-- [ ] All parsing rules implemented
-- [ ] 30+ unit tests green
-- [ ] Tag validation (stack-based)
-- [ ] Banker's Rounding verified
-- [ ] GST calculation correct
+- [x] All parsing rules implemented ✅
+- [x] 116 unit tests green (387% of target) ✅
+- [x] Tag validation (stack-based) ✅
+- [x] Banker's Rounding verified ✅
+- [x] GST calculation correct ✅
 
 ---
 
