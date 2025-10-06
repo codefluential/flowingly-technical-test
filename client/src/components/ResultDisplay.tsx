@@ -8,7 +8,7 @@ export default function ResultDisplay({ result }: ResultDisplayProps) {
   if (result.classification === 'expense') {
     const { expense } = result;
     return (
-      <div className="result-display expense-result">
+      <div className="result-display expense-result" data-testid="result-display">
         <h2>Expense Data</h2>
         <dl>
           <dt>Vendor:</dt>
@@ -44,7 +44,7 @@ export default function ResultDisplay({ result }: ResultDisplayProps) {
   } else {
     const { other } = result;
     return (
-      <div className="result-display other-result">
+      <div className="result-display other-result" data-testid="result-display">
         <h2>Other/Unprocessed Data</h2>
         <p>The following tags were found but did not match expense patterns:</p>
         <dl>

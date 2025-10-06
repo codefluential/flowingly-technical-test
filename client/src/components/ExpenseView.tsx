@@ -13,32 +13,35 @@ interface ExpenseViewProps {
  */
 function ExpenseView({ expense, meta }: ExpenseViewProps) {
   return (
-    <div className="expense-view">
+    <div className="expense-view" data-testid="result-display">
       <div className="expense-view__header">
         <h2>Parsed Expense</h2>
         <ClassificationBadge type="expense" />
       </div>
 
-      <dl className="expense-view__data">
+      <dl className="expense-view__data" data-testid="expense-result">
         <dt>Vendor:</dt>
-        <dd>{expense.vendor}</dd>
+        <dd data-testid="vendor">{expense.vendor}</dd>
 
         <dt>Description:</dt>
-        <dd>{expense.description || 'N/A'}</dd>
+        <dd data-testid="description">{expense.description || 'N/A'}</dd>
 
         <dt>Total (incl. tax):</dt>
-        <dd className="expense-view__highlight">
+        <dd className="expense-view__highlight" data-testid="total-incl-tax">
           ${expense.total.toFixed(2)}
         </dd>
 
         <dt>Total (excl. tax):</dt>
-        <dd>${expense.totalExclTax.toFixed(2)}</dd>
+        <dd data-testid="total-excl-tax">${expense.totalExclTax.toFixed(2)}</dd>
 
         <dt>Sales Tax ({(expense.taxRate * 100).toFixed(0)}%):</dt>
-        <dd>${expense.salesTax.toFixed(2)}</dd>
+        <dd data-testid="sales-tax">${expense.salesTax.toFixed(2)}</dd>
+
+        <dt>Tax Rate:</dt>
+        <dd data-testid="tax-rate">{expense.taxRate} ({(expense.taxRate * 100).toFixed(0)}%)</dd>
 
         <dt>Cost Centre:</dt>
-        <dd>{expense.costCentre}</dd>
+        <dd data-testid="cost-centre">{expense.costCentre}</dd>
 
         {expense.date && (
           <>
@@ -68,7 +71,7 @@ function ExpenseView({ expense, meta }: ExpenseViewProps) {
 
       <div className="expense-view__footer">
         <p>
-          <strong>Correlation ID:</strong> {meta.correlationId}
+          <strong>Correlation ID:</strong> <span data-testid="correlation-id">{meta.correlationId}</span>
         </p>
         {meta.processingTimeMs > 0 && (
           <p className="expense-view__timing">

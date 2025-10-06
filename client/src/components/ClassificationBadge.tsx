@@ -15,6 +15,7 @@ function ClassificationBadge({ type }: ClassificationBadgeProps) {
   return (
     <span
       className={`classification-badge classification-badge--${type}`}
+      data-testid="classification-badge"
       aria-label={ariaLabel}
       role="status"
     >

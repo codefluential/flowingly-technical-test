@@ -62,6 +62,7 @@ export default function ParseForm({
       <textarea
         ref={textareaRef}
         id="input-text"
+        data-testid="content-input"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
@@ -79,6 +80,7 @@ export default function ParseForm({
       <div className="form-actions">
         <button
           type="submit"
+          data-testid="submit-button"
           disabled={disabled || !value.trim() || loading}
           aria-label={loading ? 'Parsing in progress' : 'Parse text'}
         >

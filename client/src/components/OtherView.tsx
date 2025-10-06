@@ -15,7 +15,7 @@ function OtherView({ other, meta }: OtherViewProps) {
   const hasRawTags = other.rawTags && Object.keys(other.rawTags).length > 0;
 
   return (
-    <div className="other-view">
+    <div className="other-view" data-testid="result-display">
       <div className="other-view__header">
         <h2>Other Content</h2>
         <ClassificationBadge type="other" />
@@ -26,7 +26,7 @@ function OtherView({ other, meta }: OtherViewProps) {
       </p>
 
       {hasRawTags && (
-        <div className="other-view__tags">
+        <div className="other-view__tags" data-testid="raw-tags">
           <h3>Extracted Tags:</h3>
           <dl>
             {Object.entries(other.rawTags).map(([key, value]) => (
@@ -52,7 +52,7 @@ function OtherView({ other, meta }: OtherViewProps) {
 
       <div className="other-view__footer">
         <p>
-          <strong>Correlation ID:</strong> {meta.correlationId}
+          <strong>Correlation ID:</strong> <span data-testid="correlation-id">{meta.correlationId}</span>
         </p>
         {meta.processingTimeMs > 0 && (
           <p className="other-view__timing">
