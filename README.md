@@ -472,64 +472,20 @@ flowingly-technical-test/
 
 ---
 
-## Progress Tracking
+## Project Milestones
 
-This project uses a **51-task decomposition system** with 4 milestone gates:
+This project was developed through a **structured milestone-based approach**:
 
 - **M0: Minimal Scaffold** (10 tasks, 4 hours) — ✅ Complete
 - **M1: Core Parsing & Validation** (20 tasks, 1 day) — ✅ Complete (116 unit tests)
 - **M2: API Contracts** (10 tasks, 4 hours) — ✅ Complete (13 contract tests)
 - **M3: UI & E2E Tests** (11 tasks, 4 hours) — ✅ Complete (21 E2E tests + accessible UI)
 
-**Current Progress**: 51/51 tasks (100%) • **Ready for submission**
+**Current Status**: 51/51 tasks (100%) • **Production Ready**
 
 **Track Progress**:
 - Dashboard: `project-context/implementation/PROGRESS.md`
-- Detailed logs: `project-context/build-logs/BUILDLOG.md`
-- Task files: `project-context/implementation/tasks/`
-
-**Update Progress**:
-```bash
-# Start a task
-./scripts/update-progress.sh task_XXX in_progress
-
-# Complete a task
-./scripts/update-progress.sh task_XXX completed
-
-# Complete with test counts
-./scripts/update-progress.sh task_014 completed unit 7
-```
-
----
-
-## MCP Servers & Enhanced Development Tools
-
-This project uses **Model Context Protocol (MCP) servers** for enhanced development capabilities. See `project-context/learnings/serena-mcp-guide.md` for comprehensive guides.
-
-### Serena MCP (Semantic Code Analysis)
-✅ Configured and indexed for C# codebase
-
-**Use for**:
-- Exploring code structure (classes, methods, interfaces)
-- Finding all references to a symbol
-- Refactoring (renaming, changing signatures)
-- Symbol-based code editing
-
-**Example**:
-```bash
-Get symbols overview for src/Domain/Services/TaxCalculator.cs
-Find symbol "TaxCalculator/CalculateFromInclusive" with include_body=true
-Replace symbol body "ExpenseProcessor/ProcessAsync" with [new implementation]
-```
-
-### Context7 MCP (Library Documentation)
-Fetch up-to-date documentation for .NET, React, and other libraries beyond Claude's knowledge cutoff.
-
-### Playwright MCP (Browser Automation)
-Write and debug E2E tests with browser automation (critical for M3 milestone).
-
-### IDE MCP (VS Code Integration)
-Get compiler diagnostics and execute code in development environment.
+- Smoke Test Report: `project-context/implementation/SMOKE_TEST_REPORT.md`
 
 ---
 
@@ -538,9 +494,8 @@ Get compiler diagnostics and execute code in development environment.
 ### Key Documents
 - **Specifications**: `project-context/specifications/prd-technical_spec.md` (v0.3)
 - **ADRs**: `project-context/adr/` (10 architectural decisions)
-- **Build Log**: `project-context/build-logs/BUILDLOG.md`
-- **Task System**: `project-context/implementation/tasks/`
-- **MCP Guides**: `project-context/learnings/serena-mcp-guide.md`
+- **Progress Dashboard**: `project-context/implementation/PROGRESS.md`
+- **Smoke Test Report**: `project-context/implementation/SMOKE_TEST_REPORT.md`
 
 ### Git Conventions
 Use **conventional commits** syntax:
@@ -557,16 +512,11 @@ Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`, `style`
 ## Contributing
 
 ### Workflow
-1. Check task dependencies: `project-context/implementation/tasks/tasks.json`
-2. Create task file if missing: Follow `TASK_CREATION_GUIDE.md`
-3. Mark in-progress: `./scripts/update-progress.sh task_XXX in_progress` (Unix/Git Bash/WSL)
-4. Implement following TDD cycles (for M1 tasks)
-5. Run tests and verify coverage
-6. Mark completed: `./scripts/update-progress.sh task_XXX completed [test_type] [count]` (Unix/Git Bash/WSL)
-7. Commit with conventional commits
-8. Update BUILDLOG.md with changes and rationale
-
-> **Windows Users**: See [Appendix D](#appendix-d-development-scripts-unixlinuxmacos) for script compatibility options.
+1. Review architectural decisions in `project-context/adr/`
+2. Implement following TDD/BDD best practices
+3. Run tests and verify coverage
+4. Commit with conventional commits syntax
+5. Update documentation as needed
 
 ### Code Principles
 - Follow SOLID, DRY, KISS, YAGNI
@@ -725,40 +675,6 @@ $PSVersionTable.PSVersion
 
 ---
 
-### Appendix D: Development Scripts (Unix/Linux/macOS)
-
-**Shell Scripts Location**: `scripts/`
-
-These bash scripts are for development workflow automation:
-
-```bash
-./scripts/update-progress.sh task_001 completed
-./scripts/reindex-serena.sh
-./scripts/verify-dod.sh M0
-```
-
-**Windows Users - Options**:
-
-1. **Use Git Bash** (Recommended):
-   ```bash
-   # Scripts work identically in Git Bash
-   ./scripts/update-progress.sh task_001 completed
-   ```
-
-2. **Use WSL (Windows Subsystem for Linux)**:
-   ```bash
-   # Run in WSL terminal
-   ./scripts/update-progress.sh task_001 completed
-   ```
-
-3. **Manual Execution**:
-   - View script contents to see underlying commands
-   - Execute commands manually in PowerShell/cmd.exe
-
-> **Note**: These scripts are for development workflow automation, **not required** to build and run the application. Core commands (`dotnet run`, `npm run dev`) work natively on Windows.
-
----
-
 ## License
 
 This is a technical test project for Flowingly. See test brief in `project-context/requirements-and-analysis/` for context.
@@ -770,6 +686,6 @@ This is a technical test project for Flowingly. See test brief in `project-conte
 - **Specifications**: See `project-context/specifications/prd-technical_spec.md`
 - **Architecture Decisions**: See `project-context/adr/`
 - **Implementation Status**: See `project-context/implementation/PROGRESS.md`
-- **Build History**: See `project-context/build-logs/BUILDLOG.md`
+- **Test Validation**: See `project-context/implementation/SMOKE_TEST_REPORT.md`
 
 **Happy Coding!** 🚀
