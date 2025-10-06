@@ -21,10 +21,32 @@ Accept raw text (e.g., email bodies), validate tag integrity, extract expense da
 
 Refer to `project-context/build-logs/BUILDLOG.md` for detailed progress history and `project-context/implementation/PROGRESS.md` for current status.
 
+## Environment Setup
+
+### .NET 8 Path Configuration
+**CRITICAL**: dotnet is installed at `/home/adarsh/.dotnet/dotnet` (version 8.0.414) but requires PATH configuration.
+
+**For all bash commands using dotnet**, prefix with:
+```bash
+export PATH="$HOME/.dotnet:$PATH"
+```
+
+**Example**:
+```bash
+export PATH="$HOME/.dotnet:$PATH" && dotnet build
+```
+
+**Full Installation Path**: `/home/adarsh/.dotnet/dotnet`
+**Version**: 8.0.414
+**DOTNET_ROOT**: `$HOME/.dotnet`
+
 ## Common Development Commands
 
 ### Backend (.NET 8)
 ```bash
+# IMPORTANT: Always export PATH first
+export PATH="$HOME/.dotnet:$PATH"
+
 # Build and run (once solution is created)
 dotnet build
 dotnet run --project src/Api
@@ -34,6 +56,10 @@ dotnet test
 
 # Run specific test
 dotnet test --filter "FullyQualifiedName~TestName"
+
+# Run tests by category
+dotnet test --filter "Category=Unit"
+dotnet test --filter "Category=Contract"
 
 # Database migrations (EF Core)
 dotnet ef migrations add MigrationName --project src/Infrastructure

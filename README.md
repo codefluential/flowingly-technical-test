@@ -11,6 +11,12 @@ A modular text-ingestion and parsing service that extracts structured data from 
 - Node.js 18+ ([Download](https://nodejs.org/))
 - Git
 
+**Important**: If dotnet is not in your PATH, add this to your `~/.bashrc`:
+```bash
+export DOTNET_ROOT=$HOME/.dotnet
+export PATH="$DOTNET_ROOT:$PATH"
+```
+
 ### 1. Clone and Setup
 ```bash
 git clone <repository-url>
@@ -19,6 +25,9 @@ cd flowingly-technical-test
 
 ### 2. Run Backend API
 ```bash
+# Ensure dotnet is in PATH (if needed)
+export PATH="$HOME/.dotnet:$PATH"
+
 # Build and run .NET API (runs on http://localhost:5000)
 dotnet run --project src/Api
 ```
@@ -87,6 +96,9 @@ See [ADR-0002](/project-context/adr/ADR-0002-architecture-style.md) for full arc
 
 ### Backend Commands
 ```bash
+# Ensure dotnet is in PATH
+export PATH="$HOME/.dotnet:$PATH"
+
 # Build solution
 dotnet build
 

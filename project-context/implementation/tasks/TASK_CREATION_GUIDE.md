@@ -3,13 +3,45 @@
 Comprehensive guide for creating self-contained, context-rich task files for autonomous agent execution.
 
 ## Table of Contents
-1. [Overview](#overview)
-2. [Source Documents](#source-documents)
-3. [Task File Structure](#task-file-structure)
-4. [Field-by-Field Guide](#field-by-field-guide)
-5. [Task Type Patterns](#task-type-patterns)
-6. [Creation Process](#creation-process)
-7. [Quality Checklist](#quality-checklist)
+1. [Environment Setup](#environment-setup)
+2. [Overview](#overview)
+3. [Source Documents](#source-documents)
+4. [Task File Structure](#task-file-structure)
+5. [Field-by-Field Guide](#field-by-field-guide)
+6. [Task Type Patterns](#task-type-patterns)
+7. [Creation Process](#creation-process)
+8. [Quality Checklist](#quality-checklist)
+
+---
+
+## Environment Setup
+
+### .NET 8 Path Configuration
+**CRITICAL FOR ALL BACKEND TASKS**: dotnet is installed at `/home/adarsh/.dotnet/dotnet` (version 8.0.414).
+
+**ALL dotnet commands MUST include PATH export**:
+```bash
+export PATH="$HOME/.dotnet:$PATH" && dotnet <command>
+```
+
+**Examples for task files**:
+```json
+{
+  "validation": {
+    "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~TagValidator",
+    "expected_output": "Test run successful"
+  }
+}
+```
+
+**Do NOT write**:
+```json
+// ❌ WRONG - will fail
+"command": "dotnet test"
+
+// ✅ CORRECT - will work
+"command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test"
+```
 
 ---
 
