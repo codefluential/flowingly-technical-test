@@ -7,10 +7,20 @@ namespace Flowingly.ParsingService.Domain.Validation;
 /// Stack-based tag validator for detecting unclosed and overlapping tags.
 /// Uses LIFO (Last-In-First-Out) stack to match opening/closing tag pairs.
 /// </summary>
-public class TagValidator
+public class TagValidator : ITagValidator
 {
+    private const string ErrorCode = "UNCLOSED_TAGS";
     private static readonly Regex TagRegex = new(@"<(/?)(\w+)[^>]*>", RegexOptions.Compiled);
 
+    /// <summary>
+    /// Validates that all tags in the input are properly closed and nested.
+    /// Uses a stack-based algorithm to detect overlapping tags.
+    /// </summary>
+    /// <param name="input">The content to validate.</param>
+    /// <exception cref="ValidationException">
+    /// Thrown when unclosed or overlapping tags are detected.
+    /// Error code: UNCLOSED_TAGS
+    /// </exception>
     public void Validate(string input)
     {
         if (string.IsNullOrEmpty(input))
@@ -28,28 +38,59 @@ public class TagValidator
 
             if (isClosing)
             {
-                // Closing tag
-                if (stack.Count == 0 || stack.Peek() != tagName)
-                {
-                    throw new ValidationException(
-                        $"UNCLOSED_TAGS: Tag validation failed - unclosed or mismatched tags detected. Found closing tag </{tagName}> without matching opening tag.",
-                        "UNCLOSED_TAGS");
-                }
-                stack.Pop();
+                ValidateClosingTag(stack, tagName);
             }
             else
             {
-                // Opening tag
                 stack.Push(tagName);
             }
         }
 
-        // If stack not empty, there are unclosed tags
+        ValidateAllTagsClosed(stack);
+    }
+
+    /// <summary>
+    /// Validates that a closing tag has a matching opening tag on the stack.
+    /// </summary>
+    private static void ValidateClosingTag(Stack<string> stack, string tagName)
+    {
+        if (stack.Count == 0 || stack.Peek() != tagName)
+        {
+            throw new ValidationException(
+                FormatMismatchedTagError(tagName),
+                ErrorCode);
+        }
+        stack.Pop();
+    }
+
+    /// <summary>
+    /// Validates that all opening tags have been closed.
+    /// </summary>
+    private static void ValidateAllTagsClosed(Stack<string> stack)
+    {
         if (stack.Count > 0)
         {
             throw new ValidationException(
-                $"UNCLOSED_TAGS: Tag validation failed - {stack.Count} unclosed tag(s) detected: {string.Join(", ", stack)}",
-                "UNCLOSED_TAGS");
+                FormatUnclosedTagsError(stack),
+                ErrorCode);
         }
+    }
+
+    /// <summary>
+    /// Formats error message for mismatched closing tag.
+    /// </summary>
+    private static string FormatMismatchedTagError(string tagName)
+    {
+        return $"{ErrorCode}: Tag validation failed - unclosed or mismatched tags detected. " +
+               $"Found closing tag </{tagName}> without matching opening tag.";
+    }
+
+    /// <summary>
+    /// Formats error message for unclosed tags.
+    /// </summary>
+    private static string FormatUnclosedTagsError(Stack<string> stack)
+    {
+        return $"{ErrorCode}: Tag validation failed - {stack.Count} unclosed tag(s) detected: " +
+               $"{string.Join(", ", stack)}";
     }
 }
