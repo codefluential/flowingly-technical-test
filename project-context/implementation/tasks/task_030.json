@@ -1,0 +1,272 @@
+{
+  "task_id": "task_030",
+  "milestone": "M1",
+  "name": "Implement Expense Processor & Verify M1 DoD",
+  "description": "Implement ExpenseProcessor to make all RED tests pass (GREEN phase). This is the final M1 task that also verifies the M1 Definition of Done: 30+ unit tests green, all parsing rules implemented, tag validation working, Banker's Rounding verified, GST calculation correct.",
+
+  "agent": {
+    "primary": "coder",
+    "role": "TDD Implementation (GREEN phase) - make tests pass with minimal implementation"
+  },
+
+  "duration": "1h",
+  "priority": "critical",
+  "dependencies": ["task_029"],
+  "parallel_group": null,
+  "tdd_phase": "GREEN",
+  "milestone_gate": true,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 2: Scope & Use Cases - Expense rules (<total> required, <cost_centre> optional with default 'UNKNOWN')",
+        "Section 4.2: Parsing & Validation Rules - Tag precedence, tax rate precedence, Banker's Rounding",
+        "Section 7: Patterns - Pipeline pattern inside each processor (Validate → Extract → Normalize → Persist → BuildResponse)"
+      ],
+      "requirements": [
+        "<total> (tax-inclusive) is REQUIRED for expenses; reject if missing",
+        "<cost_centre> is OPTIONAL; default to 'UNKNOWN' if absent",
+        "Extract fields: vendor, description, date, time, total, cost_centre, payment_method",
+        "Compute tax breakdown from tax-inclusive total using ITaxCalculator",
+        "Persist expense to database via IExpenseRepository",
+        "Build ExpenseResponse with classification='expense'",
+        "Pipeline: Validate → Extract → Normalize → Persist → BuildResponse"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 2,
+      "requirement": "Implement expense processing with proper validation, tax calculation, and persistence",
+      "grading_criteria": "Expense processor implementation is a core graded component"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0003-processor-strategy-pattern.md",
+        "decision": "Implement Strategy Pattern for Content Processing with Pipeline Inside Each Processor",
+        "rationale": "Modular processing with clear pipeline stages (Validate → Extract → Normalize → Persist → BuildResponse)",
+        "context": "ExpenseProcessor implements IContentProcessor and contains internal pipeline for processing expense content",
+        "key_excerpt": "ExpenseProcessor.CanProcess() returns true if <total> tag present OR <expense> XML island exists. ProcessAsync() executes pipeline: Validate → Extract → Normalize → Persist → BuildResponse.",
+        "implementation_example": "public async Task<ProcessingResult> ProcessAsync(ParsedContent content, CancellationToken ct)\n{\n    // 1. Validate\n    ValidateRequiredFields(content); // <total> required\n    \n    // 2. Extract\n    var expense = ExtractExpense(content);\n    \n    // 3. Normalize (via ITaxCalculator, etc.)\n    var taxResult = await _taxCalculator.CalculateFromInclusive(expense.Total, taxRate);\n    expense.TotalExclTax = taxResult.TaxExclusive;\n    expense.SalesTax = taxResult.Gst;\n    \n    // 4. Persist\n    await _expenseRepository.SaveAsync(expense, ct);\n    \n    // 5. BuildResponse\n    return new ProcessingResult { Classification = \"expense\", Data = expense };\n}"
+      },
+      {
+        "file": "project-context/adr/ADR-0007-response-contract-design.md",
+        "decision": "Classification-Specific Response Design (expense XOR other)",
+        "relevance": "ExpenseProcessor must build ExpenseResponse with classification='expense' and expense-specific fields",
+        "example_expense_response": "{\n  \"classification\": \"expense\",\n  \"expense\": {\n    \"vendor\": \"Mojo Coffee\",\n    \"description\": \"Team lunch meeting\",\n    \"total\": 120.50,\n    \"totalExclTax\": 104.78,\n    \"salesTax\": 15.72,\n    \"costCentre\": \"DEV-TEAM\",\n    \"date\": \"2024-10-05\",\n    \"time\": \"12:30\",\n    \"taxRate\": 0.15\n  },\n  \"meta\": { \"correlationId\": \"...\", \"processingTimeMs\": 45, \"warnings\": [] }\n}"
+      },
+      {
+        "file": "project-context/adr/ADR-0008-parsing-validation-rules.md",
+        "decision": "Parsing and Validation Rules - <total> required, <cost_centre> optional with default",
+        "key_excerpt": "Expense rules: <total> (incl. tax) is REQUIRED; else reject. <cost_centre> OPTIONAL → default to UNKNOWN.",
+        "validation_example": "if (!content.InlineTags.ContainsKey(\"total\") && !content.XmlIslands.Any(x => x.Name == \"expense\"))\n    throw new ValidationException(\"MISSING_TOTAL\", \"<total> tag is required for expense processing\");"
+      },
+      {
+        "file": "project-context/adr/ADR-0002-architecture-style.md",
+        "decision": "Clean/Hexagonal Architecture with Ports & Adapters",
+        "relevance": "ExpenseProcessor is a Domain service that uses ITaxCalculator (Port) and IExpenseRepository (Port)"
+      },
+      {
+        "file": "project-context/adr/ADR-0010-test-strategy-coverage.md",
+        "decision": "TDD with London School (mockist) approach - 30+ unit tests for M1",
+        "relevance": "GREEN phase: Make all 12+ ExpenseProcessor tests pass, contributing to M1 target of 30+ unit tests"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M1 — Core Parsing & Validation",
+      "sub_section": "Expense Processor (TDD GREEN phase) + M1 DoD Verification",
+      "requirement": "Implement expense processing pipeline (validate, extract, normalize, persist, build response). Verify M1 DoD: 30+ unit tests green, all parsing rules implemented, tag validation working, Banker's Rounding verified, GST calculation correct.",
+      "dod_criteria": [
+        "All parsing rules implemented as pure functions",
+        "30+ unit tests covering happy path + edge cases + failures",
+        "Test fixtures from brief included and tested",
+        "All tests green (100% pass rate)",
+        "Code coverage >80% on parser logic",
+        "Zero dependencies on DB or HTTP"
+      ]
+    },
+    "dependency_context": {
+      "task_029": "ExpenseProcessor tests written (RED) - 12+ failing tests define expected behavior"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "ExpenseProcessor.cs",
+      "description": "Domain service implementing IContentProcessor with 5-stage pipeline",
+      "location": "src/Domain/Processors/",
+      "properties": {
+        "implements": "IContentProcessor",
+        "dependencies": ["ITaxCalculator", "IExpenseRepository"],
+        "pipeline_stages": [
+          "1. Validate: Check <total> tag exists (required)",
+          "2. Extract: Pull vendor, description, total, cost_centre (default 'UNKNOWN'), date, time, payment_method",
+          "3. Normalize: Call ITaxCalculator.CalculateFromInclusive() to get tax breakdown",
+          "4. Persist: Call IExpenseRepository.SaveAsync() to save expense",
+          "5. BuildResponse: Create ProcessingResult with classification='expense' and expense data"
+        ]
+      }
+    },
+    {
+      "item": "Passing tests",
+      "description": "All 12+ ExpenseProcessor tests must PASS (GREEN phase)",
+      "validation": "Test runner shows GREEN for all expense processor tests"
+    },
+    {
+      "item": "M1 DoD verification",
+      "description": "Verify M1 milestone completion: 30+ unit tests green, all parsing rules implemented",
+      "validation": "Run full test suite and verify M1 DoD criteria met"
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ ExpenseProcessor.cs created in src/Domain/Processors/",
+    "✅ Implements IContentProcessor interface",
+    "✅ CanProcess() returns true if <total> tag exists OR <expense> XML island exists",
+    "✅ ProcessAsync() executes 5-stage pipeline (Validate → Extract → Normalize → Persist → BuildResponse)",
+    "✅ ValidateRequiredFields() throws ValidationException with MISSING_TOTAL if <total> absent",
+    "✅ ExtractExpense() extracts vendor, description, total, cost_centre (default 'UNKNOWN'), date, time, payment_method",
+    "✅ ExtractExpense() handles mixed inline tags and XML island data",
+    "✅ Tax calculation delegates to ITaxCalculator.CalculateFromInclusive()",
+    "✅ Persistence delegates to IExpenseRepository.SaveAsync()",
+    "✅ BuildResponse() creates ProcessingResult with classification='expense'",
+    "✅ All 12+ ExpenseProcessor tests PASS (GREEN)",
+    "✅ CancellationToken properly propagated to async methods",
+    "✅ Custom tax rates supported (not just default 0.15)",
+    "✅ Solution builds with 0 warnings",
+    "✅ M1 DoD verified: 30+ unit tests green, all parsing rules implemented"
+  ],
+
+  "business_rules": [
+    "<total> (tax-inclusive) is REQUIRED for expenses; reject with MISSING_TOTAL if absent",
+    "<cost_centre> is OPTIONAL; default to 'UNKNOWN' if absent",
+    "Extract vendor, description, date, time, total, cost_centre, payment_method from tags",
+    "Prefer <total> within <expense> island; else use first global <total>",
+    "Calculate tax breakdown using ITaxCalculator.CalculateFromInclusive()",
+    "Persist expense to database using IExpenseRepository.SaveAsync()",
+    "Build ExpenseResponse with classification='expense'",
+    "Pipeline order: Validate → Extract → Normalize (tax calc) → Persist → BuildResponse",
+    "Date and time are optional (only total is required)",
+    "Support custom tax rates from request (not just default 0.15)",
+    "Support mixed inline tags and XML island data"
+  ],
+
+  "technical_notes": {
+    "dotnet_command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build",
+    "test_command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~ExpenseProcessor",
+    "design_pattern": "Pipeline pattern with 5 stages inside ExpenseProcessor",
+    "dependency_injection": "Constructor inject ITaxCalculator and IExpenseRepository",
+    "error_handling": "Throw ValidationException with specific error codes (MISSING_TOTAL)",
+    "async_pattern": "Use async/await for IExpenseRepository.SaveAsync() and ITaxCalculator (if async)"
+  },
+
+  "code_examples": {
+    "interface": "public interface IContentProcessor\n{\n    string ContentType { get; }\n    bool CanProcess(ParsedContent content);\n    Task<ProcessingResult> ProcessAsync(ParsedContent content, CancellationToken ct);\n}",
+
+    "processor_structure": "public class ExpenseProcessor : IContentProcessor\n{\n    private readonly ITaxCalculator _taxCalculator;\n    private readonly IExpenseRepository _repository;\n\n    public ExpenseProcessor(ITaxCalculator taxCalculator, IExpenseRepository repository)\n    {\n        _taxCalculator = taxCalculator ?? throw new ArgumentNullException(nameof(taxCalculator));\n        _repository = repository ?? throw new ArgumentNullException(nameof(repository));\n    }\n\n    public string ContentType => \"expense\";\n\n    public bool CanProcess(ParsedContent content)\n    {\n        return content.InlineTags.ContainsKey(\"total\")\n            || content.XmlIslands.Any(x => x.Name == \"expense\");\n    }\n\n    public async Task<ProcessingResult> ProcessAsync(ParsedContent content, CancellationToken ct)\n    {\n        // 1. Validate\n        ValidateRequiredFields(content);\n        \n        // 2. Extract\n        var expense = ExtractExpense(content);\n        \n        // 3. Normalize (tax calc)\n        var taxRate = content.TaxRate ?? 0.15m; // Default to 0.15 if not provided\n        var taxResult = await _taxCalculator.CalculateFromInclusive(expense.Total, taxRate);\n        expense.TotalExclTax = taxResult.TaxExclusive;\n        expense.SalesTax = taxResult.Gst;\n        expense.TaxRate = taxRate;\n        \n        // 4. Persist\n        await _repository.SaveAsync(expense, ct);\n        \n        // 5. Build response\n        return new ProcessingResult \n        { \n            Classification = \"expense\", \n            Data = expense \n        };\n    }\n\n    private void ValidateRequiredFields(ParsedContent content)\n    {\n        // Check for <total> in inline tags OR in <expense> XML island\n        bool hasTotalInTags = content.InlineTags.ContainsKey(\"total\");\n        bool hasTotalInIsland = content.XmlIslands\n            .Where(x => x.Name == \"expense\")\n            .Any(x => x.Content.Contains(\"<total>\"));\n\n        if (!hasTotalInTags && !hasTotalInIsland)\n        {\n            throw new ValidationException(\"MISSING_TOTAL\", \"<total> tag is required for expense processing\");\n        }\n    }\n\n    private Expense ExtractExpense(ParsedContent content)\n    {\n        var expense = new Expense();\n\n        // Extract from inline tags first\n        if (content.InlineTags.TryGetValue(\"vendor\", out var vendor))\n            expense.Vendor = vendor;\n        if (content.InlineTags.TryGetValue(\"description\", out var description))\n            expense.Description = description;\n        if (content.InlineTags.TryGetValue(\"total\", out var total))\n            expense.Total = decimal.Parse(total);\n        if (content.InlineTags.TryGetValue(\"cost_centre\", out var costCentre))\n            expense.CostCentre = costCentre;\n        if (content.InlineTags.TryGetValue(\"date\", out var date))\n            expense.Date = date;\n        if (content.InlineTags.TryGetValue(\"time\", out var time))\n            expense.Time = time;\n        if (content.InlineTags.TryGetValue(\"payment_method\", out var paymentMethod))\n            expense.PaymentMethod = paymentMethod;\n\n        // Override with XML island data (takes precedence for total/cost_centre)\n        var expenseIsland = content.XmlIslands.FirstOrDefault(x => x.Name == \"expense\");\n        if (expenseIsland != null)\n        {\n            // Parse XML island content for total and cost_centre\n            // (Simplified - in reality would use IXmlIslandExtractor)\n            if (expenseIsland.Content.Contains(\"<total>\"))\n            {\n                var totalMatch = Regex.Match(expenseIsland.Content, @\"<total>(.*?)</total>\");\n                if (totalMatch.Success)\n                    expense.Total = decimal.Parse(totalMatch.Groups[1].Value);\n            }\n            if (expenseIsland.Content.Contains(\"<cost_centre>\"))\n            {\n                var costCentreMatch = Regex.Match(expenseIsland.Content, @\"<cost_centre>(.*?)</cost_centre>\");\n                if (costCentreMatch.Success)\n                    expense.CostCentre = costCentreMatch.Groups[1].Value;\n            }\n        }\n\n        // Default cost_centre to 'UNKNOWN' if not provided\n        if (string.IsNullOrEmpty(expense.CostCentre))\n            expense.CostCentre = \"UNKNOWN\";\n\n        return expense;\n    }\n}",
+
+    "validation_exception": "public class ValidationException : Exception\n{\n    public string ErrorCode { get; set; }\n\n    public ValidationException(string errorCode, string message) : base(message)\n    {\n        ErrorCode = errorCode;\n    }\n}",
+
+    "processing_result": "public class ProcessingResult\n{\n    public string Classification { get; set; } // \"expense\" or \"other\"\n    public object Data { get; set; } // Expense or OtherContent\n}",
+
+    "expense_dto": "public class Expense\n{\n    public Guid Id { get; set; }\n    public string Vendor { get; set; } = string.Empty;\n    public string Description { get; set; } = string.Empty;\n    public decimal Total { get; set; }\n    public decimal TotalExclTax { get; set; }\n    public decimal SalesTax { get; set; }\n    public string CostCentre { get; set; } = \"UNKNOWN\";\n    public string Date { get; set; } = string.Empty;\n    public string Time { get; set; } = string.Empty;\n    public string PaymentMethod { get; set; } = string.Empty;\n    public decimal TaxRate { get; set; } = 0.15m;\n}"
+  },
+
+  "tdd_workflow": {
+    "current_phase": "GREEN - Make tests pass",
+    "previous_phase": "task_029 - RED - Tests written and failing",
+    "next_phase": "M2 tasks - API Contracts (tests already green, no REFACTOR needed)",
+    "principle": "Simplest implementation that makes tests pass",
+    "green_phase_rules": [
+      "Implement only what tests require (no gold-plating)",
+      "All 12+ ExpenseProcessor tests must PASS",
+      "No new functionality beyond what tests define",
+      "Keep implementation simple and readable",
+      "Ensure proper dependency injection"
+    ]
+  },
+
+  "m1_dod_verification": {
+    "checklist": [
+      "✅ All parsing rules implemented as pure functions (tag validation, number normalization, Banker's Rounding, tax calc, time parsing, XML extraction, content routing, expense processing)",
+      "✅ 30+ unit tests covering happy path + edge cases + failures",
+      "✅ Test fixtures from brief included and tested",
+      "✅ All tests green (100% pass rate)",
+      "✅ Code coverage >80% on parser logic",
+      "✅ Zero dependencies on DB or HTTP (using interfaces/ports)"
+    ],
+    "verification_commands": [
+      "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter Category=Unit",
+      "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --logger \"console;verbosity=detailed\" | grep -E 'Total tests|Passed|Failed'"
+    ],
+    "success_criteria": "Total tests: 30+, Passed: 30+, Failed: 0",
+    "milestone_gate_action": "Update BUILDLOG.md with M1 completion summary (auto-triggered by update-progress.sh)"
+  },
+
+  "validation": {
+    "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~ExpenseProcessor",
+    "expected_output": "Total tests: 12+\n     Passed: 12+\n     Failed: 0",
+    "notes": "All ExpenseProcessor tests should PASS (GREEN phase complete)"
+  },
+
+  "definition_of_done": [
+    "✅ ExpenseProcessor.cs created in src/Domain/Processors/",
+    "✅ Implements IContentProcessor with CanProcess() and ProcessAsync()",
+    "✅ 5-stage pipeline implemented (Validate → Extract → Normalize → Persist → BuildResponse)",
+    "✅ ValidateRequiredFields() throws ValidationException with MISSING_TOTAL if needed",
+    "✅ ExtractExpense() extracts all required and optional fields",
+    "✅ Default cost_centre to 'UNKNOWN' when missing",
+    "✅ Tax calculation delegates to ITaxCalculator",
+    "✅ Persistence delegates to IExpenseRepository",
+    "✅ BuildResponse() creates correct ProcessingResult",
+    "✅ All 12+ ExpenseProcessor tests PASS (GREEN)",
+    "✅ Solution builds with 0 warnings",
+    "✅ M1 DoD verified: Run dotnet test --filter Category=Unit and confirm 30+ tests pass",
+    "✅ Progress updated: ./scripts/update-progress.sh task_030 completed unit 12",
+    "✅ BUILDLOG.md updated with M1 completion (auto-triggered)",
+    "✅ Commit created with descriptive message and co-authorship footer"
+  ],
+
+  "implementation_notes": {
+    "pipeline_stages": [
+      "1. Validate: Check <total> tag exists (required), throw ValidationException if missing",
+      "2. Extract: Pull vendor, description, total, cost_centre (default 'UNKNOWN'), date, time, payment_method from inline tags and XML islands",
+      "3. Normalize: Call ITaxCalculator.CalculateFromInclusive() to get tax breakdown (totalExclTax, salesTax)",
+      "4. Persist: Call IExpenseRepository.SaveAsync() to save expense entity",
+      "5. BuildResponse: Create ProcessingResult with classification='expense' and expense data"
+    ],
+    "validation_rules": [
+      "<total> tag REQUIRED - throw ValidationException with code MISSING_TOTAL if absent",
+      "<cost_centre> OPTIONAL - default to 'UNKNOWN' if absent",
+      "All other fields (vendor, description, date, time, payment_method) are optional"
+    ],
+    "tag_precedence": [
+      "Prefer <total> within <expense> XML island over global <total>",
+      "Inline tags take precedence for vendor/description",
+      "XML island takes precedence for total/cost_centre if both exist"
+    ],
+    "implementation_tips": [
+      "Use constructor injection for ITaxCalculator and IExpenseRepository",
+      "Validate dependencies are not null in constructor",
+      "Extract XML island parsing logic (or use IXmlIslandExtractor if available)",
+      "Handle nullable/optional fields gracefully",
+      "Ensure async/await pattern used correctly",
+      "Propagate CancellationToken to all async methods"
+    ],
+    "m1_completion": [
+      "This task completes M1 milestone",
+      "Total M1 unit tests: 30+ (from tasks 014-030)",
+      "All parsing rules now implemented and tested",
+      "Ready to proceed to M2 (API Contracts)"
+    ]
+  },
+
+  "next_task": {
+    "id": "task_031",
+    "name": "Create DTOs (Request/Response/Error)",
+    "why": "M1 complete with all parsing logic implemented. Now wrap in HTTP API with proper DTOs (M2 start)",
+    "milestone": "M2",
+    "parallel_eligible": false
+  }
+}
