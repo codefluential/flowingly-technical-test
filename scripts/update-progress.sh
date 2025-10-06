@@ -163,7 +163,7 @@ with open("project-context/implementation/PROGRESS.md", "w") as f:
 
 PYTHON_SCRIPT
 
-# Add to BUILDLOG if milestone completed
+# Add to BUILDLOG if milestone completed (only if not already logged)
 TASK_NUM=$(echo "$TASK_ID" | sed 's/task_//')
 if [ "$STATUS" == "completed" ] && ([ "$TASK_NUM" == "010" ] || [ "$TASK_NUM" == "030" ] || [ "$TASK_NUM" == "040" ] || [ "$TASK_NUM" == "050" ]); then
     MILESTONE=""
@@ -174,30 +174,35 @@ if [ "$STATUS" == "completed" ] && ([ "$TASK_NUM" == "010" ] || [ "$TASK_NUM" ==
         "050") MILESTONE="M3" ;;
     esac
 
-    echo "" >> "$BUILDLOG_MD"
-    echo "## $(date '+%Y-%m-%d %H:%M') - $MILESTONE Milestone Complete" >> "$BUILDLOG_MD"
-    echo "" >> "$BUILDLOG_MD"
-    echo "**Changes**:" >> "$BUILDLOG_MD"
-    echo "- Completed all $MILESTONE tasks successfully" >> "$BUILDLOG_MD"
-    echo "- $MILESTONE DoD verification passed (task_$TASK_NUM)" >> "$BUILDLOG_MD"
-    echo "" >> "$BUILDLOG_MD"
-    echo "**Testing**:" >> "$BUILDLOG_MD"
-    echo "- Tests passing: $TESTS/45" >> "$BUILDLOG_MD"
-    echo "" >> "$BUILDLOG_MD"
-    echo "**Next Steps**:" >> "$BUILDLOG_MD"
-    if [ "$TASK_NUM" != "050" ]; then
-        NEXT_TASK=$(printf "task_%03d" $((10#$TASK_NUM + 1)))
-        echo "- Proceed to $NEXT_TASK" >> "$BUILDLOG_MD"
-    else
-        echo "- Phase 1 complete! Product is submittable." >> "$BUILDLOG_MD"
-    fi
-    echo "" >> "$BUILDLOG_MD"
-    echo "---" >> "$BUILDLOG_MD"
+    # Check if milestone already logged in milestones_completed array
+    ALREADY_LOGGED=$(jq --arg milestone "$MILESTONE" '.progress_tracking.milestones_completed | contains([$milestone])' "$TASKS_JSON")
 
-    # Update progress_tracking milestones
-    jq --arg milestone "$MILESTONE" '
-      .progress_tracking.milestones_completed += [$milestone]
-    ' "$TASKS_JSON" > "$TASKS_JSON.tmp" && mv "$TASKS_JSON.tmp" "$TASKS_JSON"
+    if [ "$ALREADY_LOGGED" == "false" ]; then
+        echo "" >> "$BUILDLOG_MD"
+        echo "## $(date '+%Y-%m-%d %H:%M') - $MILESTONE Milestone Complete" >> "$BUILDLOG_MD"
+        echo "" >> "$BUILDLOG_MD"
+        echo "**Changes**:" >> "$BUILDLOG_MD"
+        echo "- Completed all $MILESTONE tasks successfully" >> "$BUILDLOG_MD"
+        echo "- $MILESTONE DoD verification passed (task_$TASK_NUM)" >> "$BUILDLOG_MD"
+        echo "" >> "$BUILDLOG_MD"
+        echo "**Testing**:" >> "$BUILDLOG_MD"
+        echo "- Tests passing: $TESTS/45" >> "$BUILDLOG_MD"
+        echo "" >> "$BUILDLOG_MD"
+        echo "**Next Steps**:" >> "$BUILDLOG_MD"
+        if [ "$TASK_NUM" != "050" ]; then
+            NEXT_TASK=$(printf "task_%03d" $((10#$TASK_NUM + 1)))
+            echo "- Proceed to $NEXT_TASK" >> "$BUILDLOG_MD"
+        else
+            echo "- Phase 1 complete! Product is submittable." >> "$BUILDLOG_MD"
+        fi
+        echo "" >> "$BUILDLOG_MD"
+        echo "---" >> "$BUILDLOG_MD"
+
+        # Update progress_tracking milestones (only if not already present)
+        jq --arg milestone "$MILESTONE" '
+          .progress_tracking.milestones_completed += [$milestone]
+        ' "$TASKS_JSON" > "$TASKS_JSON.tmp" && mv "$TASKS_JSON.tmp" "$TASKS_JSON"
+    fi
 fi
 
 echo "✅ Progress updated: $TASK_ID → $STATUS"
