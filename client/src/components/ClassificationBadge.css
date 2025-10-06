@@ -1,0 +1,43 @@
+/* Classification Badge Styles */
+.classification-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Expense badge - green */
+.classification-badge--expense {
+  background-color: #10b981;
+  color: #ffffff;
+}
+
+/* Other badge - blue */
+.classification-badge--other {
+  background-color: #3b82f6;
+  color: #ffffff;
+}
+
+/* Responsive sizing */
+@media (min-width: 768px) {
+  .classification-badge {
+    font-size: 1rem;
+    padding: 0.375rem 1rem;
+  }
+}
+
+/* High contrast mode */
+body.high-contrast .classification-badge--expense {
+  background-color: #00ff00;
+  color: #000000;
+  border: 2px solid #00ff00;
+}
+
+body.high-contrast .classification-badge--other {
+  background-color: #0066ff;
+  color: #ffffff;
+  border: 2px solid #0066ff;
+}
