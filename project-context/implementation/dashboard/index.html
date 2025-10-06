@@ -97,6 +97,54 @@
             flex: 1;
         }
 
+        .milestone-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .milestone-tab {
+            padding: 12px 20px;
+            background: #f8f9fa;
+            border: none;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .milestone-tab:hover {
+            background: #e9ecef;
+            color: #333;
+        }
+
+        .milestone-tab.active {
+            background: white;
+            color: #333;
+            border-bottom: 3px solid #007bff;
+        }
+
+        .milestone-tab.completed {
+            color: #28a745;
+        }
+
+        .milestone-tab.completed.active {
+            border-bottom-color: #28a745;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
         .phase-title {
             font-size: 20px;
             font-weight: 600;
@@ -153,25 +201,14 @@
             font-size: 14px;
         }
 
-        .milestone {
-            margin-bottom: 25px;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            overflow: hidden;
-        }
-
-        .milestone-header {
+        .milestone-header-info {
             background: #f8f9fa;
             padding: 15px 20px;
-            cursor: pointer;
-            user-select: none;
+            border-radius: 6px;
+            margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-
-        .milestone-header:hover {
-            background: #e9ecef;
         }
 
         .milestone-title {
@@ -186,26 +223,6 @@
             align-items: center;
             font-size: 14px;
             color: #666;
-        }
-
-        .milestone-content {
-            padding: 20px;
-            display: none;
-        }
-
-        .milestone.expanded .milestone-content {
-            display: block;
-        }
-
-        .milestone.expanded .toggle-icon::before {
-            content: '▼';
-        }
-
-        .toggle-icon::before {
-            content: '▶';
-            display: inline-block;
-            margin-right: 10px;
-            transition: transform 0.2s;
         }
 
         .task {
@@ -465,42 +482,57 @@
                 </div>
             `;
 
-            // Start milestones section
+            // Start milestones section with tabs
             let milestonesHtml = '<div class="milestones-section">';
 
-            // Render each milestone
+            // Render tabs
+            milestonesHtml += '<div class="milestone-tabs">';
+            Object.keys(milestones).forEach(milestoneKey => {
+                const milestone = milestones[milestoneKey];
+                const milestoneTasks = tasksByMilestone[milestoneKey] || [];
+                const completedTasks = milestoneTasks.filter(t => t.status === 'completed').length;
+                const isCompleted = progress.milestones_completed.includes(milestoneKey);
+                const isActive = milestoneKey === progress.current_milestone;
+
+                milestonesHtml += `
+                    <button class="milestone-tab ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}"
+                            onclick="switchTab('${milestoneKey}')"
+                            id="tab-${milestoneKey}">
+                        ${isCompleted ? '✅' : '⏳'} ${milestoneKey}: ${milestone.name} (${completedTasks}/${milestoneTasks.length})
+                    </button>
+                `;
+            });
+            milestonesHtml += '</div>';
+
+            // Render tab contents
             Object.keys(milestones).forEach(milestoneKey => {
                 const milestone = milestones[milestoneKey];
                 const milestoneTasks = tasksByMilestone[milestoneKey] || [];
                 const completedTasks = milestoneTasks.filter(t => t.status === 'completed').length;
                 const milestonePercent = Math.round((completedTasks / milestoneTasks.length) * 100);
                 const isCompleted = progress.milestones_completed.includes(milestoneKey);
+                const isActive = milestoneKey === progress.current_milestone;
 
                 milestonesHtml += `
-                    <div class="milestone" id="milestone-${milestoneKey}">
-                        <div class="milestone-header" onclick="toggleMilestone('${milestoneKey}')">
-                            <div>
-                                <span class="toggle-icon"></span>
-                                <span class="milestone-title">
-                                    ${isCompleted ? '✅' : '⏳'} ${milestoneKey}: ${milestone.name}
-                                </span>
+                    <div class="tab-content ${isActive ? 'active' : ''}" id="content-${milestoneKey}">
+                        <div class="milestone-header-info">
+                            <div class="milestone-title">
+                                ${isCompleted ? '✅' : '⏳'} ${milestoneKey}: ${milestone.name}
                             </div>
                             <div class="milestone-meta">
                                 <span>${completedTasks}/${milestoneTasks.length} tasks</span>
                                 <span>${milestone.duration}</span>
                             </div>
                         </div>
-                        <div class="milestone-content">
-                            <div class="progress-bar" style="height: 20px;">
-                                <div class="progress-fill" style="width: ${milestonePercent}%">
-                                    ${milestonePercent}%
-                                </div>
+                        <div class="progress-bar" style="height: 20px; margin-bottom: 15px;">
+                            <div class="progress-fill" style="width: ${milestonePercent}%">
+                                ${milestonePercent}%
                             </div>
-                            <div style="margin: 15px 0; color: #666; font-size: 14px;">
-                                <strong>Objective:</strong> ${milestone.objective}
-                            </div>
-                            ${renderTasks(milestoneTasks, data.parallel_execution_groups)}
                         </div>
+                        <div style="margin-bottom: 20px; color: #666; font-size: 14px;">
+                            <strong>Objective:</strong> ${milestone.objective}
+                        </div>
+                        ${renderTasks(milestoneTasks, data.parallel_execution_groups)}
                     </div>
                 `;
             });
@@ -516,11 +548,24 @@
             `;
 
             document.getElementById('content').innerHTML = mainContentHtml;
+        }
 
-            // Auto-expand current milestone
-            if (progress.current_milestone) {
-                toggleMilestone(progress.current_milestone);
-            }
+        function switchTab(milestoneKey) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Deactivate all tabs
+            document.querySelectorAll('.milestone-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab content
+            document.getElementById(`content-${milestoneKey}`).classList.add('active');
+
+            // Activate selected tab
+            document.getElementById(`tab-${milestoneKey}`).classList.add('active');
         }
 
         function renderTasks(tasks, parallelGroups) {
@@ -614,11 +659,6 @@
             });
 
             return html;
-        }
-
-        function toggleMilestone(milestoneKey) {
-            const element = document.getElementById(`milestone-${milestoneKey}`);
-            element.classList.toggle('expanded');
         }
 
         // Load data on page load
