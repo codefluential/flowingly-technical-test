@@ -1,0 +1,177 @@
+{
+  "task_id": "task_012",
+  "milestone": "M1",
+  "name": "Design Test Strategy",
+  "description": "Design comprehensive test organization, naming conventions, and TDD workflow patterns for M1 Core Parsing & Validation phase. Establish test structure standards that all 30+ unit tests will follow.",
+
+  "agent": {
+    "primary": "quality-assurance-engineer",
+    "role": "Test strategy design and test organization planning"
+  },
+
+  "duration": "45min",
+  "priority": "critical",
+  "dependencies": ["task_011"],
+  "parallel_group": null,
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 13: Testing Strategy - Testing matrix and coverage targets",
+        "Section 13: BDD Scenarios - Given/When/Then test patterns"
+      ],
+      "requirements": [
+        "30+ unit tests for domain logic (80%+ coverage)",
+        "Use xUnit + FluentAssertions",
+        "Follow TDD RED-GREEN-REFACTOR cycles",
+        "Organize tests by architecture layers (Domain/, Application/)"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 2,
+      "requirement": "Test coverage is a core graded component",
+      "grading_criteria": "Comprehensive test suite demonstrates code quality and TDD understanding"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0010-test-strategy-coverage.md",
+        "decision": "Three-tier testing strategy (Unit, Integration, E2E)",
+        "context": "M1 focuses on Unit Tests (Domain Logic) with 80%+ coverage target",
+        "key_excerpt": "Test domain logic in isolation without external dependencies. Components to Test: ITagValidator, ITaxCalculator, INormalizer, IContentRouter, Value Objects."
+      },
+      {
+        "file": "project-context/adr/ADR-0002-architecture-style.md",
+        "decision": "Clean/Hexagonal Architecture",
+        "relevance": "Test directory structure must mirror architecture layers"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M1 — Core Parsing & Validation",
+      "sub_section": "Test Strategy",
+      "requirement": "Define test organization before TDD cycles begin (task_014-030)"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "TEST_STRATEGY.md",
+      "description": "Comprehensive test organization and naming conventions document",
+      "location": "tests/Flowingly.ParsingService.UnitTests/",
+      "sections": [
+        "Test Organization (Domain/, Application/ structure)",
+        "Naming Conventions (Given_When_Then, Should_X_When_Y patterns)",
+        "TDD Workflow (RED-GREEN-REFACTOR cycle steps)",
+        "Test Coverage Targets (per component)",
+        "FluentAssertions Patterns (common assertion examples)",
+        "Test Fixture Usage (how to use fixtures from task_011)"
+      ]
+    },
+    {
+      "item": "Test file structure",
+      "description": "Planned organization of test files",
+      "structure": [
+        "tests/Flowingly.ParsingService.UnitTests/Domain/",
+        "tests/Flowingly.ParsingService.UnitTests/Domain/TagValidatorTests.cs",
+        "tests/Flowingly.ParsingService.UnitTests/Domain/TaxCalculatorTests.cs",
+        "tests/Flowingly.ParsingService.UnitTests/Domain/NumberNormalizerTests.cs",
+        "tests/Flowingly.ParsingService.UnitTests/Domain/TimeParserTests.cs",
+        "tests/Flowingly.ParsingService.UnitTests/Domain/XmlIslandExtractorTests.cs",
+        "tests/Flowingly.ParsingService.UnitTests/Application/",
+        "tests/Flowingly.ParsingService.UnitTests/Application/ContentRouterTests.cs",
+        "tests/Flowingly.ParsingService.UnitTests/Application/ExpenseProcessorTests.cs"
+      ]
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ TEST_STRATEGY.md document created with all sections",
+    "✅ Test naming conventions defined (2+ patterns documented)",
+    "✅ TDD workflow steps clearly documented (RED-GREEN-REFACTOR)",
+    "✅ Directory structure aligns with architecture layers",
+    "✅ Coverage targets defined per component (e.g., TagValidator: 7+ tests)",
+    "✅ FluentAssertions examples provided for common scenarios",
+    "✅ Fixture usage patterns documented (reference task_011 fixtures)",
+    "✅ Strategy is ready for immediate use in task_014+"
+  ],
+
+  "business_rules": [
+    "Test naming MUST be descriptive and follow consistent pattern",
+    "All tests MUST use Arrange-Act-Assert (AAA) structure",
+    "FluentAssertions is MANDATORY (not Assert.Equal)",
+    "Test classes MUST match component names (TagValidator → TagValidatorTests)",
+    "TDD RED phase: tests MUST fail before implementation exists",
+    "Coverage target: 80%+ for domain logic, 70%+ for application logic",
+    "Use test fixtures from task_011 for realistic test data"
+  ],
+
+  "test_coverage_targets": {
+    "TagValidator": "7+ tests (overlapping, unclosed, proper nesting, edge cases)",
+    "NumberNormalizer": "4+ tests (currency symbols, commas, decimals, edge cases)",
+    "TaxCalculator": "10+ tests (Banker's Rounding, GST calculation, edge cases)",
+    "TimeParser": "5+ tests (various formats, ambiguous times, invalid inputs)",
+    "XmlIslandExtractor": "4+ tests (valid XML, security checks, malformed XML)",
+    "ContentRouter": "5+ tests (expense classification, other classification, edge cases)",
+    "ExpenseProcessor": "6+ tests (full pipeline with fixtures, validation, errors)"
+  },
+
+  "naming_convention_patterns": {
+    "pattern_1": "MethodUnderTest_Scenario_ExpectedResult",
+    "example_1": "Validate_OverlappingTags_ThrowsValidationException",
+    "pattern_2": "Given_When_Then",
+    "example_2": "Given_OverlappingTags_When_Validating_Then_ThrowsException",
+    "pattern_3": "Should_X_When_Y",
+    "example_3": "Should_ThrowException_When_TagsAreOverlapping"
+  },
+
+  "fluent_assertions_examples": {
+    "exception_assertion": "act.Should().Throw<ValidationException>().WithMessage(\"*UNCLOSED_TAGS*\");",
+    "equality_assertion": "result.TotalExclTax.Should().Be(104.78m);",
+    "null_check": "result.Should().NotBeNull();",
+    "type_check": "result.Should().BeOfType<ExpenseResult>();",
+    "collection_assertion": "result.Errors.Should().BeEmpty();"
+  },
+
+  "tdd_workflow_steps": {
+    "red_phase": [
+      "1. Write test method with descriptive name",
+      "2. Arrange: Set up test data (use fixtures if applicable)",
+      "3. Act: Call method under test (wrap in Action for exception testing)",
+      "4. Assert: Use FluentAssertions to verify expected behavior",
+      "5. Run test: Verify it FAILS (RED)",
+      "6. Commit: 'test(component): add failing test for X'"
+    ],
+    "green_phase": [
+      "1. Implement minimal code to make test pass",
+      "2. Run test: Verify it PASSES (GREEN)",
+      "3. Run all tests: Ensure no regressions",
+      "4. Commit: 'feat(component): implement X to pass tests'"
+    ],
+    "refactor_phase": [
+      "1. Review code for duplication, complexity, smells",
+      "2. Refactor while keeping tests green",
+      "3. Run all tests after each refactor",
+      "4. Commit: 'refactor(component): improve X'"
+    ]
+  },
+
+  "technical_notes": {
+    "test_base_class": "Consider creating BaseUnitTest if common setup/teardown needed",
+    "test_categories": "Use [Trait(\"Category\", \"Unit\")] for test categorization",
+    "test_data": "Use [Theory] with [InlineData] for parameterized tests",
+    "fixture_usage": "Load fixtures with File.ReadAllText(\"fixtures/sample-email-1-expense.txt\")"
+  },
+
+  "validation": {
+    "command": "cat tests/Flowingly.ParsingService.UnitTests/TEST_STRATEGY.md",
+    "expected_output": "Document exists with all required sections (naming, TDD workflow, coverage targets, fixtures)"
+  },
+
+  "next_task": {
+    "id": "task_014",
+    "name": "Write Tag Validation Tests (TDD RED)",
+    "why": "Test strategy defined, now write first RED tests following established patterns"
+  }
+}
