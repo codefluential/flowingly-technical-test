@@ -1,0 +1,206 @@
+{
+  "task_id": "task_018",
+  "milestone": "M1",
+  "name": "Implement INumberNormalizer",
+  "description": "Implement INumberNormalizer to make the failing tests from task_017 pass (TDD GREEN phase). Focus on minimal implementation that satisfies all test scenarios without over-engineering.",
+
+  "agent": {
+    "primary": "coder",
+    "role": "TDD GREEN phase implementation - make failing tests pass with minimal code"
+  },
+
+  "duration": "45min",
+  "priority": "critical",
+  "dependencies": ["task_017"],
+  "parallel_group": null,
+  "tdd_phase": "GREEN",
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 4.2: Parsing & Validation Rules - Number normalization",
+        "Section 13: BDD Scenarios - 'Scenario: Number normalization handles commas'"
+      ],
+      "requirements": [
+        "Strip currency symbols ($, £, €, NZD) from input strings",
+        "Remove all commas from numeric strings (e.g., 35,000.00 → 35000.00)",
+        "Use decimal type for precision (NEVER double/float for money)",
+        "Handle mixed formats: 'NZD 1,234.56' → 1234.56",
+        "Return null for invalid input (non-numeric after cleaning)",
+        "Preserve decimal precision during normalization"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 2,
+      "requirement": "Correctly parse and normalize monetary values from free-form text",
+      "grading_criteria": "Number parsing accuracy is critical for expense total calculations and GST computation"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0008-parsing-validation-rules.md",
+        "decision": "Number Normalization with Currency Symbol Removal",
+        "rationale": "Free-form text contains various currency formats; must clean before parsing to avoid format exceptions",
+        "context": "Email bodies may contain currency values in different formats (commas, symbols, codes)",
+        "key_excerpt": "Numbers: strip commas/currency symbols, parse as decimal"
+      },
+      {
+        "file": "project-context/adr/ADR-0009-tax-calculation-rounding.md",
+        "decision": "Use decimal type for all monetary values",
+        "rationale": "Avoid floating-point precision errors in tax calculations",
+        "relevance": "Number normalizer must return decimal, not double"
+      },
+      {
+        "file": "project-context/adr/ADR-0010-test-strategy-coverage.md",
+        "decision": "TDD approach for all domain logic",
+        "context": "task_017 created failing tests; task_018 makes them pass (GREEN phase)",
+        "principle": "Simplest implementation that makes tests pass"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M1 — Core Parsing & Validation",
+      "sub_section": "Number Normalization (TDD GREEN)",
+      "requirement": "Implement number normalizer that strips currency symbols/commas and parses as decimal"
+    },
+    "related_tasks": {
+      "precedes": "task_017",
+      "follows": "task_019",
+      "integration_with": [
+        "task_021 (ITaxCalculator will consume INumberNormalizer for total parsing)",
+        "task_029 (Expense Processor will use normalizer for field extraction)"
+      ]
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "NumberNormalizer.cs",
+      "description": "Concrete implementation of INumberNormalizer interface",
+      "location": "api/src/Flowingly.ParsingService.Domain/Services/",
+      "interface": "INumberNormalizer",
+      "methods": [
+        "decimal? Normalize(string input) - strips currency/commas, parses as decimal"
+      ]
+    },
+    {
+      "item": "INumberNormalizer.cs",
+      "description": "Interface definition (may already exist from task_017 test setup)",
+      "location": "api/src/Flowingly.ParsingService.Domain/Interfaces/",
+      "interface_contract": "decimal? Normalize(string input)"
+    },
+    {
+      "item": "All tests passing",
+      "description": "All 10+ tests from task_017 now pass (GREEN phase complete)",
+      "validation": "Test runner shows all NumberNormalizer tests GREEN"
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ All tests from task_017 pass (10+ tests GREEN)",
+    "✅ NumberNormalizer implements INumberNormalizer interface",
+    "✅ Removes currency symbols: $, £, €, NZD (and others)",
+    "✅ Strips all commas from numeric strings",
+    "✅ Returns decimal type (not double/float)",
+    "✅ Returns null for invalid input (non-numeric after cleaning)",
+    "✅ Handles edge cases: empty string, null, whitespace-only",
+    "✅ Uses culture-invariant parsing (CultureInfo.InvariantCulture)",
+    "✅ No new tests added (GREEN phase - only implementation)",
+    "✅ Code follows SOLID principles (single responsibility, testable)",
+    "✅ Solution builds with 0 warnings"
+  ],
+
+  "business_rules": [
+    "Currency symbols to strip: $, £, €, ¥, ₹, NZD, USD, AUD, GBP (extensible list)",
+    "Commas MUST be removed before decimal parsing",
+    "Decimal type MANDATORY (avoid floating-point precision errors)",
+    "Null/empty input returns null (not exception)",
+    "Invalid input (letters, special chars after cleaning) returns null",
+    "Whitespace is trimmed before and after cleaning",
+    "Culture-invariant parsing (use '.' as decimal separator, not ',')",
+    "Preserve precision (no rounding at normalization stage)"
+  ],
+
+  "technical_notes": {
+    "implementation_approach": "String manipulation (regex or Replace) + decimal.TryParse",
+    "libraries": [
+      "System.Text.RegularExpressions (for currency symbol removal)",
+      "System.Globalization.CultureInfo.InvariantCulture (for parsing)"
+    ],
+    "pattern": "Pure function - no side effects, stateless, thread-safe",
+    "performance": "Regex.Replace or string.Replace (both acceptable for v1)",
+    "error_handling": "Return null for invalid input (do not throw exceptions)",
+    "dotnet_command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build && dotnet test --filter FullyQualifiedName~NumberNormalizer"
+  },
+
+  "code_examples": {
+    "interface": "public interface INumberNormalizer\n{\n    /// <summary>\n    /// Normalizes a numeric string by removing currency symbols and commas.\n    /// Returns null if input cannot be parsed as decimal.\n    /// </summary>\n    /// <param name=\"input\">Raw string potentially containing currency symbols/commas</param>\n    /// <returns>Normalized decimal value or null if invalid</returns>\n    decimal? Normalize(string input);\n}",
+    "implementation": "public class NumberNormalizer : INumberNormalizer\n{\n    private static readonly Regex CurrencySymbolRegex = new Regex(@\"[$£€¥₹]|NZD|USD|AUD|GBP|EUR\", RegexOptions.Compiled | RegexOptions.IgnoreCase);\n\n    public decimal? Normalize(string input)\n    {\n        if (string.IsNullOrWhiteSpace(input))\n            return null;\n\n        // Remove currency symbols\n        var cleaned = CurrencySymbolRegex.Replace(input, \"\");\n        \n        // Remove commas\n        cleaned = cleaned.Replace(\",\", \"\");\n        \n        // Trim whitespace\n        cleaned = cleaned.Trim();\n\n        // Parse as decimal (culture-invariant)\n        if (decimal.TryParse(cleaned, NumberStyles.Number, CultureInfo.InvariantCulture, out var result))\n            return result;\n\n        return null;\n    }\n}",
+    "usage_example": "// In Expense Processor or Tax Calculator\nvar normalizer = new NumberNormalizer();\nvar totalString = \"$35,000.00\";\nvar totalDecimal = normalizer.Normalize(totalString); // Returns 35000.00m",
+    "test_verification": "// After implementation, run:\n// export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~NumberNormalizer\n// Expected: All tests PASS (GREEN)"
+  },
+
+  "tdd_workflow": {
+    "current_phase": "GREEN - Make failing tests pass with minimal implementation",
+    "previous_phase": "task_017 - RED - Failing tests created",
+    "next_phase": "No REFACTOR task scheduled (code is simple enough)",
+    "principle": "Simplest code that makes all tests pass - avoid over-engineering",
+    "tdd_reminder": "Do NOT add new tests in this task - only implementation"
+  },
+
+  "implementation_guidance": {
+    "step_1": "Read all tests from task_017 to understand expected behavior",
+    "step_2": "Create NumberNormalizer.cs in api/src/Flowingly.ParsingService.Domain/Services/",
+    "step_3": "Implement Normalize method with string cleaning logic",
+    "step_4": "Run tests: export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~NumberNormalizer",
+    "step_5": "Fix failing tests one by one (iterate until all GREEN)",
+    "step_6": "Verify no warnings: export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build",
+    "step_7": "Update progress: ./scripts/update-progress.sh task_018 completed"
+  },
+
+  "edge_cases_to_handle": [
+    "Null input → return null",
+    "Empty string → return null",
+    "Whitespace only → return null",
+    "Multiple currency symbols: '$NZD 100' → 100.00",
+    "Only currency symbols: '$' → return null",
+    "Letters after cleaning: '$100abc' → return null",
+    "Valid decimal: '100.50' → 100.50",
+    "Integer: '100' → 100.00",
+    "Zero: '$0.00' → 0.00",
+    "Large numbers: '1,234,567.89' → 1234567.89"
+  ],
+
+  "validation": {
+    "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~NumberNormalizer",
+    "expected_output": "10+ tests PASSED (GREEN)",
+    "failure_is_success": false,
+    "additional_checks": [
+      "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build (expect 0 warnings)",
+      "Verify all task_017 test scenarios pass",
+      "Check test output for GREEN status on all NumberNormalizerTests methods"
+    ]
+  },
+
+  "definition_of_done": [
+    "✅ NumberNormalizer.cs created in api/src/Flowingly.ParsingService.Domain/Services/",
+    "✅ INumberNormalizer interface exists in api/src/Flowingly.ParsingService.Domain/Interfaces/",
+    "✅ All 10+ tests from task_017 pass (GREEN phase complete)",
+    "✅ No new tests added (this is GREEN phase, not RED)",
+    "✅ Solution builds with 0 warnings",
+    "✅ Code reviewed for clarity and maintainability",
+    "✅ Implementation uses decimal type (not double/float)",
+    "✅ Culture-invariant parsing used (CultureInfo.InvariantCulture)",
+    "✅ Edge cases handled (null, empty, invalid input)",
+    "✅ Progress updated: ./scripts/update-progress.sh task_018 completed"
+  ],
+
+  "next_task": {
+    "id": "task_019",
+    "name": "Write Banker's Rounding Tests (TDD)",
+    "why": "Number normalization complete; next is rounding logic for tax calculations (parallel execution group)",
+    "tdd_phase": "RED",
+    "parallel_note": "task_019 is in M1_parallel_1 group (independent validator tests)"
+  }
+}

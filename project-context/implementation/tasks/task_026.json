@@ -1,0 +1,245 @@
+{
+  "task_id": "task_026",
+  "milestone": "M1",
+  "name": "Implement IXmlIslandExtractor",
+  "description": "TDD GREEN phase: Implement secure XML island extraction to make all 12 tests from task_025 pass. Extracts <expense>...</expense> XML blocks from free-form text with DTD/XXE disabled for security. Follows ADR-0008 parsing rules and PRD v0.3 secure XML requirements.",
+
+  "agent": {
+    "primary": "coder",
+    "role": "TDD GREEN implementation with security hardening (DTD/XXE protection)"
+  },
+
+  "duration": "1h",
+  "priority": "critical",
+  "dependencies": ["task_025"],
+  "parallel_group": null,
+  "tdd_phase": "GREEN",
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 4.2: Parsing & Validation Rules - Secure XML Islands",
+        "Section 11: Security & OWASP Mapping - XML Security"
+      ],
+      "requirements": [
+        "Extract <expense>...</expense> blocks from free-form text",
+        "Parse XML with secure settings: DtdProcessing.Prohibit, XmlResolver = null",
+        "Prevent XXE (XML External Entity) attacks via external entity resolution disabled",
+        "Prevent DoS attacks via input size limits and bounded parsing",
+        "Support nested tags, attributes, and CDATA sections within islands",
+        "Return extracted XML strings for further processing (validation happens elsewhere)",
+        "Reject malformed XML within islands with XmlException"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 2,
+      "requirement": "Extract structured expense data from XML islands embedded in email text",
+      "grading_criteria": "XML extraction and security hardening are core evaluation areas"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0008-parsing-validation-rules.md",
+        "decision": "Secure XML Parsing with DTD/XXE Prevention",
+        "rationale": "XXE and DTD attacks can read arbitrary files or cause DoS; must be blocked via hardened parser settings",
+        "context": "Free-form text may contain malicious XML payloads attempting XXE/DTD attacks",
+        "key_excerpt": "Use a hardened parser: DtdProcessing = Prohibit, XmlResolver = null. Bound input sizes and timeouts; only parse the delimited island content."
+      },
+      {
+        "file": "project-context/adr/ADR-0008-parsing-validation-rules.md",
+        "decision": "Stack-Based Tag Validation (Not Regex Balance)",
+        "relevance": "While stack-based validation applies to inline tags, XML island extraction uses regex for island boundaries and XDocument for secure parsing"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M1 — Core Parsing & Validation",
+      "sub_section": "XML Island Extraction",
+      "requirement": "Implement secure XML extractor that blocks XXE/DTD attacks and extracts expense islands from text"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "XmlIslandExtractor.cs",
+      "description": "IXmlIslandExtractor implementation with secure XML parsing and XXE/DTD protection",
+      "location": "src/Flowingly.ParsingService.Domain/Parsers/",
+      "methods": [
+        "Extract(string input) : IEnumerable<string> - Extracts all <expense>...</expense> islands from text"
+      ],
+      "security_features": [
+        "DtdProcessing.Prohibit - Blocks DTD declarations and processing",
+        "XmlResolver = null - Disables external entity resolution (XXE protection)",
+        "Input size validation - Prevents DoS via large payloads",
+        "XmlException on malformed XML - Clear error messages for parsing failures"
+      ]
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ All 12 tests from task_025 pass (GREEN phase complete)",
+    "✅ XmlIslandExtractor.cs created in src/Flowingly.ParsingService.Domain/Parsers/",
+    "✅ Implements IXmlIslandExtractor interface (Extract method)",
+    "✅ Extracts single and multiple <expense>...</expense> islands from text",
+    "✅ Returns empty collection when no expense islands present",
+    "✅ Supports nested tags, attributes, and CDATA sections within islands",
+    "✅ Throws XmlException for malformed XML (unclosed tags, invalid structure)",
+    "✅ SECURITY: DTD processing disabled (DtdProcessing.Prohibit)",
+    "✅ SECURITY: External entity resolution disabled (XmlResolver = null)",
+    "✅ SECURITY: XXE attack test passes (rejects external entity references)",
+    "✅ SECURITY: DTD attack test passes (rejects DTD declarations)",
+    "✅ SECURITY: DoS protection test passes (rejects excessively large payloads)",
+    "✅ Mixed content handling: extracts only <expense> islands, ignores other XML",
+    "✅ No new tests added (GREEN phase - implementation only)",
+    "✅ Code follows SOLID principles (single responsibility, testable)",
+    "✅ Solution builds with 0 warnings: export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build"
+  ],
+
+  "business_rules": [
+    "Extract ONLY <expense>...</expense> islands (not other XML tags)",
+    "Use regex to find island boundaries: <expense> to </expense>",
+    "Parse each extracted island with XDocument.Parse using secure settings",
+    "DTD processing MUST be disabled (DtdProcessing.Prohibit) - SECURITY CRITICAL",
+    "External entity resolution MUST be disabled (XmlResolver = null) - SECURITY CRITICAL",
+    "Input size SHOULD be validated (e.g., reject payloads > 2MB) - DoS prevention",
+    "Malformed XML within islands MUST throw XmlException with clear message",
+    "Valid but empty islands (<expense></expense>) are allowed (validation happens downstream)",
+    "Preserve XML attributes, nested tags, and CDATA sections in extracted islands",
+    "Return IEnumerable<string> containing extracted XML strings (not parsed objects)",
+    "Extraction is pure function (no side effects, thread-safe)"
+  ],
+
+  "technical_notes": {
+    "regex_pattern": "@\"<expense>.*?</expense>\" (non-greedy to handle multiple islands)",
+    "regex_options": "RegexOptions.Singleline (allow . to match newlines)",
+    "xml_security_settings": "XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null, MaxCharactersInDocument = 1_000_000 }",
+    "libraries": [
+      "System.Xml.Linq (XDocument.Parse for secure XML parsing)",
+      "System.Text.RegularExpressions (Regex for island boundary detection)"
+    ],
+    "validation_command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~XmlIslandExtractor",
+    "expected_test_count": "12 tests PASS (GREEN)",
+    "build_command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build"
+  },
+
+  "code_examples": {
+    "interface": "public interface IXmlIslandExtractor\n{\n    /// <summary>\n    /// Extracts all <expense>...</expense> XML islands from free-form text.\n    /// </summary>\n    /// <param name=\"input\">Raw text potentially containing expense islands</param>\n    /// <returns>Collection of extracted XML island strings (empty if none found)</returns>\n    /// <exception cref=\"XmlException\">Thrown when extracted island contains malformed XML</exception>\n    IEnumerable<string> Extract(string input);\n}",
+    "implementation_structure": "public class XmlIslandExtractor : IXmlIslandExtractor\n{\n    private static readonly Regex ExpenseIslandPattern = new Regex(\n        @\"<expense>.*?</expense>\",\n        RegexOptions.Singleline | RegexOptions.Compiled\n    );\n\n    private static readonly XmlReaderSettings SecureSettings = new XmlReaderSettings\n    {\n        DtdProcessing = DtdProcessing.Prohibit,        // SECURITY: Block DTD\n        XmlResolver = null,                            // SECURITY: Block XXE\n        MaxCharactersInDocument = 1_000_000,           // SECURITY: DoS limit\n        IgnoreComments = true,\n        IgnoreWhitespace = false\n    };\n\n    public IEnumerable<string> Extract(string input)\n    {\n        // 1. Validate input size\n        // 2. Find all <expense>...</expense> boundaries via regex\n        // 3. For each match, validate XML well-formedness with XDocument.Parse\n        // 4. Return validated island strings\n    }\n}",
+    "xxe_prevention_example": "// SECURITY: This configuration blocks XXE attacks\nvar settings = new XmlReaderSettings\n{\n    DtdProcessing = DtdProcessing.Prohibit,  // Reject any DTD declarations\n    XmlResolver = null                       // Disable external entity resolution\n};\n\n// Parse with secure settings\nusing var reader = XmlReader.Create(new StringReader(xmlString), settings);\nvar doc = XDocument.Load(reader);  // Will throw XmlException for XXE/DTD attempts",
+    "extraction_logic": "// Step 1: Extract island boundaries with regex\nvar matches = ExpenseIslandPattern.Matches(input);\nif (matches.Count == 0)\n    return Enumerable.Empty<string>();\n\nvar islands = new List<string>();\n\nforeach (Match match in matches)\n{\n    var islandXml = match.Value;\n\n    // Step 2: Validate XML well-formedness with secure parser\n    try\n    {\n        using var reader = XmlReader.Create(new StringReader(islandXml), SecureSettings);\n        var doc = XDocument.Load(reader);\n        islands.Add(islandXml);\n    }\n    catch (XmlException ex)\n    {\n        // Malformed XML - rethrow with context\n        throw new XmlException($\"Malformed XML in expense island: {ex.Message}\", ex);\n    }\n}\n\nreturn islands;"
+  },
+
+  "test_scenarios": [
+    {
+      "name": "Should_Extract_Single_Expense_Island_From_Text",
+      "input": "Hi there, <expense><total>100</total><cost_centre>DEV</cost_centre></expense> thanks!",
+      "expected": "1 island extracted containing <total>100</total> and <cost_centre>DEV</cost_centre>",
+      "status": "RED → GREEN"
+    },
+    {
+      "name": "Should_Extract_Multiple_Expense_Islands_From_Same_Text",
+      "input": "First: <expense><total>100</total></expense> and second: <expense><total>200</total></expense>",
+      "expected": "2 islands extracted with totals 100 and 200",
+      "status": "RED → GREEN"
+    },
+    {
+      "name": "Should_Return_Empty_When_No_Expense_Islands_Present",
+      "input": "Just some text with <vendor>Mojo</vendor> but no expense island",
+      "expected": "Empty collection (0 islands)",
+      "status": "RED → GREEN"
+    },
+    {
+      "name": "Should_Extract_Expense_Island_With_Nested_Tags",
+      "input": "Order: <expense><items><item>Coffee</item><item>Lunch</item></items><total>50</total></expense>",
+      "expected": "1 island with nested <items> structure preserved",
+      "status": "RED → GREEN"
+    },
+    {
+      "name": "Should_Throw_XmlException_For_Malformed_XML_In_Island",
+      "input": "<expense><total>100</total><cost_centre>DEV</expense>",
+      "expected": "XmlException mentioning 'cost_centre' (unclosed tag)",
+      "status": "RED → GREEN"
+    },
+    {
+      "name": "Should_Extract_Empty_Expense_Island",
+      "input": "<expense></expense>",
+      "expected": "1 island: '<expense></expense>'",
+      "status": "RED → GREEN"
+    },
+    {
+      "name": "Should_Extract_Expense_Island_With_Attributes",
+      "input": "<expense type=\"reimbursement\" currency=\"NZD\"><total>100</total></expense>",
+      "expected": "1 island with attributes preserved",
+      "status": "RED → GREEN"
+    },
+    {
+      "name": "Should_Prevent_XXE_Attack_With_External_Entity",
+      "input": "<!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]><expense><total>&xxe;</total></expense>",
+      "expected": "XmlException with 'DTD' or 'prohibited' or 'entity' in message",
+      "status": "RED → GREEN (SECURITY TEST)"
+    },
+    {
+      "name": "Should_Reject_DTD_Declaration_In_Input",
+      "input": "<!DOCTYPE expense SYSTEM \"http://malicious.com/evil.dtd\"><expense><total>100</total></expense>",
+      "expected": "XmlException with 'DTD' or 'prohibited' in message",
+      "status": "RED → GREEN (SECURITY TEST)"
+    },
+    {
+      "name": "Should_Enforce_Size_Limit_For_Large_XML_Islands",
+      "input": "<expense><data>XXXXXXX... (2MB of X characters)</data></expense>",
+      "expected": "Exception (XmlException or ArgumentException) with 'size' or 'limit' in message",
+      "status": "RED → GREEN (DoS PREVENTION TEST)"
+    },
+    {
+      "name": "Should_Handle_Mixed_Content_With_Non_Expense_XML",
+      "input": "<vendor>Mojo Coffee</vendor> <expense><total>25</total></expense> <invoice>INV-123</invoice> <expense><total>50</total></expense>",
+      "expected": "2 expense islands, no <vendor> or <invoice> in results",
+      "status": "RED → GREEN"
+    },
+    {
+      "name": "Should_Extract_Expense_Island_With_CDATA_Section",
+      "input": "<expense><description><![CDATA[Special <chars> & symbols]]></description><total>100</total></expense>",
+      "expected": "1 island with CDATA section preserved",
+      "status": "RED → GREEN"
+    }
+  ],
+
+  "tdd_workflow": {
+    "current_phase": "GREEN - Make tests pass with minimal implementation",
+    "previous_phase": "task_025 - RED - 12 failing tests",
+    "next_phase": "task_027 - RED - Content Router tests",
+    "principle": "Implement simplest solution that makes all 12 security and functional tests pass",
+    "test_count": "12 tests (all currently failing)",
+    "success_criteria": "All 12 tests pass, no new tests added"
+  },
+
+  "security_implementation_checklist": [
+    "[ ] XmlReaderSettings configured with DtdProcessing.Prohibit",
+    "[ ] XmlReaderSettings configured with XmlResolver = null",
+    "[ ] MaxCharactersInDocument set to prevent DoS (e.g., 1_000_000)",
+    "[ ] Input size validation before processing (e.g., reject if > 2MB)",
+    "[ ] XDocument.Load uses XmlReader with secure settings (not direct string parsing)",
+    "[ ] XXE attack test passes (external entity references blocked)",
+    "[ ] DTD attack test passes (DTD declarations blocked)",
+    "[ ] DoS attack test passes (large payloads rejected)",
+    "[ ] Malformed XML throws XmlException with clear message",
+    "[ ] No unsafe XML parsing methods used (e.g., XDocument.Parse(string) without reader)"
+  ],
+
+  "validation": {
+    "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~XmlIslandExtractor",
+    "expected_output": "Total tests: 12, Passed: 12, Failed: 0 (all GREEN)",
+    "failure_is_success": false,
+    "build_check": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build",
+    "build_expected": "Build succeeded. 0 Warning(s) 0 Error(s)"
+  },
+
+  "next_task": {
+    "id": "task_027",
+    "name": "Write Content Router Tests (TDD)",
+    "why": "XML extraction complete; now test content classification logic (expense vs other) before implementing router",
+    "tdd_phase": "RED",
+    "dependencies": ["task_015", "task_018", "task_026"]
+  }
+}

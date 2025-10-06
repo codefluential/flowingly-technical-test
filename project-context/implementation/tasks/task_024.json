@@ -1,0 +1,282 @@
+{
+  "task_id": "task_024",
+  "milestone": "M1",
+  "name": "Implement ITimeParser",
+  "description": "TDD GREEN phase: Implement TimeParser class to make all 14 failing tests from task_023 pass. Parse 12-hour (AM/PM) and 24-hour time formats using whitelist-based validation. Return TimeSpan for valid formats, null for ambiguous/invalid inputs.",
+
+  "agent": {
+    "primary": "coder",
+    "role": "Implementation - Domain Logic (TDD GREEN phase)"
+  },
+
+  "duration": "45min",
+  "priority": "critical",
+  "dependencies": ["task_023"],
+  "parallel_group": null,
+  "tdd_phase": "GREEN",
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 4.2: Parsing & Validation Rules - Time parsing whitelist",
+        "Section 4.2: Normalization - Time formats (HH:mm)"
+      ],
+      "requirements": [
+        "Attempt parsing time to HH:mm format",
+        "Ignore ambiguous times (e.g., '7.30pm' with unclear separators, '19:30' without context)",
+        "Accept unambiguous formats: '19:30', '7:30 PM', '07:30'",
+        "Reject/ignore: '7.30pm' (dot separator ambiguous), partial times without clear AM/PM",
+        "Log warning and omit time field in response for ambiguous formats"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 2,
+      "requirement": "Parse time data accurately from expense content",
+      "grading_criteria": "Data extraction accuracy affects overall parsing score"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0008-parsing-validation-rules.md",
+        "decision": "Time Parsing Whitelist (Explicit Formats Only)",
+        "rationale": "Ambiguous formats like '230' (2:30? 23:0? 2300 hours?) lead to incorrect data. Better to reject than guess.",
+        "context": "Whitelist-based time parsing ensures data correctness by rejecting unclear inputs",
+        "key_excerpt": "Use whitelist-based time parsing with explicit format validation. Reject ambiguous inputs.",
+        "accepted_formats": [
+          "HH:mm (24-hour, e.g., 14:30)",
+          "HH:mm:ss (24-hour with seconds, e.g., 14:30:00)",
+          "h:mm tt (12-hour with AM/PM, e.g., 2:30 PM)",
+          "h:mm:ss tt (12-hour with seconds and AM/PM, e.g., 2:30:00 PM)"
+        ],
+        "rejected_formats": [
+          "230 (ambiguous: 2:30 or 23:0?)",
+          "2.30 (unclear separator)",
+          "1430 (no separator)",
+          "Any format not in whitelist"
+        ],
+        "behavior_on_rejection": [
+          "Log warning: 'Ambiguous time format rejected: {input}'",
+          "Set time field to null in response (time is optional)",
+          "Do NOT throw error (time is not required for expense validation)"
+        ]
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M1 — Core Parsing & Validation",
+      "sub_section": "Time Parser (TDD GREEN)",
+      "requirement": "Implement ITimeParser using whitelist approach to make all task_023 tests pass"
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "TimeParser.cs",
+      "description": "ITimeParser implementation with whitelist-based time parsing",
+      "location": "src/Flowingly.ParsingService.Domain/Parsing/",
+      "properties": {
+        "interface": "ITimeParser",
+        "method": "TimeSpan? Parse(string? input)",
+        "return_type": "TimeSpan? (nullable)",
+        "dependencies": ["System", "System.Globalization", "Microsoft.Extensions.Logging"]
+      }
+    },
+    {
+      "item": "ITimeParser.cs",
+      "description": "Interface defining time parsing contract",
+      "location": "src/Flowingly.ParsingService.Domain/Parsing/",
+      "properties": {
+        "method_signature": "TimeSpan? Parse(string? input)"
+      }
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ All 14 tests from task_023 pass (GREEN phase complete)",
+    "✅ ITimeParser interface created with Parse(string?) method",
+    "✅ TimeParser class implements ITimeParser",
+    "✅ Parses 24-hour format (14:30, 00:00, 23:59)",
+    "✅ Parses 24-hour with seconds (14:30:00)",
+    "✅ Parses 12-hour AM format (7:30 AM, 07:30 AM)",
+    "✅ Parses 12-hour PM format (2:30 PM, converts to 14:30)",
+    "✅ Handles midnight correctly (12:00 AM → 00:00)",
+    "✅ Returns null for ambiguous formats (230, 2.30, 7.30pm)",
+    "✅ Returns null for invalid inputs (null, empty, whitespace, 25:99)",
+    "✅ Uses CultureInfo.InvariantCulture for parsing",
+    "✅ Logs warning for rejected/ambiguous formats",
+    "✅ No new tests added (GREEN phase focuses on implementation only)",
+    "✅ Code follows SOLID principles (single responsibility, dependency injection)"
+  ],
+
+  "business_rules": [
+    "Whitelist-based parsing: ONLY accept formats in allowed list (HH:mm, HH:mm:ss, h:mm tt, h:mm:ss tt)",
+    "Ambiguous formats MUST return null, not throw exceptions",
+    "Log warning for ambiguous/rejected formats using structured logging",
+    "12-hour PM times: add 12 hours (2:30 PM → 14:30), except 12:xx PM → 12:xx",
+    "12-hour AM times: midnight 12:xx AM → 00:xx, other AM times unchanged",
+    "Null/empty/whitespace input returns null (no exception)",
+    "Invalid time values (hour > 23, minute > 59) return null",
+    "Use InvariantCulture to avoid locale-specific parsing issues",
+    "Time parsing is OPTIONAL - null is acceptable (expense processing continues)"
+  ],
+
+  "technical_notes": {
+    "dotnet_command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build src/Flowingly.ParsingService.Domain",
+    "test_command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~TimeParserTests",
+    "design_pattern": "Whitelist validation with TimeSpan.TryParseExact",
+    "logging": "ILogger<TimeParser> for warning messages on rejected formats",
+    "dependencies": [
+      "Microsoft.Extensions.Logging.Abstractions (for ILogger)"
+    ],
+    "namespace": "Flowingly.ParsingService.Domain.Parsing",
+    "key_methods": [
+      "TimeSpan? Parse(string? input) - main parsing logic",
+      "Private: string[] AcceptedFormats - whitelist array"
+    ]
+  },
+
+  "code_examples": {
+    "interface": "namespace Flowingly.ParsingService.Domain.Parsing;\n\npublic interface ITimeParser\n{\n    /// <summary>\n    /// Parses time string using whitelist of accepted formats.\n    /// Returns null for ambiguous/invalid inputs (logs warning).\n    /// </summary>\n    /// <param name=\"input\">Time string (e.g., \"14:30\", \"2:30 PM\")</param>\n    /// <returns>TimeSpan if valid format, null otherwise</returns>\n    TimeSpan? Parse(string? input);\n}",
+
+    "implementation": "using System;\nusing System.Globalization;\nusing Microsoft.Extensions.Logging;\n\nnamespace Flowingly.ParsingService.Domain.Parsing;\n\npublic class TimeParser : ITimeParser\n{\n    private static readonly string[] AcceptedFormats = { \"HH:mm\", \"HH:mm:ss\", \"h:mm tt\", \"h:mm:ss tt\" };\n    private readonly ILogger<TimeParser> _logger;\n\n    public TimeParser(ILogger<TimeParser> logger)\n    {\n        _logger = logger ?? throw new ArgumentNullException(nameof(logger));\n    }\n\n    public TimeSpan? Parse(string? input)\n    {\n        if (string.IsNullOrWhiteSpace(input))\n            return null;\n\n        if (TimeSpan.TryParseExact(input, AcceptedFormats, CultureInfo.InvariantCulture, out var result))\n            return result;\n\n        _logger.LogWarning(\"Ambiguous time format rejected: {Input}\", input);\n        return null;\n    }\n}",
+
+    "usage": "// In DI container (Program.cs or DI setup)\nservices.AddTransient<ITimeParser, TimeParser>();\n\n// In consumer code\npublic class ExpenseParser\n{\n    private readonly ITimeParser _timeParser;\n\n    public ExpenseParser(ITimeParser timeParser)\n    {\n        _timeParser = timeParser;\n    }\n\n    public void ProcessTime(string timeString)\n    {\n        var time = _timeParser.Parse(timeString);\n        if (time.HasValue)\n        {\n            // Use parsed time (e.g., format as HH:mm)\n            var formatted = $\"{time.Value.Hours:D2}:{time.Value.Minutes:D2}\";\n        }\n        else\n        {\n            // Time was ambiguous/invalid, omit from output\n        }\n    }\n}",
+
+    "test_verification": "// After implementation, run tests\n// All 14 tests from task_023 should now PASS\nexport PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~TimeParserTests\n\n// Expected output:\nTest run for /path/to/Flowingly.ParsingService.UnitTests.dll\nTotal tests: 14\n     Passed: 14 ✅\n     Failed: 0\n     Skipped: 0"
+  },
+
+  "tdd_workflow": {
+    "current_phase": "GREEN - Make tests pass with minimal implementation",
+    "previous_phase": "task_023 - RED - 14 failing tests written",
+    "next_phase": "No REFACTOR task planned (GREEN completes this TDD cycle)",
+    "principle": "Implement simplest solution that makes all tests pass; no premature optimization"
+  },
+
+  "test_scenarios": [
+    {
+      "name": "Parse_TwentyFourHourFormat_ReturnsCorrectTimeSpan",
+      "input": "\"14:30\"",
+      "expected": "TimeSpan(14, 30, 0)",
+      "status": "Currently FAILING (task_023)"
+    },
+    {
+      "name": "Parse_TwentyFourHourFormatWithSeconds_ReturnsCorrectTimeSpan",
+      "input": "\"14:30:00\"",
+      "expected": "TimeSpan(14, 30, 0)",
+      "status": "Currently FAILING (task_023)"
+    },
+    {
+      "name": "Parse_MidnightTwentyFourHour_ReturnsZeroTimeSpan",
+      "input": "\"00:00\"",
+      "expected": "TimeSpan(0, 0, 0)",
+      "status": "Currently FAILING (task_023)"
+    },
+    {
+      "name": "Parse_TwelveHourAMFormat_ReturnsCorrectTimeSpan",
+      "input": "\"7:30 AM\"",
+      "expected": "TimeSpan(7, 30, 0)",
+      "status": "Currently FAILING (task_023)"
+    },
+    {
+      "name": "Parse_TwelveHourPMFormat_ConvertsToTwentyFourHour",
+      "input": "\"2:30 PM\"",
+      "expected": "TimeSpan(14, 30, 0)",
+      "status": "Currently FAILING (task_023)"
+    },
+    {
+      "name": "Parse_LeadingZeroTwelveHourAM_ReturnsCorrectTimeSpan",
+      "input": "\"07:30 AM\"",
+      "expected": "TimeSpan(7, 30, 0)",
+      "status": "Currently FAILING (task_023)"
+    },
+    {
+      "name": "Parse_MidnightTwelveHour_ReturnsZeroTimeSpan",
+      "input": "\"12:00 AM\"",
+      "expected": "TimeSpan(0, 0, 0)",
+      "status": "Currently FAILING (task_023)"
+    },
+    {
+      "name": "Parse_AmbiguousNoSeparator_ReturnsNull",
+      "input": "\"230\"",
+      "expected": "null (ambiguous format)",
+      "status": "Currently FAILING (task_023)"
+    },
+    {
+      "name": "Parse_AmbiguousDotSeparator_ReturnsNull",
+      "input": "\"2.30\"",
+      "expected": "null (dot separator ambiguous)",
+      "status": "Currently FAILING (task_023)"
+    },
+    {
+      "name": "Parse_AmbiguousDotSeparatorWithPM_ReturnsNull",
+      "input": "\"7.30pm\"",
+      "expected": "null (dot separator with PM ambiguous)",
+      "status": "Currently FAILING (task_023)"
+    },
+    {
+      "name": "Parse_EmptyInput_ReturnsNull",
+      "input": "\"\"",
+      "expected": "null",
+      "status": "Currently FAILING (task_023)"
+    },
+    {
+      "name": "Parse_InvalidTimeValues_ReturnsNull",
+      "input": "\"25:99\"",
+      "expected": "null (invalid hour/minute)",
+      "status": "Currently FAILING (task_023)"
+    },
+    {
+      "name": "Parse_NullInput_ReturnsNull",
+      "input": "null",
+      "expected": "null",
+      "status": "Currently FAILING (task_023)"
+    },
+    {
+      "name": "Parse_WhitespaceInput_ReturnsNull",
+      "input": "\"   \"",
+      "expected": "null",
+      "status": "Currently FAILING (task_023)"
+    }
+  ],
+
+  "validation": {
+    "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~TimeParserTests",
+    "expected_output": "Total tests: 14. Passed: 14. Failed: 0. (All tests GREEN)",
+    "failure_is_success": false,
+    "additional_checks": [
+      "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build src/Flowingly.ParsingService.Domain (0 warnings, 0 errors)",
+      "Verify ITimeParser.cs exists in src/Flowingly.ParsingService.Domain/Parsing/",
+      "Verify TimeParser.cs exists in src/Flowingly.ParsingService.Domain/Parsing/",
+      "Check logs for warning messages on ambiguous format rejection"
+    ]
+  },
+
+  "implementation_steps": [
+    "1. Create ITimeParser.cs interface in src/Flowingly.ParsingService.Domain/Parsing/",
+    "2. Define Parse(string? input) method signature returning TimeSpan?",
+    "3. Create TimeParser.cs in same directory",
+    "4. Implement constructor with ILogger<TimeParser> dependency",
+    "5. Define static readonly string[] AcceptedFormats with 4 format strings",
+    "6. Implement Parse method: check null/whitespace → return null",
+    "7. Use TimeSpan.TryParseExact with AcceptedFormats and InvariantCulture",
+    "8. If parse succeeds, return TimeSpan",
+    "9. If parse fails, log warning and return null",
+    "10. Run tests: export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~TimeParserTests",
+    "11. Verify all 14 tests PASS",
+    "12. Run build to ensure no warnings: export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build"
+  ],
+
+  "next_task": {
+    "id": "task_025",
+    "name": "Write XML Extractor Tests (TDD)",
+    "why": "Time parser complete; next TDD cycle is XML island extraction (RED phase already completed, waiting for GREEN implementation in task_026)",
+    "note": "task_025 was completed in parallel with task_023 (parallel group M1_parallel_2). Next implementation task is task_026."
+  },
+
+  "progress_tracking": {
+    "start_command": "./scripts/update-progress.sh task_024 in_progress",
+    "complete_command": "./scripts/update-progress.sh task_024 completed unit 14",
+    "completion_note": "Mark completed with 14 unit tests passing (all from task_023, now GREEN)"
+  }
+}

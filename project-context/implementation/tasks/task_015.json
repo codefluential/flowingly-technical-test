@@ -1,0 +1,273 @@
+{
+  "task_id": "task_015",
+  "milestone": "M1",
+  "name": "Implement ITagValidator",
+  "description": "Implement stack-based tag validator to make all RED tests from task_014 pass (GREEN phase of TDD). Use minimal implementation following YAGNI principle - just enough to pass tests.",
+
+  "agent": {
+    "primary": "coder",
+    "role": "Implementation specialist - TDD GREEN phase"
+  },
+
+  "duration": "30min",
+  "priority": "critical",
+  "dependencies": ["task_014"],
+  "parallel_group": null,
+  "tdd_phase": "GREEN",
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 4.2: Parsing & Validation Rules - Stack-based scan over <name> and </name>; must be balanced & properly nested",
+        "Section 10.1: Tag Validation Rules - Stack-based validator required",
+        "Section 13: BDD Scenarios - 'Scenario: Overlapping Tags Should Be Rejected', 'Scenario: Unclosed Tag Should Error'"
+      ],
+      "requirements": [
+        "Stack-based integrity check for tag validation",
+        "Reject overlapping tags (e.g., <a><b></a></b>)",
+        "Reject unclosed tags (e.g., <a><b>)",
+        "Accept proper nesting (e.g., <a><b></b></a>)",
+        "Track opening and closing tags using LIFO stack",
+        "Return ValidationResult with error details",
+        "Error code: UNCLOSED_TAGS for all tag errors"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 2,
+      "requirement": "Validate tag integrity and reject malformed content",
+      "grading_criteria": "Tag validation is a core graded component - implementation must be correct and robust"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0008-parsing-validation-rules.md",
+        "decision": "Stack-Based Tag Validation (Not Regex Balance)",
+        "rationale": "Simple regex or balance counting cannot detect overlapping tags like <a><b></a></b>. Stack-based parser can detect when closing tags don't match the most recent opening tag.",
+        "context": "PRD v0.3 Section 4.2 introduced critical parsing rules to ensure data integrity and prevent ambiguous or malformed inputs",
+        "key_excerpt": "Algorithm: 1. Initialize empty stack, 2. For each tag: if opening push onto stack, if closing validate nesting and pop, 3. If stack not empty after processing → ERROR",
+        "implementation_example": "public class TagValidator : ITagValidator\n{\n    public ValidationResult Validate(string content)\n    {\n        var stack = new Stack<string>();\n        var regex = new Regex(@\"<(/?)(\\w+)>\");\n        foreach (Match match in regex.Matches(content))\n        {\n            var isClosing = match.Groups[1].Value == \"/\";\n            var tagName = match.Groups[2].Value;\n            if (!isClosing) stack.Push(tagName);\n            else {\n                if (stack.Count == 0) return ValidationResult.Failure($\"Unexpected closing tag </{tagName}>\");\n                var expected = stack.Pop();\n                if (expected != tagName) return ValidationResult.Failure($\"Overlapping tags: expected </{expected}>, found </{tagName}>\");\n            }\n        }\n        if (stack.Count > 0) return ValidationResult.Failure($\"Unclosed tags: {string.Join(\", \", stack)}\");\n        return ValidationResult.Success();\n    }\n}"
+      },
+      {
+        "file": "project-context/adr/ADR-0002-architecture-style.md",
+        "decision": "Clean/Hexagonal Architecture with Ports & Adapters",
+        "relevance": "TagValidator is a Domain service (Port), implementation is pure logic with no external dependencies"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M1 — Core Parsing & Validation",
+      "sub_section": "Tag Validation (TDD GREEN phase)",
+      "requirement": "Implement stack-based validator that makes all RED tests pass"
+    },
+    "red_phase_context": {
+      "task": "task_014",
+      "test_file": "api/tests/Flowingly.ParsingService.Tests/Validators/TagValidatorTests.cs",
+      "test_count": "10 tests",
+      "current_status": "All tests failing (RED)",
+      "test_scenarios_covered": [
+        "Overlapping tags (<a><b></a></b>)",
+        "Unclosed tags (<a><b>)",
+        "Proper nesting (<a><b></b></a>)",
+        "Self-closing tags (<expense><total>100</total></expense>)",
+        "Multiple nesting levels (<a><b><c></c></b></a>)",
+        "Empty content (no tags)",
+        "Mixed overlapping at different levels (<expense><a><b></expense></b></a>)"
+      ]
+    }
+  },
+
+  "deliverables": [
+    {
+      "item": "ITagValidator.cs",
+      "description": "Interface defining tag validation contract",
+      "location": "api/src/Flowingly.ParsingService.Domain/Services/",
+      "properties": {
+        "methods": [
+          "ValidationResult Validate(string content)"
+        ],
+        "return_type": "ValidationResult (domain value object)",
+        "no_dependencies": true
+      }
+    },
+    {
+      "item": "TagValidator.cs",
+      "description": "Stack-based implementation of ITagValidator",
+      "location": "api/src/Flowingly.ParsingService.Domain/Services/",
+      "properties": {
+        "algorithm": "Stack-based LIFO tag matching",
+        "regex_pattern": "<(/?)(\\w+)>",
+        "error_handling": "Returns ValidationResult with error details",
+        "pure_function": "No side effects, stateless, thread-safe"
+      }
+    },
+    {
+      "item": "ValidationResult.cs",
+      "description": "Value object representing validation outcome",
+      "location": "api/src/Flowingly.ParsingService.Domain/ValueObjects/",
+      "properties": {
+        "fields": ["bool IsValid", "string ErrorMessage", "string ErrorCode"],
+        "factory_methods": ["Success()", "Failure(string message, string code = \"UNCLOSED_TAGS\")"],
+        "immutable": true
+      }
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ All 10 tests from task_014 pass (GREEN phase complete)",
+    "✅ TagValidator implements stack-based algorithm per ADR-0008",
+    "✅ Handles nested tags correctly (LIFO ordering)",
+    "✅ Detects overlapping tags (e.g., <a><b></a></b>)",
+    "✅ Detects unclosed tags (e.g., <a><b>)",
+    "✅ Returns detailed validation errors with error code UNCLOSED_TAGS",
+    "✅ Code follows SOLID principles (single responsibility, no external dependencies)",
+    "✅ Implementation is minimal (YAGNI - just enough to pass tests)",
+    "✅ No new tests added (GREEN phase only makes RED tests pass)",
+    "✅ Code is self-documenting with clear variable names and logic flow"
+  ],
+
+  "business_rules": [
+    "Stack-based validation is MANDATORY (not regex balance checking)",
+    "Overlapping tags MUST be rejected with specific error message",
+    "Proper nesting follows LIFO (Last In First Out) stack principle",
+    "Error code must be UNCLOSED_TAGS for tag integrity violations",
+    "ValidationResult must include error details for debugging",
+    "Empty content is valid (no tags to validate)",
+    "Validator must be stateless and thread-safe (pure function)",
+    "Regex pattern: <(/?)(\\w+)> matches opening and closing tags",
+    "Unexpected closing tag → error: 'Unexpected closing tag </X>'",
+    "Mismatched closing tag → error: 'Overlapping tags: expected </Y>, found </X>'",
+    "Unclosed tags at end → error: 'Unclosed tags: [list of tags]'"
+  ],
+
+  "technical_requirements": {
+    "patterns": [
+      "Stack-based parsing (LIFO data structure)",
+      "Value Object pattern (ValidationResult)",
+      "Port/Adapter pattern (ITagValidator interface in Domain)"
+    ],
+    "dependencies": [
+      "System.Collections.Generic.Stack<T>",
+      "System.Text.RegularExpressions.Regex"
+    ],
+    "constraints": [
+      "No external dependencies (pure domain logic)",
+      "No logging in validator (keep pure)",
+      "No state mutation (thread-safe)",
+      "Regex must be efficient for large inputs",
+      "Error messages must be specific and actionable"
+    ],
+    "dotnet_commands": {
+      "build": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build api/src/Flowingly.ParsingService.Domain",
+      "test": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~TagValidator",
+      "test_verbose": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~TagValidator --logger \"console;verbosity=detailed\""
+    }
+  },
+
+  "code_examples": {
+    "interface": "namespace Flowingly.ParsingService.Domain.Services;\n\npublic interface ITagValidator\n{\n    /// <summary>\n    /// Validates tag integrity using stack-based nesting check.\n    /// </summary>\n    /// <param name=\"content\">Raw text content with inline tags</param>\n    /// <returns>ValidationResult indicating success or failure with details</returns>\n    ValidationResult Validate(string content);\n}",
+
+    "validation_result": "namespace Flowingly.ParsingService.Domain.ValueObjects;\n\npublic class ValidationResult\n{\n    public bool IsValid { get; }\n    public string ErrorMessage { get; }\n    public string ErrorCode { get; }\n\n    private ValidationResult(bool isValid, string errorMessage = \"\", string errorCode = \"\")\n    {\n        IsValid = isValid;\n        ErrorMessage = errorMessage;\n        ErrorCode = errorCode;\n    }\n\n    public static ValidationResult Success() => new(true);\n    \n    public static ValidationResult Failure(string message, string code = \"UNCLOSED_TAGS\") \n        => new(false, message, code);\n}",
+
+    "implementation": "namespace Flowingly.ParsingService.Domain.Services;\n\nusing System.Collections.Generic;\nusing System.Text.RegularExpressions;\nusing Flowingly.ParsingService.Domain.ValueObjects;\n\npublic class TagValidator : ITagValidator\n{\n    private static readonly Regex TagPattern = new(@\"<(/?)(\\w+)>\", RegexOptions.Compiled);\n\n    public ValidationResult Validate(string content)\n    {\n        if (string.IsNullOrEmpty(content))\n            return ValidationResult.Success();\n\n        var stack = new Stack<string>();\n\n        foreach (Match match in TagPattern.Matches(content))\n        {\n            var isClosing = match.Groups[1].Value == \"/\";\n            var tagName = match.Groups[2].Value;\n\n            if (!isClosing)\n            {\n                // Opening tag: push onto stack\n                stack.Push(tagName);\n            }\n            else\n            {\n                // Closing tag: validate nesting\n                if (stack.Count == 0)\n                    return ValidationResult.Failure(\n                        $\"Unexpected closing tag </{tagName}>\");\n\n                var expected = stack.Pop();\n                if (expected != tagName)\n                    return ValidationResult.Failure(\n                        $\"Overlapping tags: expected </{expected}>, found </{tagName}>\");\n            }\n        }\n\n        // Check for unclosed tags\n        if (stack.Count > 0)\n            return ValidationResult.Failure(\n                $\"Unclosed tags: {string.Join(\", \", stack)}\");\n\n        return ValidationResult.Success();\n    }\n}",
+
+    "usage_example": "// In a command handler or processor\nvar validator = new TagValidator();\nvar result = validator.Validate(rawContent);\n\nif (!result.IsValid)\n{\n    throw new ValidationException(result.ErrorMessage)\n    {\n        ErrorCode = result.ErrorCode\n    };\n}"
+  },
+
+  "tdd_workflow": {
+    "current_phase": "GREEN - Implement to make tests pass",
+    "previous_phase": "task_014 - RED - Wrote failing tests",
+    "next_phase": "task_016 - REFACTOR - Improve code quality",
+    "principle": "Simplest implementation that makes all tests pass (YAGNI)",
+    "green_phase_rules": [
+      "Only write code to make RED tests pass",
+      "No new tests added in GREEN phase",
+      "No gold-plating or premature optimization",
+      "Refactoring comes in next phase (task_016)"
+    ]
+  },
+
+  "testing_requirements": {
+    "test_types": ["unit"],
+    "min_coverage": "100% of public methods (ITagValidator.Validate)",
+    "required_scenarios": [
+      "Valid nested tags (<a><b></b></a>)",
+      "Overlapping tags (<a><b></a></b>)",
+      "Unclosed opening tags (<a><b>)",
+      "Unexpected closing tags (</a> with no opening)",
+      "Mismatched tag pairs (<a></b>)",
+      "Empty/null input",
+      "Multiple nesting levels (<a><b><c></c></b></a>)",
+      "Real-world expense XML (<expense><total>100</total></expense>)"
+    ],
+    "test_validation": {
+      "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~TagValidator",
+      "expected_output": "10 tests PASSED (GREEN)",
+      "failure_is_success": false
+    }
+  },
+
+  "validation": {
+    "command": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet test --filter FullyQualifiedName~TagValidator",
+    "expected_output": "Test Run Successful.\nTotal tests: 10\n     Passed: 10",
+    "secondary_validation": "export PATH=\"$HOME/.dotnet:$PATH\" && dotnet build api/src/Flowingly.ParsingService.Domain",
+    "expected_build_output": "Build succeeded.\n    0 Warning(s)\n    0 Error(s)"
+  },
+
+  "definition_of_done": [
+    "✅ ITagValidator.cs created in src/Domain/Services/",
+    "✅ TagValidator.cs created in src/Domain/Services/",
+    "✅ ValidationResult.cs created in src/Domain/ValueObjects/",
+    "✅ All 10 tests from task_014 pass (GREEN phase complete)",
+    "✅ No new tests added (GREEN phase only)",
+    "✅ Code builds with 0 warnings and 0 errors",
+    "✅ Stack-based algorithm implemented per ADR-0008",
+    "✅ Code reviewed for clarity and SOLID principles",
+    "✅ Implementation is minimal (no premature optimization)",
+    "✅ Progress updated: ./scripts/update-progress.sh task_015 completed unit 10",
+    "✅ Commit created with descriptive message and co-authorship footer"
+  ],
+
+  "implementation_notes": {
+    "algorithm_steps": [
+      "1. Return success immediately if content is null/empty",
+      "2. Initialize empty Stack<string> for tracking opening tags",
+      "3. Use regex <(/?)(\\w+)> to find all tags",
+      "4. For each match:",
+      "   - Extract isClosing flag (Group 1 == '/') and tagName (Group 2)",
+      "   - If opening tag: Push tagName onto stack",
+      "   - If closing tag:",
+      "     - If stack empty: Return error 'Unexpected closing tag'",
+      "     - If stack.Pop() != tagName: Return error 'Overlapping tags'",
+      "5. After all tags processed:",
+      "   - If stack not empty: Return error 'Unclosed tags' with stack contents",
+      "   - Else: Return success"
+    ],
+    "edge_cases": [
+      "Empty string → Success (no tags to validate)",
+      "Null content → Success (treat as empty)",
+      "No tags in content → Success (all text, no tags)",
+      "Self-closing XML tags (<tag/>) → Not supported, treat as text",
+      "Malformed tags (<a b>) → Regex won't match, treated as text"
+    ],
+    "performance_considerations": [
+      "Regex compiled once (static field) for efficiency",
+      "Stack operations are O(1) for push/pop",
+      "Overall complexity: O(n) where n is number of tags",
+      "Memory: O(d) where d is maximum nesting depth"
+    ]
+  },
+
+  "next_task": {
+    "id": "task_016",
+    "name": "Verify Tag Validation Quality",
+    "why": "Tests are passing (GREEN), now review and refactor for code quality (REFACTOR phase)",
+    "tdd_phase": "REFACTOR",
+    "review_focus": [
+      "Code clarity and readability",
+      "SOLID principle adherence",
+      "Error message quality",
+      "Potential edge cases or improvements"
+    ]
+  }
+}
