@@ -7,18 +7,18 @@
   "aadf_compliant": true,
   "tdd_approach": true,
   "progress_tracking": {
-    "last_updated": "2025-10-06T15:01:24+13:00",
+    "last_updated": "2025-10-06T15:41:59+13:00",
     "current_milestone": "M1",
-    "current_task": "task_023",
-    "tasks_completed": 18,
+    "current_task": "task_020",
+    "tasks_completed": 23,
     "tasks_in_progress": 0,
-    "tasks_pending": 32,
+    "tasks_pending": 27,
     "tasks_blocked": 0,
     "tests_passing": {
-      "unit": 14,
+      "unit": 12,
       "contract": 0,
       "e2e": 0,
-      "total": 14
+      "total": 12
     },
     "milestones_completed": [
       "M0"
@@ -353,7 +353,10 @@
         "task_014"
       ],
       "parallel_group": null,
-      "tdd_phase": "green"
+      "tdd_phase": "green",
+      "status": "completed",
+      "started_at": "2025-10-06T15:18:02+13:00",
+      "completed_at": "2025-10-06T15:41:57+13:00"
     },
     {
       "id": "task_016",
@@ -395,7 +398,10 @@
         "task_017"
       ],
       "parallel_group": null,
-      "tdd_phase": "green"
+      "tdd_phase": "green",
+      "status": "completed",
+      "started_at": "2025-10-06T15:18:02+13:00",
+      "completed_at": "2025-10-06T15:41:58+13:00"
     },
     {
       "id": "task_019",
@@ -424,7 +430,10 @@
         "task_019"
       ],
       "parallel_group": null,
-      "tdd_phase": "green"
+      "tdd_phase": "green",
+      "status": "completed",
+      "started_at": "2025-10-06T15:31:39+13:00",
+      "completed_at": "2025-10-06T15:41:03+13:00"
     },
     {
       "id": "task_021",
@@ -479,7 +488,10 @@
         "task_023"
       ],
       "parallel_group": null,
-      "tdd_phase": "green"
+      "tdd_phase": "green",
+      "status": "completed",
+      "started_at": "2025-10-06T15:18:03+13:00",
+      "completed_at": "2025-10-06T15:41:58+13:00"
     },
     {
       "id": "task_025",
@@ -508,7 +520,10 @@
         "task_025"
       ],
       "parallel_group": null,
-      "tdd_phase": "green"
+      "tdd_phase": "green",
+      "status": "completed",
+      "started_at": "2025-10-06T15:18:03+13:00",
+      "completed_at": "2025-10-06T15:41:59+13:00"
     },
     {
       "id": "task_027",
