@@ -538,6 +538,16 @@
                 tasksByMilestone[task.milestone].push(task);
             });
 
+            // Determine the actual current milestone based on current_task
+            // If current_task exists, use its milestone, otherwise use progress.current_milestone
+            let currentMilestone = progress.current_milestone || 'M0';
+            if (progress.current_task) {
+                const currentTask = tasks.find(t => t.id === progress.current_task);
+                if (currentTask) {
+                    currentMilestone = currentTask.milestone;
+                }
+            }
+
             // Render sidebar
             let sidebarHtml = `
                 <div class="sidebar">
@@ -590,8 +600,7 @@
             // Start milestones section with tabs
             let milestonesHtml = '<div class="milestones-section">';
 
-            // Render tabs - current milestone is default active
-            const currentMilestone = progress.current_milestone || 'M0';
+            // Render tabs - currentMilestone already determined above based on current_task
             milestonesHtml += '<div class="milestone-tabs">';
             Object.keys(milestones).forEach(milestoneKey => {
                 const milestone = milestones[milestoneKey];
