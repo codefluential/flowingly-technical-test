@@ -98,9 +98,10 @@ List all memories
 - See `project-context/learnings/serena-mcp-guide.md` for comprehensive guide
 
 **Re-indexing** (for updated code symbols):
-- **Automatic**: Re-indexes after each milestone completion (M0, M1, M2, M3) via `update-progress.sh`
-- **Manual**: Run `./scripts/reindex-serena.sh` when needed
-- **When to re-index**: After major code additions, new modules, or if tools return stale results
+- **Automatic**: Re-indexes after EVERY completed task (runs in background, non-blocking)
+- **Manual**: Run `./scripts/reindex-serena.sh` for immediate foreground re-indexing
+- **Trigger**: `update-progress.sh <task_id> completed` auto-starts background re-indexing
+- **Performance**: Background process doesn't slow down workflow
 
 **Best Practices**:
 - Start with `get_symbols_overview` before reading full files
