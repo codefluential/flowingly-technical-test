@@ -1,0 +1,181 @@
+{
+  "task_id": "task_017",
+  "milestone": "M1",
+  "name": "Write Number Normalization Tests (TDD)",
+  "description": "Write comprehensive unit tests for number normalization (currency symbol removal, comma stripping, decimal parsing) BEFORE implementation. Tests MUST fail initially (RED phase of TDD).",
+
+  "agent": {
+    "primary": "tdd-london-swarm",
+    "role": "TDD Test Implementation (London School - mockist style)"
+  },
+
+  "duration": "45min",
+  "priority": "critical",
+  "dependencies": ["task_013"],
+  "parallel_group": "M1_parallel_1",
+  "tdd_phase": "RED",
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 4.2: Parsing & Validation Rules - Number normalization",
+        "Section 13: BDD Scenarios - 'Scenario: Number normalization handles commas'"
+      ],
+      "requirements": [
+        "Strip currency symbols: $, £, €, NZD, etc.",
+        "Strip commas from numbers: 35,000.00 → 35000.00",
+        "Use decimal type for precision (not double/float)",
+        "Parse as decimal for money values",
+        "Handle mixed formats: NZD 1,234.56 → 1234.56"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 2,
+      "requirement": "Correctly parse and normalize monetary values from text",
+      "grading_criteria": "Number parsing accuracy is critical for expense calculations"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0008-parsing-validation-rules.md",
+        "decision": "Number Normalization with Currency Symbol Removal",
+        "rationale": "Clean input before parsing to prevent format errors",
+        "context": "Free-form text may contain various currency formats",
+        "key_excerpt": "Numbers must be cleaned (strip commas/currency symbols) before decimal parsing"
+      },
+      {
+        "file": "project-context/adr/ADR-0010-test-strategy-coverage.md",
+        "decision": "TDD with comprehensive normalization tests",
+        "relevance": "Defines how to structure number normalizer tests"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M1 — Core Parsing & Validation",
+      "sub_section": "Number Normalization",
+      "requirement": "Strip currency symbols/commas, parse as decimal"
+    }
+  },
+
+  "test_scenarios": [
+    {
+      "name": "Currency_Symbols_Stripped_Dollar",
+      "input": "$35000.00",
+      "expected": 35000.00,
+      "reason": "Dollar sign removed, parsed as decimal"
+    },
+    {
+      "name": "Currency_Symbols_Stripped_Pound",
+      "input": "£1234.56",
+      "expected": 1234.56,
+      "reason": "Pound sign removed"
+    },
+    {
+      "name": "Currency_Symbols_Stripped_Euro",
+      "input": "€999.99",
+      "expected": 999.99,
+      "reason": "Euro sign removed"
+    },
+    {
+      "name": "Commas_Stripped",
+      "input": "35,000.00",
+      "expected": 35000.00,
+      "reason": "Commas removed before parsing"
+    },
+    {
+      "name": "Mixed_Currency_And_Commas",
+      "input": "$35,000.00",
+      "expected": 35000.00,
+      "reason": "Both currency symbol and commas removed"
+    },
+    {
+      "name": "Currency_Code_Prefix",
+      "input": "NZD 1,234.56",
+      "expected": 1234.56,
+      "reason": "Currency code (NZD) and space removed"
+    },
+    {
+      "name": "No_Formatting_Plain_Number",
+      "input": "1234.56",
+      "expected": 1234.56,
+      "reason": "Already clean, parsed directly"
+    },
+    {
+      "name": "Multiple_Commas",
+      "input": "1,234,567.89",
+      "expected": 1234567.89,
+      "reason": "All commas removed"
+    },
+    {
+      "name": "Zero_Value",
+      "input": "$0.00",
+      "expected": 0.00,
+      "reason": "Zero handled correctly"
+    },
+    {
+      "name": "Small_Decimal_Value",
+      "input": "$0.99",
+      "expected": 0.99,
+      "reason": "Small values preserved"
+    }
+  ],
+
+  "deliverables": [
+    {
+      "item": "NumberNormalizerTests.cs",
+      "description": "xUnit test class with FluentAssertions",
+      "location": "api/tests/Flowingly.ParsingService.Tests/Normalizers/",
+      "test_count": "10+ test methods"
+    },
+    {
+      "item": "Failing tests",
+      "description": "All tests must FAIL initially (RED phase)",
+      "validation": "Test runner shows RED for all number normalization tests"
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ 10+ test methods created covering all scenarios",
+    "✅ All tests use FluentAssertions syntax",
+    "✅ All tests currently FAIL (no implementation yet)",
+    "✅ Test names follow Given_When_Then or Should pattern",
+    "✅ Each test has clear Arrange-Act-Assert structure",
+    "✅ Tests use decimal type (not double/float)",
+    "✅ Currency symbols tested: $, £, €, NZD prefix"
+  ],
+
+  "business_rules": [
+    "Currency symbols MUST be stripped: $, £, €, NZD",
+    "Commas MUST be removed from numbers",
+    "Use decimal type for money values (not double/float)",
+    "Handle mixed formats (currency + commas)",
+    "Preserve precision (no rounding at normalization stage)",
+    "Empty or invalid input should throw or return null"
+  ],
+
+  "code_examples": {
+    "test_structure": "// Arrange\nvar normalizer = new NumberNormalizer();\nvar input = \"$35,000.00\";\n\n// Act\nvar result = normalizer.Normalize(input);\n\n// Assert\nresult.Should().Be(35000.00m);",
+    "interface": "public interface INumberNormalizer\n{\n    decimal Normalize(string input);\n}",
+    "test_method_pattern": "[Theory]\n[InlineData(\"$35,000.00\", 35000.00)]\n[InlineData(\"NZD 1,234.56\", 1234.56)]\npublic void Normalize_StripsCurrencyAndCommas(string input, decimal expected)\n{\n    var normalizer = new NumberNormalizer();\n    var result = normalizer.Normalize(input);\n    result.Should().Be(expected);\n}"
+  },
+
+  "tdd_workflow": {
+    "current_phase": "RED - Write failing tests",
+    "next_phase": "task_018 - GREEN - Implement to make tests pass",
+    "principle": "Never write implementation before tests fail"
+  },
+
+  "validation": {
+    "command": "dotnet test --filter FullyQualifiedName~NumberNormalizer",
+    "expected_output": "10+ tests FAILED (RED)",
+    "failure_is_success": true
+  },
+
+  "next_task": {
+    "id": "task_018",
+    "name": "Implement INumberNormalizer",
+    "why": "Tests are failing (RED), now make them pass (GREEN)",
+    "tdd_phase": "GREEN"
+  }
+}

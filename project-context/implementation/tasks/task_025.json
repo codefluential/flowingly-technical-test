@@ -1,0 +1,193 @@
+{
+  "task_id": "task_025",
+  "milestone": "M1",
+  "name": "Write XML Extractor Tests (TDD)",
+  "description": "Write comprehensive unit tests for secure XML island extraction (<expense>...</expense> blocks) BEFORE implementation. Tests MUST fail initially (RED phase of TDD). Ensure XXE/DTD protection.",
+
+  "agent": {
+    "primary": "tdd-london-swarm",
+    "role": "TDD Test Implementation (London School - mockist style)"
+  },
+
+  "duration": "1h",
+  "priority": "critical",
+  "dependencies": ["task_013"],
+  "parallel_group": "M1_parallel_2",
+  "tdd_phase": "RED",
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 4.2: Parsing & Validation Rules - XML Islands",
+        "Section 4.2: Extract <expense>...</expense> blocks with secure XML settings (prevent XXE)"
+      ],
+      "requirements": [
+        "Extract XML islands like <expense>...</expense> from free-form text",
+        "Use secure XML parser: DtdProcessing = Prohibit, XmlResolver = null",
+        "Bound input sizes and timeouts; parse only delimited island content",
+        "Optionally validate against Expense.xsd (config-toggle)",
+        "Handle multiple XML islands in same text",
+        "Reject malformed XML within islands"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 2,
+      "requirement": "Extract structured XML from free-form text safely",
+      "grading_criteria": "XML extraction is critical for expense data processing"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0008-parsing-validation-rules.md",
+        "decision": "Secure XML Island Extraction with XXE Protection",
+        "rationale": "Prevent XML External Entity attacks and DTD exploits",
+        "context": "Why secure XML parsing is mandatory",
+        "key_excerpt": "Use hardened parser: DtdProcessing = Prohibit, XmlResolver = null"
+      },
+      {
+        "file": "project-context/adr/ADR-0010-test-strategy-coverage.md",
+        "decision": "Test XML extraction with security scenarios",
+        "relevance": "Defines XML extractor test coverage requirements"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M1 — Core Parsing & Validation",
+      "sub_section": "XML Island Extraction",
+      "requirement": "Extract <expense> islands with secure parser settings"
+    }
+  },
+
+  "test_scenarios": [
+    {
+      "name": "Single_Expense_Island_Extracted",
+      "input": "Hi there, <expense><total>100</total><cost_centre>DEV</cost_centre></expense> thanks!",
+      "expected": "Extracted: <expense><total>100</total><cost_centre>DEV</cost_centre></expense>",
+      "reason": "Single XML island extracted from surrounding text"
+    },
+    {
+      "name": "Multiple_Expense_Islands_Extracted",
+      "input": "<expense><total>100</total></expense> and <expense><total>200</total></expense>",
+      "expected": "List of 2 islands extracted",
+      "reason": "Handle multiple XML islands in same text"
+    },
+    {
+      "name": "No_Expense_Island_Returns_Empty",
+      "input": "Just some text with <vendor>Mojo</vendor> but no expense island",
+      "expected": "Empty list or null",
+      "reason": "No <expense> tags present"
+    },
+    {
+      "name": "Nested_Tags_Within_Island",
+      "input": "<expense><items><item>Coffee</item><item>Lunch</item></items><total>50</total></expense>",
+      "expected": "Extracted with nested structure preserved",
+      "reason": "Nested tags within island are valid"
+    },
+    {
+      "name": "Malformed_XML_In_Island_Rejected",
+      "input": "<expense><total>100</total><cost_centre>DEV</expense>",
+      "expected": "Exception or validation error",
+      "reason": "Unclosed <cost_centre> tag makes XML invalid"
+    },
+    {
+      "name": "Empty_Expense_Island",
+      "input": "<expense></expense>",
+      "expected": "Extracted but validation fails (no <total>)",
+      "reason": "Empty island is extractable but invalid for expense processing"
+    },
+    {
+      "name": "Expense_Island_With_Attributes",
+      "input": "<expense type=\"reimbursement\"><total>100</total></expense>",
+      "expected": "Extracted with attributes preserved",
+      "reason": "Attributes on expense tag should be preserved"
+    },
+    {
+      "name": "XXE_Attack_Prevented",
+      "input": "<!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]><expense><total>&xxe;</total></expense>",
+      "expected": "Exception or entity rejected (XXE blocked)",
+      "reason": "DTD processing disabled prevents XXE attacks"
+    },
+    {
+      "name": "DTD_Declaration_Rejected",
+      "input": "<!DOCTYPE expense SYSTEM \"malicious.dtd\"><expense><total>100</total></expense>",
+      "expected": "Exception (DTD processing prohibited)",
+      "reason": "DtdProcessing = Prohibit blocks external DTD"
+    },
+    {
+      "name": "Large_XML_Island_Bounded",
+      "input": "<expense>" + "X".repeat(1000000) + "</expense>",
+      "expected": "Exception or size limit error",
+      "reason": "Input size bounding prevents DoS"
+    }
+  ],
+
+  "deliverables": [
+    {
+      "item": "XmlIslandExtractorTests.cs",
+      "description": "xUnit test class with FluentAssertions",
+      "location": "api/tests/Flowingly.ParsingService.Tests/Parsers/",
+      "test_count": "10+ test methods"
+    },
+    {
+      "item": "Failing tests",
+      "description": "All tests must FAIL initially (RED phase)",
+      "validation": "Test runner shows RED for all XML extractor tests"
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ 10+ test methods covering all scenarios",
+    "✅ All tests use FluentAssertions syntax",
+    "✅ All tests currently FAIL (no implementation yet)",
+    "✅ Test names follow Given_When_Then or Should pattern",
+    "✅ Each test has clear Arrange-Act-Assert structure",
+    "✅ Tests verify both valid and malformed XML",
+    "✅ Tests verify XXE/DTD attack prevention",
+    "✅ Tests verify size bounding (DoS prevention)"
+  ],
+
+  "business_rules": [
+    "Secure XML parsing is MANDATORY (DtdProcessing = Prohibit, XmlResolver = null)",
+    "Extract only <expense>...</expense> islands (not other XML)",
+    "Handle multiple islands in same text",
+    "Malformed XML MUST be rejected (not silently ignored)",
+    "XXE/DTD attacks MUST be blocked (security requirement)",
+    "Input size limits MUST be enforced (prevent DoS)",
+    "Nested tags within islands are valid"
+  ],
+
+  "code_examples": {
+    "test_structure": "// Arrange\nvar extractor = new XmlIslandExtractor();\nvar input = \"Text with <expense><total>100</total></expense> island\";\n\n// Act\nvar islands = extractor.Extract(input);\n\n// Assert\nislands.Should().HaveCount(1);\nislands[0].Should().Contain(\"<total>100</total>\");",
+    "interface": "public interface IXmlIslandExtractor\n{\n    IEnumerable<string> Extract(string content);\n}",
+    "security_test": "// Arrange\nvar extractor = new XmlIslandExtractor();\nvar xxeAttack = \"<!DOCTYPE foo [<!ENTITY xxe SYSTEM \\\"file:///etc/passwd\\\">]><expense><total>&xxe;</total></expense>\";\n\n// Act\nAction act = () => extractor.Extract(xxeAttack);\n\n// Assert\nact.Should().Throw<XmlException>()\n   .WithMessage(\"*DTD*\")  // DTD processing should be blocked",
+    "secure_xml_settings": "var settings = new XmlReaderSettings\n{\n    DtdProcessing = DtdProcessing.Prohibit,\n    XmlResolver = null,\n    MaxCharactersInDocument = 1048576  // 1MB limit\n};"
+  },
+
+  "security_requirements": {
+    "xxe_prevention": "Disable external entity resolution to prevent file disclosure attacks",
+    "dtd_prohibition": "Disable DTD processing to prevent billion laughs and other DTD attacks",
+    "size_limits": "Enforce MaxCharactersInDocument to prevent XML bomb DoS",
+    "timeout_protection": "Set reasonable parse timeout to prevent slow parse DoS",
+    "owasp_reference": "OWASP XML External Entity (XXE) Prevention Cheat Sheet"
+  },
+
+  "tdd_workflow": {
+    "current_phase": "RED - Write failing tests",
+    "next_phase": "task_026 - GREEN - Implement to make tests pass",
+    "principle": "Security tests must fail before secure implementation exists"
+  },
+
+  "validation": {
+    "command": "dotnet test --filter FullyQualifiedName~XmlIslandExtractor",
+    "expected_output": "10+ tests FAILED (RED)",
+    "failure_is_success": true
+  },
+
+  "next_task": {
+    "id": "task_026",
+    "name": "Implement IXmlIslandExtractor",
+    "why": "Tests prove extraction logic and security requirements, now implement it",
+    "tdd_phase": "GREEN"
+  }
+}

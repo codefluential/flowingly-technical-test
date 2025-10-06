@@ -1,0 +1,202 @@
+{
+  "task_id": "task_023",
+  "milestone": "M1",
+  "name": "Write Time Parser Tests (TDD)",
+  "description": "Write comprehensive unit tests for time parsing with whitelist-based format validation BEFORE implementation. Tests MUST fail initially (RED phase of TDD). Reject ambiguous formats.",
+
+  "agent": {
+    "primary": "tdd-london-swarm",
+    "role": "TDD Test Implementation (London School - mockist style)"
+  },
+
+  "duration": "45min",
+  "priority": "critical",
+  "dependencies": ["task_013"],
+  "parallel_group": "M1_parallel_2",
+  "tdd_phase": "RED",
+
+  "context": {
+    "prd_reference": {
+      "file": "project-context/specifications/prd-technical_spec.md",
+      "sections": [
+        "Section 4.2: Parsing & Validation Rules - Time parsing with whitelist",
+        "Section 4.2: Ignore ambiguous times (e.g., '7.30pm' with unclear separators)"
+      ],
+      "requirements": [
+        "Accept unambiguous formats: '19:30', '7:30 PM', '07:30'",
+        "Reject/ignore: '7.30pm' (dot separator ambiguous), partial times without clear AM/PM",
+        "Use whitelist-based parsing (explicit formats only)",
+        "Return null for ambiguous inputs (log warning)",
+        "Parse to HH:mm format"
+      ]
+    },
+    "test_brief_reference": {
+      "file": "project-context/requirements-and-analysis/Full Stack Engineer Test (Sen) V2.pdf",
+      "page": 2,
+      "requirement": "Correctly parse time values without ambiguity",
+      "grading_criteria": "Time parsing accuracy prevents incorrect data entry"
+    },
+    "adr_references": [
+      {
+        "file": "project-context/adr/ADR-0008-parsing-validation-rules.md",
+        "decision": "Time Parsing Whitelist (Explicit Formats Only)",
+        "rationale": "Ambiguous formats like '230' lead to incorrect data; better to reject than guess",
+        "context": "Why ambiguous times must be rejected",
+        "key_excerpt": "Use whitelist-based time parsing with explicit format validation. Reject ambiguous inputs."
+      },
+      {
+        "file": "project-context/adr/ADR-0010-test-strategy-coverage.md",
+        "decision": "Test all accepted and rejected time formats",
+        "relevance": "Defines time parser test coverage requirements"
+      }
+    ],
+    "delivery_plan_reference": {
+      "file": "project-context/planning/delivery-plan-optimized.md",
+      "section": "M1 — Core Parsing & Validation",
+      "sub_section": "Time Parsing (Whitelist)",
+      "requirement": "Accept: HH:mm (24-hour), h:mm tt (12-hour with AM/PM). Reject ambiguous: 230, 2.30"
+    }
+  },
+
+  "test_scenarios": [
+    {
+      "name": "TwentyFourHour_Format_Valid",
+      "input": "14:30",
+      "expected": "TimeSpan(14, 30, 0)",
+      "reason": "24-hour format with colon separator"
+    },
+    {
+      "name": "TwentyFourHour_With_Seconds_Valid",
+      "input": "14:30:00",
+      "expected": "TimeSpan(14, 30, 0)",
+      "reason": "24-hour format with seconds"
+    },
+    {
+      "name": "TwelveHour_AM_Valid",
+      "input": "7:30 AM",
+      "expected": "TimeSpan(7, 30, 0)",
+      "reason": "12-hour format with AM"
+    },
+    {
+      "name": "TwelveHour_PM_Valid",
+      "input": "2:30 PM",
+      "expected": "TimeSpan(14, 30, 0)",
+      "reason": "12-hour format with PM (converts to 24-hour)"
+    },
+    {
+      "name": "Leading_Zero_TwelveHour_Valid",
+      "input": "07:30 AM",
+      "expected": "TimeSpan(7, 30, 0)",
+      "reason": "Leading zero is accepted"
+    },
+    {
+      "name": "Ambiguous_NoSeparator_Rejected",
+      "input": "230",
+      "expected": "null (with warning logged)",
+      "reason": "Ambiguous: 2:30 or 23:0? Reject."
+    },
+    {
+      "name": "Ambiguous_DotSeparator_Rejected",
+      "input": "2.30",
+      "expected": "null (with warning logged)",
+      "reason": "Dot separator is ambiguous"
+    },
+    {
+      "name": "Ambiguous_DotWithPM_Rejected",
+      "input": "7.30pm",
+      "expected": "null (with warning logged)",
+      "reason": "Dot separator with PM is unclear"
+    },
+    {
+      "name": "Empty_Input_Returns_Null",
+      "input": "",
+      "expected": "null",
+      "reason": "No time to parse"
+    },
+    {
+      "name": "Invalid_Format_Returns_Null",
+      "input": "25:99",
+      "expected": "null (with warning logged)",
+      "reason": "Invalid time values (hour > 23, minute > 59)"
+    },
+    {
+      "name": "Midnight_TwentyFourHour",
+      "input": "00:00",
+      "expected": "TimeSpan(0, 0, 0)",
+      "reason": "Midnight in 24-hour format"
+    },
+    {
+      "name": "Midnight_TwelveHour",
+      "input": "12:00 AM",
+      "expected": "TimeSpan(0, 0, 0)",
+      "reason": "Midnight in 12-hour format"
+    }
+  ],
+
+  "deliverables": [
+    {
+      "item": "TimeParserTests.cs",
+      "description": "xUnit test class with FluentAssertions",
+      "location": "api/tests/Flowingly.ParsingService.Tests/Parsers/",
+      "test_count": "12+ test methods"
+    },
+    {
+      "item": "Failing tests",
+      "description": "All tests must FAIL initially (RED phase)",
+      "validation": "Test runner shows RED for all time parser tests"
+    }
+  ],
+
+  "acceptance_criteria": [
+    "✅ 12+ test methods covering all scenarios",
+    "✅ All tests use FluentAssertions syntax",
+    "✅ All tests currently FAIL (no implementation yet)",
+    "✅ Test names follow Given_When_Then or Should pattern",
+    "✅ Each test has clear Arrange-Act-Assert structure",
+    "✅ Tests verify both valid formats and rejected formats",
+    "✅ Tests verify null returned for ambiguous inputs",
+    "✅ Tests use TimeSpan type for time values"
+  ],
+
+  "business_rules": [
+    "Whitelist-based parsing is MANDATORY (not permissive)",
+    "Accepted formats: HH:mm, HH:mm:ss, h:mm tt, h:mm:ss tt",
+    "Rejected formats: 230, 2.30, 7.30pm, any non-whitelisted",
+    "Ambiguous inputs MUST return null (not throw error)",
+    "Warning must be logged for rejected formats",
+    "Time is optional field (null is acceptable)"
+  ],
+
+  "code_examples": {
+    "test_structure": "// Arrange\nvar parser = new TimeParser();\nvar input = \"14:30\";\n\n// Act\nvar result = parser.Parse(input);\n\n// Assert\nresult.Should().Be(new TimeSpan(14, 30, 0));",
+    "interface": "public interface ITimeParser\n{\n    TimeSpan? Parse(string input);\n}",
+    "rejected_format_test": "// Arrange\nvar parser = new TimeParser();\nvar input = \"230\";  // Ambiguous\n\n// Act\nvar result = parser.Parse(input);\n\n// Assert\nresult.Should().BeNull();\n// Note: Implementation should log warning",
+    "whitelist_formats": "private static readonly string[] AcceptedFormats = \n{\n    \"HH:mm\",\n    \"HH:mm:ss\",\n    \"h:mm tt\",\n    \"h:mm:ss tt\"\n};"
+  },
+
+  "why_whitelist_parsing": {
+    "problem_with_permissive": "Permissive parsing accepts '230' as either 2:30 or 23:00, leading to data corruption",
+    "whitelist_solution": "Explicit format list prevents ambiguity; only clear formats accepted",
+    "real_world_example": "User enters '730' intending 7:30 AM, system interprets as 73:0 (invalid) or 7:30 PM (wrong)",
+    "data_integrity": "Better to reject unclear input than silently misinterpret it"
+  },
+
+  "tdd_workflow": {
+    "current_phase": "RED - Write failing tests",
+    "next_phase": "task_024 - GREEN - Implement to make tests pass",
+    "principle": "Verify whitelist format logic before implementing"
+  },
+
+  "validation": {
+    "command": "dotnet test --filter FullyQualifiedName~TimeParser",
+    "expected_output": "12+ tests FAILED (RED)",
+    "failure_is_success": true
+  },
+
+  "next_task": {
+    "id": "task_024",
+    "name": "Implement ITimeParser",
+    "why": "Tests prove whitelist logic, now implement it",
+    "tdd_phase": "GREEN"
+  }
+}
