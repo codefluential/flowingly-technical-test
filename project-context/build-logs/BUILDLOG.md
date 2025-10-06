@@ -1058,3 +1058,100 @@ N/A - DTOs are contract definitions only. Will be tested via API contract tests 
 **Progress**: 31/50 tasks (62%) | M0: 10/10 (100%) ✅ | M1: 20/20 (100%) ✅ | M2: 1/10 (10%)
 
 ---
+
+## 2025-10-06 - task_033: Create Error Codes & Models (M2 Progress)
+
+**Changes Made**:
+- Created `src/Domain/Constants/ErrorCodes.cs` with 7 immutable error code constants
+- Created `src/Domain/Constants/ErrorMessages.cs` with human-friendly messages and GetMessage() helper
+- Verified existing DTOs from task_031:
+  - `src/Api/Contracts/ErrorResponse.cs` (Error + CorrelationId)
+  - `src/Api/Contracts/ErrorDetail.cs` (Code + Message + Details?)
+- Established comprehensive error catalog
+
+**Error Catalog** (7 Error Codes):
+
+### HTTP 400 - Client Errors
+
+1. **UNCLOSED_TAGS**
+   - **Trigger**: Tag validation detects unclosed or improperly closed tags (stack-based validation)
+   - **Message**: "Text contains unclosed or improperly closed tags. All tags must be properly opened and closed."
+   - **Example Input**: `<expense><total>100` (missing `</total></expense>`)
+   - **Details**: Stack trace showing which tag was not closed
+   - **Resolution**: Ensure all opening tags have corresponding closing tags in proper order
+
+2. **MALFORMED_TAGS**
+   - **Trigger**: Overlapping or improperly nested tags detected
+   - **Message**: "Text contains malformed or overlapping tags. Ensure tags are properly nested."
+   - **Example Input**: `<expense><total>100</expense></total>` (incorrect nesting)
+   - **Details**: Position of the malformed tag
+   - **Resolution**: Fix tag nesting to follow proper XML structure
+
+3. **MISSING_TOTAL**
+   - **Trigger**: Expense content classified but `<total>` tag is absent
+   - **Message**: "Expense content must include a <total> tag with the tax-inclusive amount."
+   - **Example Input**: `<expense><vendor>ACME</vendor></expense>` (no total)
+   - **Details**: List of tags found in the expense content
+   - **Resolution**: Add `<total>` tag with tax-inclusive amount
+
+4. **EMPTY_TEXT**
+   - **Trigger**: ParseRequest.Text is null, empty string, or contains only whitespace
+   - **Message**: "Text cannot be empty or whitespace. Please provide content to parse."
+   - **Example Input**: `{ "text": "" }` or `{ "text": "   " }`
+   - **Details**: None (obvious issue)
+   - **Resolution**: Provide non-empty text content
+
+5. **INVALID_REQUEST**
+   - **Trigger**: FluentValidation failures on ParseRequest (multiple field errors)
+   - **Message**: "Request validation failed. Check the details for specific field errors."
+   - **Example Details**: `{ "Text": ["Text is required"], "TaxRate": ["Must be between 0 and 1"] }`
+   - **Resolution**: Fix validation errors listed in Details object
+
+6. **MISSING_TAXRATE**
+   - **Trigger**: StrictTaxRate mode enabled (future feature), but no tax rate provided
+   - **Message**: "Tax rate is required when StrictTaxRate is enabled."
+   - **Example Input**: `{ "text": "...", "strictTaxRate": true }` (no taxRate field)
+   - **Details**: Configuration setting causing requirement
+   - **Resolution**: Provide explicit taxRate value (0-1 range)
+
+### HTTP 500 - Server Errors
+
+7. **INTERNAL_ERROR**
+   - **Trigger**: Unhandled exceptions during request processing (catch-all for unexpected errors)
+   - **Message**: "An unexpected error occurred while processing your request. Please try again or contact support."
+   - **Example Triggers**: Database connection failure, null reference exceptions, etc.
+   - **Details**: Exception type (NOT stack trace in production for security)
+   - **Resolution**: Retry request; if persists, contact support with CorrelationId
+
+**Implementation Details**:
+- **ErrorCodes.cs**: 7 public const strings with XML documentation comments
+- **ErrorMessages.cs**: Dictionary<string, string> mapping codes to messages
+  - GetMessage(errorCode) helper with fallback to generic message
+  - Thread-safe static readonly dictionary
+- **Namespace**: `Flowingly.ParsingService.Domain.Constants`
+- **API Stability**: Error codes are IMMUTABLE (NEVER change after release)
+- **Human-Readability**: Messages avoid technical jargon and provide actionable guidance
+
+**Rationale**:
+Centralized error code constants ensure consistency across validation, parsing, and API layers. Human-friendly messages improve developer experience when consuming the API. The GetMessage() helper provides type safety and fallback behavior. Error catalog documentation enables API consumers to understand error scenarios and resolutions.
+
+**Issues Encountered**:
+None - straightforward implementation with clear requirements.
+
+**Testing Notes**:
+- Compilation successful (0 warnings, 0 errors)
+- All 116 unit tests still passing (no changes to test code)
+- Error codes and messages will be tested in M2 contract tests (task_037-038)
+- No unit tests needed for constant definitions
+
+**Deployment**:
+N/A - Constants and DTOs will be used by API layer in upcoming tasks.
+
+**Next Steps**:
+- task_034: Implement Error Mapping (convert exceptions to ErrorResponse with proper HTTP status codes)
+- task_035: Create Parse Handler (CQRS command handler using error codes)
+- task_036: Wire Dependency Injection (register all services)
+
+**Progress**: 33/50 tasks (66%) | M0: 10/10 (100%) ✅ | M1: 20/20 (100%) ✅ | M2: 3/10 (30%)
+
+---
