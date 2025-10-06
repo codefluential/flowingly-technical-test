@@ -82,6 +82,87 @@ if [ -n "$TASK_LINE" ] && [ "$STATUS" == "completed" ]; then
     sed -i "${TASK_LINE}s/\[ \]/[x]/" "$PROGRESS_MD"
 fi
 
+# Update milestone section headers with current progress using Python for reliability
+python3 << 'PYTHON_SCRIPT'
+import json
+import re
+
+# Read tasks.json
+with open("project-context/implementation/tasks/tasks.json") as f:
+    data = json.load(f)
+
+# Calculate milestone progress
+milestones = {
+    "M0": "Minimal Scaffold",
+    "M1": "Core Parsing & Validation",
+    "M2": "API Contracts",
+    "M3": "UI & E2E Tests"
+}
+
+milestone_stats = {}
+for ms, name in milestones.items():
+    tasks = [t for t in data["tasks"] if t.get("milestone") == ms]
+    completed = [t for t in tasks if t.get("status") == "completed"]
+    total = len(tasks)
+    completed_count = len(completed)
+    percent = (completed_count * 100 // total) if total > 0 else 0
+
+    if completed_count == total:
+        emoji, status = "✅", "Complete"
+    elif completed_count > 0:
+        emoji, status = "🔄", "In Progress"
+    else:
+        emoji, status = "⏳", "Not Started"
+
+    milestone_stats[ms] = {
+        "name": name,
+        "emoji": emoji,
+        "status": status,
+        "completed": completed_count,
+        "total": total,
+        "percent": percent
+    }
+
+# Read and update PROGRESS.md
+with open("project-context/implementation/PROGRESS.md") as f:
+    lines = f.readlines()
+
+output = []
+i = 0
+while i < len(lines):
+    line = lines[i]
+
+    # Check if line is a milestone header
+    match = re.match(r'^### [^ ]+ (M\d): (.+?) \(\d+/\d+ tasks - \d+%\)$', line)
+    if match:
+        ms_id = match.group(1)
+        if ms_id in milestone_stats:
+            stats = milestone_stats[ms_id]
+            # Replace header
+            new_header = f"### {stats['emoji']} {ms_id}: {stats['name']} ({stats['completed']}/{stats['total']} tasks - {stats['percent']}%)\n"
+            output.append(new_header)
+
+            # Check next line for **Target** line and update it
+            if i + 1 < len(lines) and lines[i + 1].startswith("**Target**"):
+                target_match = re.match(r'^\*\*Target\*\*: ([^|]+) \| \*\*Status\*\*:', lines[i + 1])
+                if target_match:
+                    target_time = target_match.group(1).strip()
+                    output.append(f"**Target**: {target_time} | **Status**: {stats['status']}\n")
+                    i += 2  # Skip both milestone header and target line
+                    continue
+        else:
+            output.append(line)
+    else:
+        output.append(line)
+
+    i += 1
+
+# Write back
+with open("project-context/implementation/PROGRESS.md", "w") as f:
+    f.writelines(output)
+
+PYTHON_SCRIPT
+
 # Add to BUILDLOG if milestone completed
 TASK_NUM=$(echo "$TASK_ID" | sed 's/task_//')
 if [ "$STATUS" == "completed" ] && ([ "$TASK_NUM" == "010" ] || [ "$TASK_NUM" == "030" ] || [ "$TASK_NUM" == "040" ] || [ "$TASK_NUM" == "050" ]); then
