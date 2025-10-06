@@ -117,12 +117,12 @@
 - [x] task_042: Add TypeScript Types (25min) ✅
 - [x] task_043: Implement Error Display (45min) ✅
 - [x] task_044: Setup Playwright (30min) ✅
-- [ ] task_045: Write E2E Happy Path Tests (parallel)
-- [ ] task_046: Write E2E Error Tests (parallel)
-- [ ] task_047: Write E2E GST Verification (parallel)
-- [ ] task_048: Run Full Test Suite
-- [ ] task_049: Manual Smoke Test
-- [ ] task_050: ✅ Verify M3 & Phase 1 DoD (GATE) - **SUBMITTABLE**
+- [ ] task_045: Write E2E Happy Path Tests ⚡ **READY** (deps: task_011✅, task_044✅)
+- [ ] task_046: Write E2E Error Tests ⚡ **READY** (deps: task_044✅)
+- [ ] task_047: Write E2E GST Verification ⚡ **READY** (deps: task_044✅)
+- [ ] task_048: Run Full Test Suite (blocked: needs task_045-047)
+- [ ] task_049: Manual Smoke Test (blocked: needs task_048)
+- [ ] task_050: ✅ Verify M3 & Phase 1 DoD (GATE) - **SUBMITTABLE** (blocked: needs all M3)
 
 **Test Coverage Target**: 5+ E2E tests
 **DoD Criteria**:
