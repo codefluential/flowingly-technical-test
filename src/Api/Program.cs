@@ -1,3 +1,4 @@
+using Api.Middleware;
 using Flowingly.ParsingService.Api.Endpoints;
 using Flowingly.ParsingService.Application.Validators;
 using Flowingly.ParsingService.Application.Behaviors;
@@ -42,6 +43,10 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
+
+// Exception mapping (run early, before routing and controllers)
+app.UseMiddleware<ExceptionMappingMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
