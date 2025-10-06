@@ -26,4 +26,10 @@ public class ParsedContent
     /// Default: 0.15
     /// </summary>
     public decimal TaxRate { get; init; } = 0.15m;
+
+    /// <summary>
+    /// Gets the currency code to be used (e.g., "NZD", "USD").
+    /// Default: "NZD"
+    /// </summary>
+    public string Currency { get; init; } = "NZD";
 }

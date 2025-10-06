@@ -36,4 +36,34 @@ public class ExpenseData
     /// Optional description or notes about the expense.
     /// </summary>
     public string? Description { get; set; }
+
+    /// <summary>
+    /// Payment method used (e.g., "personal card", "company card").
+    /// </summary>
+    public string PaymentMethod { get; set; } = null!;
+
+    /// <summary>
+    /// Tax rate applied to this expense (e.g., 0.15 for 15% NZ GST).
+    /// </summary>
+    public decimal TaxRate { get; set; }
+
+    /// <summary>
+    /// Currency code for the expense (e.g., "NZD", "USD"). Defaults to "NZD".
+    /// </summary>
+    public string Currency { get; set; } = "NZD";
+
+    /// <summary>
+    /// Source of the expense data (e.g., "expense-xml" for XML islands, "inline" for inline tags).
+    /// </summary>
+    public string Source { get; set; } = "inline";
+
+    /// <summary>
+    /// Date of the expense (if provided).
+    /// </summary>
+    public string? Date { get; set; }
+
+    /// <summary>
+    /// Time of the expense (if provided and successfully parsed).
+    /// </summary>
+    public string? Time { get; set; }
 }

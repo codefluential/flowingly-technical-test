@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Flowingly.ParsingService.Domain.Interfaces;
 using Flowingly.ParsingService.Domain.Models;
 
@@ -9,7 +10,7 @@ namespace Flowingly.ParsingService.Infrastructure.Repositories;
 /// </summary>
 public class InMemoryExpenseRepository : IExpenseRepository
 {
-    private readonly Dictionary<Guid, Expense> _expenses = new();
+    private readonly ConcurrentDictionary<Guid, Expense> _expenses = new();
 
     public Task<Guid> SaveAsync(Expense expense, CancellationToken ct = default)
     {
@@ -18,7 +19,7 @@ public class InMemoryExpenseRepository : IExpenseRepository
             expense.Id = Guid.NewGuid();
         }
 
-        _expenses[expense.Id] = expense;
+        _expenses.AddOrUpdate(expense.Id, expense, (key, existing) => expense);
         return Task.FromResult(expense.Id);
     }
 

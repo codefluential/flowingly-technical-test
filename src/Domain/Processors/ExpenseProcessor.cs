@@ -2,6 +2,8 @@ using System.Text.RegularExpressions;
 using Flowingly.ParsingService.Domain.Exceptions;
 using Flowingly.ParsingService.Domain.Interfaces;
 using Flowingly.ParsingService.Domain.Models;
+using Flowingly.ParsingService.Domain.Normalizers;
+using Flowingly.ParsingService.Domain.Parsing;
 
 namespace Flowingly.ParsingService.Domain.Processors;
 
@@ -17,13 +19,21 @@ public class ExpenseProcessor : IContentProcessor
 {
     private readonly ITaxCalculator _taxCalculator;
     private readonly IExpenseRepository _repository;
+    private readonly NumberNormalizer _numberNormalizer;
+    private readonly ITimeParser _timeParser;
 
     public string ContentType => "expense";
 
-    public ExpenseProcessor(ITaxCalculator taxCalculator, IExpenseRepository repository)
+    public ExpenseProcessor(
+        ITaxCalculator taxCalculator,
+        IExpenseRepository repository,
+        NumberNormalizer numberNormalizer,
+        ITimeParser timeParser)
     {
         _taxCalculator = taxCalculator ?? throw new ArgumentNullException(nameof(taxCalculator));
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+        _numberNormalizer = numberNormalizer ?? throw new ArgumentNullException(nameof(numberNormalizer));
+        _timeParser = timeParser ?? throw new ArgumentNullException(nameof(timeParser));
     }
 
     public bool CanProcess(ParsedContent content)
@@ -40,11 +50,13 @@ public class ExpenseProcessor : IContentProcessor
 
     public async Task<ProcessingResult> ProcessAsync(ParsedContent content, CancellationToken ct)
     {
+        var warnings = new List<string>();
+
         // Stage 1: Validate
         ValidateRequiredFields(content);
 
         // Stage 2: Extract
-        var expense = ExtractExpense(content);
+        var expense = ExtractExpense(content, warnings);
 
         // Stage 3: Normalize (tax calculation)
         var taxRate = content.TaxRate; // Use tax rate from request (defaults to 0.15)
@@ -61,7 +73,8 @@ public class ExpenseProcessor : IContentProcessor
         {
             Classification = "expense",
             Data = expense,
-            Success = true
+            Success = true,
+            Warnings = warnings
         };
     }
 
@@ -86,7 +99,7 @@ public class ExpenseProcessor : IContentProcessor
     /// Stage 2: Extracts expense fields from inline tags and XML islands.
     /// XML island data takes precedence for total and cost_centre.
     /// </summary>
-    private Expense ExtractExpense(ParsedContent content)
+    private Expense ExtractExpense(ParsedContent content, List<string> warnings)
     {
         var expense = new Expense();
 
@@ -96,13 +109,23 @@ public class ExpenseProcessor : IContentProcessor
         if (content.InlineTags.TryGetValue("description", out var description))
             expense.Description = description;
         if (content.InlineTags.TryGetValue("total", out var total))
-            expense.Total = decimal.Parse(total);
+            expense.Total = _numberNormalizer.Normalize(total);
         if (content.InlineTags.TryGetValue("cost_centre", out var costCentre))
             expense.CostCentre = costCentre;
         if (content.InlineTags.TryGetValue("date", out var date))
             expense.Date = date;
-        if (content.InlineTags.TryGetValue("time", out var time))
-            expense.Time = time;
+        if (content.InlineTags.TryGetValue("time", out var timeStr))
+        {
+            var parsedTime = _timeParser.Parse(timeStr);
+            if (parsedTime.HasValue)
+            {
+                expense.Time = parsedTime.Value.ToString(@"hh\:mm");
+            }
+            else
+            {
+                warnings.Add($"Time value '{timeStr}' could not be parsed and was ignored");
+            }
+        }
         if (content.InlineTags.TryGetValue("payment_method", out var paymentMethod))
             expense.PaymentMethod = paymentMethod;
 
@@ -110,12 +133,15 @@ public class ExpenseProcessor : IContentProcessor
         var expenseIsland = content.XmlIslands.FirstOrDefault(x => x.Name == "expense");
         if (expenseIsland != null)
         {
+            // Set source to indicate XML island origin
+            expense.Source = "expense-xml";
+
             // Extract total from XML island
             if (expenseIsland.Content.Contains("<total>"))
             {
                 var totalMatch = Regex.Match(expenseIsland.Content, @"<total>(.*?)</total>");
                 if (totalMatch.Success)
-                    expense.Total = decimal.Parse(totalMatch.Groups[1].Value);
+                    expense.Total = _numberNormalizer.Normalize(totalMatch.Groups[1].Value);
             }
 
             // Extract cost_centre from XML island
@@ -125,7 +151,21 @@ public class ExpenseProcessor : IContentProcessor
                 if (costCentreMatch.Success)
                     expense.CostCentre = costCentreMatch.Groups[1].Value;
             }
+
+            // Extract payment_method from XML island
+            if (expenseIsland.Content.Contains("<payment_method>"))
+            {
+                var paymentMethodMatch = Regex.Match(expenseIsland.Content, @"<payment_method>(.*?)</payment_method>");
+                if (paymentMethodMatch.Success)
+                    expense.PaymentMethod = paymentMethodMatch.Groups[1].Value;
+            }
         }
+
+        // Set currency from content (passed from handler)
+        expense.Currency = content.Currency;
+
+        // Set tax rate from content (passed from handler)
+        expense.TaxRate = content.TaxRate;
 
         // Default cost_centre to 'UNKNOWN' if not provided
         if (string.IsNullOrEmpty(expense.CostCentre))

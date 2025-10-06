@@ -5,6 +5,8 @@ using Flowingly.ParsingService.Domain.Processors;
 using Flowingly.ParsingService.Domain.Models;
 using Flowingly.ParsingService.Domain.Interfaces;
 using Flowingly.ParsingService.Domain.Exceptions;
+using Flowingly.ParsingService.Domain.Normalizers;
+using Flowingly.ParsingService.Domain.Parsing;
 
 namespace Flowingly.ParsingService.Tests.Processors;
 
@@ -56,7 +58,15 @@ public class ExpenseProcessorTests
         mockRepository.Setup(r => r.SaveAsync(It.IsAny<Expense>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Guid.NewGuid());
 
-        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object);
+        var mockTimeParser = new Mock<ITimeParser>();
+        mockTimeParser.Setup(t => t.Parse(It.IsAny<string>())).Returns((string? input) =>
+        {
+            if (string.IsNullOrWhiteSpace(input)) return null;
+            if (input == "12:30" || input == "14:30" || input == "2:30 PM") return TimeSpan.Parse(input.Contains("PM") ? "14:30" : input);
+            return null;
+        });
+
+        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object, new NumberNormalizer(), mockTimeParser.Object);
 
         var content = new ParsedContent
         {
@@ -116,7 +126,15 @@ public class ExpenseProcessorTests
         mockRepository.Setup(r => r.SaveAsync(It.IsAny<Expense>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Guid.NewGuid());
 
-        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object);
+        var mockTimeParser = new Mock<ITimeParser>();
+        mockTimeParser.Setup(t => t.Parse(It.IsAny<string>())).Returns((string? input) =>
+        {
+            if (string.IsNullOrWhiteSpace(input)) return null;
+            if (input == "12:30" || input == "14:30" || input == "2:30 PM") return TimeSpan.Parse(input.Contains("PM") ? "14:30" : input);
+            return null;
+        });
+
+        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object, new NumberNormalizer(), mockTimeParser.Object);
 
         var content = new ParsedContent
         {
@@ -152,7 +170,15 @@ public class ExpenseProcessorTests
         var mockTaxCalculator = new Mock<ITaxCalculator>();
         var mockRepository = new Mock<IExpenseRepository>();
 
-        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object);
+        var mockTimeParser = new Mock<ITimeParser>();
+        mockTimeParser.Setup(t => t.Parse(It.IsAny<string>())).Returns((string? input) =>
+        {
+            if (string.IsNullOrWhiteSpace(input)) return null;
+            if (input == "12:30" || input == "14:30" || input == "2:30 PM") return TimeSpan.Parse(input.Contains("PM") ? "14:30" : input);
+            return null;
+        });
+
+        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object, new NumberNormalizer(), mockTimeParser.Object);
 
         var content = new ParsedContent
         {
@@ -204,7 +230,15 @@ public class ExpenseProcessorTests
         mockRepository.Setup(r => r.SaveAsync(It.IsAny<Expense>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Guid.NewGuid());
 
-        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object);
+        var mockTimeParser = new Mock<ITimeParser>();
+        mockTimeParser.Setup(t => t.Parse(It.IsAny<string>())).Returns((string? input) =>
+        {
+            if (string.IsNullOrWhiteSpace(input)) return null;
+            if (input == "12:30" || input == "14:30" || input == "2:30 PM") return TimeSpan.Parse(input.Contains("PM") ? "14:30" : input);
+            return null;
+        });
+
+        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object, new NumberNormalizer(), mockTimeParser.Object);
 
         var content = new ParsedContent
         {
@@ -255,7 +289,15 @@ public class ExpenseProcessorTests
         mockRepository.Setup(r => r.SaveAsync(It.IsAny<Expense>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Guid.NewGuid());
 
-        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object);
+        var mockTimeParser = new Mock<ITimeParser>();
+        mockTimeParser.Setup(t => t.Parse(It.IsAny<string>())).Returns((string? input) =>
+        {
+            if (string.IsNullOrWhiteSpace(input)) return null;
+            if (input == "12:30" || input == "14:30" || input == "2:30 PM") return TimeSpan.Parse(input.Contains("PM") ? "14:30" : input);
+            return null;
+        });
+
+        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object, new NumberNormalizer(), mockTimeParser.Object);
 
         var content = new ParsedContent
         {
@@ -311,7 +353,15 @@ public class ExpenseProcessorTests
         mockRepository.Setup(r => r.SaveAsync(It.IsAny<Expense>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Guid.NewGuid());
 
-        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object);
+        var mockTimeParser = new Mock<ITimeParser>();
+        mockTimeParser.Setup(t => t.Parse(It.IsAny<string>())).Returns((string? input) =>
+        {
+            if (string.IsNullOrWhiteSpace(input)) return null;
+            if (input == "12:30" || input == "14:30" || input == "2:30 PM") return TimeSpan.Parse(input.Contains("PM") ? "14:30" : input);
+            return null;
+        });
+
+        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object, new NumberNormalizer(), mockTimeParser.Object);
 
         var content = new ParsedContent
         {
@@ -358,7 +408,15 @@ public class ExpenseProcessorTests
         mockRepository.Setup(r => r.SaveAsync(It.IsAny<Expense>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Guid.NewGuid());
 
-        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object);
+        var mockTimeParser = new Mock<ITimeParser>();
+        mockTimeParser.Setup(t => t.Parse(It.IsAny<string>())).Returns((string? input) =>
+        {
+            if (string.IsNullOrWhiteSpace(input)) return null;
+            if (input == "12:30" || input == "14:30" || input == "2:30 PM") return TimeSpan.Parse(input.Contains("PM") ? "14:30" : input);
+            return null;
+        });
+
+        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object, new NumberNormalizer(), mockTimeParser.Object);
 
         var content = new ParsedContent
         {
@@ -407,7 +465,15 @@ public class ExpenseProcessorTests
         mockRepository.Setup(r => r.SaveAsync(It.IsAny<Expense>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(savedExpenseId);
 
-        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object);
+        var mockTimeParser = new Mock<ITimeParser>();
+        mockTimeParser.Setup(t => t.Parse(It.IsAny<string>())).Returns((string? input) =>
+        {
+            if (string.IsNullOrWhiteSpace(input)) return null;
+            if (input == "12:30" || input == "14:30" || input == "2:30 PM") return TimeSpan.Parse(input.Contains("PM") ? "14:30" : input);
+            return null;
+        });
+
+        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object, new NumberNormalizer(), mockTimeParser.Object);
 
         var content = new ParsedContent
         {
@@ -453,7 +519,15 @@ public class ExpenseProcessorTests
         mockRepository.Setup(r => r.SaveAsync(It.IsAny<Expense>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Guid.NewGuid());
 
-        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object);
+        var mockTimeParser = new Mock<ITimeParser>();
+        mockTimeParser.Setup(t => t.Parse(It.IsAny<string>())).Returns((string? input) =>
+        {
+            if (string.IsNullOrWhiteSpace(input)) return null;
+            if (input == "12:30" || input == "14:30" || input == "2:30 PM") return TimeSpan.Parse(input.Contains("PM") ? "14:30" : input);
+            return null;
+        });
+
+        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object, new NumberNormalizer(), mockTimeParser.Object);
 
         var content = new ParsedContent
         {
@@ -497,7 +571,15 @@ public class ExpenseProcessorTests
         mockRepository.Setup(r => r.SaveAsync(It.IsAny<Expense>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Guid.NewGuid());
 
-        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object);
+        var mockTimeParser = new Mock<ITimeParser>();
+        mockTimeParser.Setup(t => t.Parse(It.IsAny<string>())).Returns((string? input) =>
+        {
+            if (string.IsNullOrWhiteSpace(input)) return null;
+            if (input == "12:30" || input == "14:30" || input == "2:30 PM") return TimeSpan.Parse(input.Contains("PM") ? "14:30" : input);
+            return null;
+        });
+
+        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object, new NumberNormalizer(), mockTimeParser.Object);
 
         var content = new ParsedContent
         {
@@ -541,7 +623,15 @@ public class ExpenseProcessorTests
         mockRepository.Setup(r => r.SaveAsync(It.IsAny<Expense>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Guid.NewGuid());
 
-        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object);
+        var mockTimeParser = new Mock<ITimeParser>();
+        mockTimeParser.Setup(t => t.Parse(It.IsAny<string>())).Returns((string? input) =>
+        {
+            if (string.IsNullOrWhiteSpace(input)) return null;
+            if (input == "12:30" || input == "14:30" || input == "2:30 PM") return TimeSpan.Parse(input.Contains("PM") ? "14:30" : input);
+            return null;
+        });
+
+        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object, new NumberNormalizer(), mockTimeParser.Object);
 
         var content = new ParsedContent
         {
@@ -583,7 +673,15 @@ public class ExpenseProcessorTests
         mockRepository.Setup(r => r.SaveAsync(It.IsAny<Expense>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Guid.NewGuid());
 
-        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object);
+        var mockTimeParser = new Mock<ITimeParser>();
+        mockTimeParser.Setup(t => t.Parse(It.IsAny<string>())).Returns((string? input) =>
+        {
+            if (string.IsNullOrWhiteSpace(input)) return null;
+            if (input == "12:30" || input == "14:30" || input == "2:30 PM") return TimeSpan.Parse(input.Contains("PM") ? "14:30" : input);
+            return null;
+        });
+
+        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object, new NumberNormalizer(), mockTimeParser.Object);
 
         var content = new ParsedContent
         {
@@ -616,7 +714,15 @@ public class ExpenseProcessorTests
         // Arrange
         var mockTaxCalculator = new Mock<ITaxCalculator>();
         var mockRepository = new Mock<IExpenseRepository>();
-        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object);
+        var mockTimeParser = new Mock<ITimeParser>();
+        mockTimeParser.Setup(t => t.Parse(It.IsAny<string>())).Returns((string? input) =>
+        {
+            if (string.IsNullOrWhiteSpace(input)) return null;
+            if (input == "12:30" || input == "14:30" || input == "2:30 PM") return TimeSpan.Parse(input.Contains("PM") ? "14:30" : input);
+            return null;
+        });
+
+        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object, new NumberNormalizer(), mockTimeParser.Object);
 
         var content = new ParsedContent
         {
@@ -641,7 +747,15 @@ public class ExpenseProcessorTests
         // Arrange
         var mockTaxCalculator = new Mock<ITaxCalculator>();
         var mockRepository = new Mock<IExpenseRepository>();
-        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object);
+        var mockTimeParser = new Mock<ITimeParser>();
+        mockTimeParser.Setup(t => t.Parse(It.IsAny<string>())).Returns((string? input) =>
+        {
+            if (string.IsNullOrWhiteSpace(input)) return null;
+            if (input == "12:30" || input == "14:30" || input == "2:30 PM") return TimeSpan.Parse(input.Contains("PM") ? "14:30" : input);
+            return null;
+        });
+
+        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object, new NumberNormalizer(), mockTimeParser.Object);
 
         var content = new ParsedContent
         {
@@ -668,7 +782,15 @@ public class ExpenseProcessorTests
         // Arrange
         var mockTaxCalculator = new Mock<ITaxCalculator>();
         var mockRepository = new Mock<IExpenseRepository>();
-        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object);
+        var mockTimeParser = new Mock<ITimeParser>();
+        mockTimeParser.Setup(t => t.Parse(It.IsAny<string>())).Returns((string? input) =>
+        {
+            if (string.IsNullOrWhiteSpace(input)) return null;
+            if (input == "12:30" || input == "14:30" || input == "2:30 PM") return TimeSpan.Parse(input.Contains("PM") ? "14:30" : input);
+            return null;
+        });
+
+        var processor = new ExpenseProcessor(mockTaxCalculator.Object, mockRepository.Object, new NumberNormalizer(), mockTimeParser.Object);
 
         var content = new ParsedContent
         {

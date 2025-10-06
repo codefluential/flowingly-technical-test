@@ -19,4 +19,9 @@ public class ResponseMeta
     /// List of tag names found in the parsed content.
     /// </summary>
     public List<string> TagsFound { get; set; } = new();
+
+    /// <summary>
+    /// Processing time in milliseconds for the request.
+    /// </summary>
+    public int ProcessingTimeMs { get; set; }
 }

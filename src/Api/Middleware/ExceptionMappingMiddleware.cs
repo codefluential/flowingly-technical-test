@@ -66,6 +66,10 @@ public class ExceptionMappingMiddleware
             // FluentValidation errors (e.g., invalid taxRate range)
             FluentValidation.ValidationException => StatusCodes.Status400BadRequest,
 
+            // XML parsing errors (malformed XML, DTD/XXE attempts, size limit exceeded)
+            System.Xml.XmlException => StatusCodes.Status400BadRequest,
+            ArgumentException argEx when argEx.Message.Contains("XML") => StatusCodes.Status400BadRequest,
+
             // Unhandled exceptions (internal server errors)
             _ => StatusCodes.Status500InternalServerError
         };
@@ -84,6 +88,25 @@ public class ExceptionMappingMiddleware
                     ? validationEx.Data.Cast<System.Collections.DictionaryEntry>()
                         .ToDictionary(e => e.Key.ToString()!, e => e.Value?.ToString() ?? "")
                     : null
+            },
+            System.Xml.XmlException xmlEx => new ErrorResponse
+            {
+                CorrelationId = correlationId,
+                ErrorCode = "MALFORMED_XML",
+                Message = "Invalid XML structure in request",
+                Details = new Dictionary<string, string>
+                {
+                    ["XmlError"] = xmlEx.Message,
+                    ["LineNumber"] = xmlEx.LineNumber.ToString(),
+                    ["LinePosition"] = xmlEx.LinePosition.ToString()
+                }
+            },
+            ArgumentException argEx when argEx.Message.Contains("XML") => new ErrorResponse
+            {
+                CorrelationId = correlationId,
+                ErrorCode = "MALFORMED_XML",
+                Message = argEx.Message,
+                Details = null
             },
             FluentValidation.ValidationException fluentEx => new ErrorResponse
             {

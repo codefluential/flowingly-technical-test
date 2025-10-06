@@ -46,13 +46,10 @@ export interface Metadata {
   warnings: string[];
 }
 
-// Error Response
+// Error Response (matches backend C# ErrorResponse contract)
 export interface ErrorResponse {
-  error: {
-    code: string;
-    message: string;
-  };
-  meta?: {
-    correlationId: string;
-  };
+  CorrelationId: string;
+  ErrorCode: string;
+  Message: string;
+  Details?: Record<string, string> | null;
 }

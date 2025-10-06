@@ -24,4 +24,9 @@ public class ProcessingResult
     /// Gets the error code if processing failed.
     /// </summary>
     public string ErrorCode { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets a list of non-fatal warnings generated during processing.
+    /// </summary>
+    public List<string> Warnings { get; init; } = new List<string>();
 }

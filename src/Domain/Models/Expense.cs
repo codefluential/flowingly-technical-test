@@ -59,4 +59,14 @@ public class Expense
     /// Gets or sets the tax rate used for calculation (e.g., 0.15 for 15% NZ GST).
     /// </summary>
     public decimal TaxRate { get; set; } = 0.15m;
+
+    /// <summary>
+    /// Gets or sets the currency code (e.g., "NZD", "USD"). Defaults to "NZD".
+    /// </summary>
+    public string Currency { get; set; } = "NZD";
+
+    /// <summary>
+    /// Gets or sets the source of the expense data (e.g., "expense-xml", "inline").
+    /// </summary>
+    public string Source { get; set; } = "inline";
 }

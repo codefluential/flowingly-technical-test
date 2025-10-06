@@ -5,7 +5,9 @@ using Flowingly.ParsingService.Domain.Models;
 using Flowingly.ParsingService.Domain.Parsers;
 using Flowingly.ParsingService.Domain.Services;
 using Flowingly.ParsingService.Domain.Validation;
+using Flowingly.ParsingService.Domain.Exceptions;
 using MediatR;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Flowingly.ParsingService.Application.Handlers;
@@ -21,6 +23,7 @@ public class ParseMessageCommandHandler : IRequestHandler<ParseMessageCommand, P
     private readonly IXmlIslandExtractor _xmlExtractor;
     private readonly ContentRouter _router;
     private readonly ILogger<ParseMessageCommandHandler> _logger;
+    private readonly IConfiguration _configuration;
 
     // Regex for extracting inline tags like <total>123</total>
     private static readonly Regex InlineTagRegex = new(@"<(\w+)>([^<]+)</\1>", RegexOptions.Compiled);
@@ -29,22 +32,27 @@ public class ParseMessageCommandHandler : IRequestHandler<ParseMessageCommand, P
         ITagValidator tagValidator,
         IXmlIslandExtractor xmlExtractor,
         ContentRouter router,
-        ILogger<ParseMessageCommandHandler> logger)
+        ILogger<ParseMessageCommandHandler> logger,
+        IConfiguration configuration)
     {
         _tagValidator = tagValidator ?? throw new ArgumentNullException(nameof(tagValidator));
         _xmlExtractor = xmlExtractor ?? throw new ArgumentNullException(nameof(xmlExtractor));
         _router = router ?? throw new ArgumentNullException(nameof(router));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
 
     public async Task<ParseResponseBase> Handle(ParseMessageCommand request, CancellationToken cancellationToken)
     {
+        // Start timing the request
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
         // Generate correlation ID at handler level (not endpoint)
         var correlationId = Guid.NewGuid();
 
-        // Apply defaults
-        var taxRate = request.TaxRate ?? 0.15m;
-        var currency = request.Currency ?? "NZD";
+        // Apply defaults with config precedence (PRD Section 4.2)
+        var taxRate = DetermineTaxRate(request.TaxRate);
+        var currency = request.Currency ?? _configuration["Parsing:DefaultCurrency"] ?? "NZD";
 
         _logger.LogInformation(
             "Processing parse request. CorrelationId: {CorrelationId}, TaxRate: {TaxRate}, Currency: {Currency}",
@@ -67,18 +75,20 @@ public class ParseMessageCommandHandler : IRequestHandler<ParseMessageCommand, P
             InlineTags = inlineTags,
             XmlIslands = xmlIslands,
             RawText = request.Text,
-            TaxRate = taxRate
+            TaxRate = taxRate,
+            Currency = currency
         };
 
         // Stage 5: Route to appropriate processor and get result
         var processingResult = await _router.RouteAsync(parsedContent, cancellationToken);
 
         // Stage 6: Build response based on classification (XOR enforcement)
-        var response = BuildResponse(processingResult, correlationId, inlineTags.Keys.ToList());
+        stopwatch.Stop();
+        var response = BuildResponse(processingResult, correlationId, inlineTags.Keys.ToList(), stopwatch);
 
         _logger.LogInformation(
-            "Parse request completed. CorrelationId: {CorrelationId}, Classification: {Classification}",
-            correlationId, processingResult.Classification);
+            "Parse request completed. CorrelationId: {CorrelationId}, Classification: {Classification}, ProcessingTime: {ProcessingTimeMs}ms",
+            correlationId, processingResult.Classification, stopwatch.ElapsedMilliseconds);
 
         return response;
     }
@@ -111,13 +121,15 @@ public class ParseMessageCommandHandler : IRequestHandler<ParseMessageCommand, P
     private ParseResponseBase BuildResponse(
         ProcessingResult result,
         Guid correlationId,
-        List<string> tagsFound)
+        List<string> tagsFound,
+        System.Diagnostics.Stopwatch stopwatch)
     {
         var meta = new ResponseMeta
         {
             CorrelationId = correlationId,
-            Warnings = new List<string>(), // Empty for now (future feature)
-            TagsFound = tagsFound
+            Warnings = result.Warnings ?? new List<string>(),
+            TagsFound = tagsFound,
+            ProcessingTimeMs = (int)stopwatch.ElapsedMilliseconds
         };
 
         // XOR enforcement: return expense OR other based on classification
@@ -135,7 +147,13 @@ public class ParseMessageCommandHandler : IRequestHandler<ParseMessageCommand, P
                     TotalExclTax = expense.TotalExclTax,
                     SalesTax = expense.SalesTax,
                     CostCentre = expense.CostCentre,
-                    Description = expense.Description
+                    Description = expense.Description,
+                    PaymentMethod = expense.PaymentMethod,
+                    TaxRate = expense.TaxRate,
+                    Currency = expense.Currency,
+                    Source = expense.Source,
+                    Date = string.IsNullOrEmpty(expense.Date) ? null : expense.Date,
+                    Time = string.IsNullOrEmpty(expense.Time) ? null : expense.Time
                 },
                 Meta = meta
             };
@@ -165,5 +183,35 @@ public class ParseMessageCommandHandler : IRequestHandler<ParseMessageCommand, P
                 Meta = meta
             };
         }
+    }
+
+    /// <summary>
+    /// Determines tax rate using precedence logic per PRD Section 4.2:
+    /// 1. Request taxRate (wins if present)
+    /// 2. Config Parsing:DefaultTaxRate
+    /// 3. If both null + StrictTaxRate=true → throw MISSING_TAXRATE
+    /// 4. If both null + StrictTaxRate=false → fallback to 0.15
+    /// </summary>
+    private decimal DetermineTaxRate(decimal? requestTaxRate)
+    {
+        // 1. Request tax rate wins if present
+        if (requestTaxRate.HasValue)
+            return requestTaxRate.Value;
+
+        // 2. Try config default
+        var configTaxRateStr = _configuration["Parsing:DefaultTaxRate"];
+        if (decimal.TryParse(configTaxRateStr, out var configTaxRate))
+            return configTaxRate;
+
+        // 3. Both null - check strict mode
+        var strictMode = _configuration.GetValue<bool>("Parsing:StrictTaxRate");
+        if (strictMode)
+        {
+            throw new ValidationException("MISSING_TAXRATE",
+                "MISSING_TAXRATE: Tax rate is required but not provided in request or configuration");
+        }
+
+        // 4. Fallback to 0.15 (NZ GST)
+        return 0.15m;
     }
 }

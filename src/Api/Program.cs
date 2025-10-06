@@ -76,6 +76,32 @@ var app = builder.Build();
 // Exception mapping (run early, before routing and controllers)
 app.UseMiddleware<ExceptionMappingMiddleware>();
 
+// API Key Authentication (Production only, per ADR-0006)
+if (!app.Environment.IsDevelopment())
+{
+    app.Use(async (context, next) =>
+    {
+        var apiKey = context.Request.Headers["X-API-Key"].FirstOrDefault();
+        var configuredKey = app.Configuration["Security:ApiKey"];
+
+        // If configured key is empty/null, skip auth (allow deployment without key set yet)
+        if (!string.IsNullOrEmpty(configuredKey) && apiKey != configuredKey)
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            await context.Response.WriteAsJsonAsync(new
+            {
+                CorrelationId = Guid.NewGuid().ToString(),
+                ErrorCode = "UNAUTHORIZED",
+                Message = "Invalid or missing API key",
+                Details = (Dictionary<string, string>?)null
+            });
+            return;
+        }
+
+        await next();
+    });
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

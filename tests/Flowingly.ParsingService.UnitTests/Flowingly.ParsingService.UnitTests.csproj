@@ -25,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Domain\Flowingly.ParsingService.Domain.csproj" />
     <ProjectReference Include="..\..\src\Application\Flowingly.ParsingService.Application.csproj" />
+    <ProjectReference Include="..\..\src\Infrastructure\Flowingly.ParsingService.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
