@@ -1204,3 +1204,151 @@ N/A - Constants and DTOs will be used by API layer in upcoming tasks.
 **Note**: task_032 and task_033 executed in parallel, saving 50 minutes (10 min parallel vs 60 min sequential)
 
 ---
+
+## 2025-10-06 - M2 Milestone Complete: API Contracts (MILESTONE GATE)
+
+**Status**: ✅ Milestone gate passed
+
+**Deliverables Verified**:
+- ✅ DTOs created (ParseRequest, ExpenseResponse, OtherResponse, ErrorResponse)
+- ✅ FluentValidation rules implemented (ParseRequestValidator)
+- ✅ Error codes and models defined (7 error codes with human-friendly messages)
+- ✅ Error mapping complete (domain exceptions → HTTP 400/500 responses)
+- ✅ Parse handler implemented (ParseMessageCommandHandler with full pipeline)
+- ✅ DI wiring complete in Program.cs (all services registered)
+- ✅ 13 contract tests passing (target: 10+) - EXCEEDS TARGET
+- ✅ Swagger UI accessible at /swagger with endpoint documentation
+- ✅ API contract reviewed (task_039 - comprehensive review completed)
+- ✅ BUILDLOG updated with M2 completion
+
+**Test Summary**:
+- **Contract tests**: 13 passed, 0 failed
+- **Coverage**: Happy path + multiple error scenarios
+- **Test scenarios**:
+  - Expense classification with tax calculation
+  - Other classification for non-expense content
+  - Missing total error (HTTP 400, MISSING_TOTAL)
+  - Unclosed tags error (HTTP 400, UNCLOSED_TAGS)
+  - Overlapping tags error (HTTP 400, UNCLOSED_TAGS)
+  - Missing cost centre defaults to UNKNOWN
+  - Tax rate precedence (request > config default)
+  - Banker's Rounding verification (multiple test cases)
+  - Correlation ID uniqueness in all responses
+  - Response contract enforcement (expense XOR other)
+
+**API Verification** (Manual Testing):
+- **Endpoint**: POST /api/v1/parse ✅
+- **Request contract**: ParseRequest DTO ✅
+- **Response contracts**: ExpenseResponse XOR OtherResponse ✅
+- **Error responses**: HTTP 400 with error codes (UNCLOSED_TAGS, MISSING_TOTAL) ✅
+- **Correlation ID**: Present in all responses (success and error) ✅
+- **Swagger UI**: Accessible at http://localhost:5000/swagger ✅
+
+**Test Results Detail**:
+
+### Passing Tests (13/13):
+1. ParseEndpoint_ExpenseClassification_ReturnsExpenseResponse
+2. ParseEndpoint_OtherClassification_ReturnsOtherResponse
+3. ParseEndpoint_MissingTotal_Returns400
+4. ParseEndpoint_UnclosedTag_Returns400WithErrorCode
+5. ParseEndpoint_OverlappingTags_Returns400
+6. ParseEndpoint_MissingCostCentre_DefaultsToUnknown
+7. ParseEndpoint_TaxRateMissing_UsesConfigDefault
+8. ParseEndpoint_TaxRatePrecedence_RequestWins
+9. ParseEndpoint_TaxCalculation_UsesBankersRounding (totalIncl: 100, expectedExcl: 86.96, expectedTax: 13.04)
+10. ParseEndpoint_TaxCalculation_UsesBankersRounding (totalIncl: 120.5, expectedExcl: 104.78, expectedTax: 15.72)
+11. ParseEndpoint_AllRequests_IncludeUniqueCorrelationId
+12. ParseEndpoint_ExpenseResponse_HasExpenseFieldNotOtherField
+13. ParseEndpoint_OtherResponse_HasOtherFieldNotExpenseField
+
+**M2 DoD Compliance** (10/10 criteria met):
+
+1. ✅ Request/Response DTOs created and validated
+   - Location: `contracts/Requests/ParseRequest.cs`, `contracts/Responses/`
+   - Verification: 7 DTO files exist (ParseRequest, ExpenseResponse, OtherResponse, ErrorResponse, ResponseMeta, ExpenseData, OtherData)
+
+2. ✅ FluentValidation rules implemented
+   - Location: `src/Application/Validators/ParseRequestValidator.cs`
+   - Verification: Registered in Program.cs with AddValidatorsFromAssemblyContaining<ParseRequestValidator>()
+
+3. ✅ Error codes and models defined
+   - Location: `src/Domain/Constants/ErrorCodes.cs`, `src/Domain/Constants/ErrorMessages.cs`
+   - Verification: 7 error codes defined (UNCLOSED_TAGS, MISSING_TOTAL, MALFORMED_TAGS, EMPTY_TEXT, INVALID_REQUEST, MISSING_TAXRATE, INTERNAL_ERROR)
+
+4. ✅ Error mapping complete
+   - Location: `src/Api/Middleware/ExceptionMappingMiddleware.cs`
+   - Verification: Domain exceptions correctly mapped to HTTP 400 responses with error codes
+
+5. ✅ Parse handler implemented
+   - Location: `src/Application/Handlers/ParseMessageCommandHandler.cs`
+   - Verification: Full pipeline implemented (Validate → Extract → Route → Process → BuildResponse)
+
+6. ✅ DI wiring complete
+   - Location: `src/Api/Program.cs`
+   - Verification: All services registered (validators, handlers, parsers, processors, calculators, etc.)
+
+7. ✅ 10+ API contract tests passing
+   - Result: 13 tests passing (exceeds target by 30%)
+   - Command: `dotnet test --filter Category=Contract`
+
+8. ✅ Swagger examples documented
+   - Location: http://localhost:5000/swagger
+   - Verification: Swagger UI accessible with endpoint documentation, request/response schemas visible
+
+9. ✅ API contract reviewed
+   - Task: task_039 (Review API Contract) completed successfully
+   - Verification: Manual review + API testing completed
+
+10. ✅ BUILDLOG updated with M2 completion
+    - This entry completes the requirement
+
+**Architecture & Design Compliance**:
+
+- **Clean Architecture**: Maintained strict layer separation (Api → Application → Domain → Infrastructure)
+- **CQRS-lite**: ParseMessageCommand + ParseMessageCommandHandler pattern
+- **Ports & Adapters**: All domain interfaces (ITaxCalculator, ITagValidator, etc.) remain pure
+- **ADR Compliance**:
+  - ADR-0004: Swagger UI accessible and functional ✅
+  - ADR-0005: URI versioning (/api/v1/) enforced ✅
+  - ADR-0007: Response contract (expense XOR other) verified ✅
+  - ADR-0008: Stack-based tag validation implemented ✅
+  - ADR-0009: Banker's Rounding verified in tests ✅
+  - ADR-0010: Contract test coverage target exceeded ✅
+
+**Issues Encountered**:
+- None - M2 tasks completed smoothly with zero blockers
+
+**Performance Notes**:
+- Parallel execution of task_037 (tests) + task_038 (Swagger) saved time
+- M2 completed in ~4 hours as planned (within budget)
+- Test suite runs in <5 seconds (excellent performance)
+
+**Next Steps**:
+- ✅ M2 milestone gate passed - CLEARED FOR M3
+- Proceed to **M3: UI & E2E Tests** (10 tasks remaining)
+- task_041: Enhance UI Components (frontend-design-expert)
+- task_042: Add TypeScript Types (coder)
+- task_043: Implement Error Display (frontend-design-expert)
+- task_044: Setup Playwright (tester)
+- task_045-047: Write E2E tests (happy path, error scenarios, GST verification)
+- task_048: Run Full Test Suite
+- task_049: Manual Smoke Test
+- task_050: **Verify M3 & Phase 1 DoD (SUBMITTABLE)**
+
+**Milestone Timeline**:
+- M0: Completed 2025-10-06 (10/10 tasks) ✅
+- M1: Completed 2025-10-06 (20/20 tasks) ✅
+- M2: **Completed 2025-10-06 (10/10 tasks)** ✅
+- M3: Not Started (0/10 tasks)
+- **Overall Progress**: 40/50 tasks (80%)
+
+**Test Suite Progress**:
+- Unit tests: 116 passing (target: 30+) ✅ EXCEEDS TARGET
+- Contract tests: 13 passing (target: 10+) ✅ EXCEEDS TARGET
+- E2E tests: 0 passing (target: 5+) - Planned for M3
+- **Total**: 129/45 tests (287% of target for completed milestones)
+
+**Duration**: M2 completed in ~4 hours (18:00 → 21:22)
+**Velocity**: 10 tasks in 4 hours = 2.5 tasks/hour (on pace with delivery plan)
+
+---
