@@ -2,7 +2,7 @@
   "project": "Flowingly Parsing Service",
   "phase": "Phase 1 - Core Submission (M0\u2192M3)",
   "timeline": "2.5 days",
-  "total_tasks": 50,
+  "total_tasks": 51,
   "submittable_after": "task_050",
   "aadf_compliant": true,
   "tdd_approach": true,
@@ -783,6 +783,18 @@
       "duration_minutes": 6
     },
     {
+      "id": "task_040a",
+      "file": "task_040a.json",
+      "milestone": "M3",
+      "name": "Code Review Remediation",
+      "agent": "general-purpose",
+      "duration": "3-4h",
+      "dependencies": [
+        "task_040"
+      ],
+      "parallel_group": null
+    },
+    {
       "id": "task_041",
       "file": "task_041.json",
       "milestone": "M3",
@@ -790,7 +802,7 @@
       "agent": "frontend-design-expert",
       "duration": "1h",
       "dependencies": [
-        "task_040"
+        "task_040a"
       ],
       "parallel_group": "M3_parallel_0"
     },
@@ -903,6 +915,7 @@
       "agent": "production-validator",
       "duration": "20min",
       "dependencies": [
+        "task_040a",
         "task_041",
         "task_042",
         "task_043",
