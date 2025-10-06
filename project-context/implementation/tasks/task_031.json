@@ -67,8 +67,8 @@
   "deliverables": [
     {
       "item": "ParseRequest.cs",
-      "description": "Request DTO with validation attributes",
-      "location": "api/src/Flowingly.ParsingService.Api/Contracts/",
+      "description": "Request DTO with validation attributes (shared contracts project)",
+      "location": "contracts/Requests/ParseRequest.cs",
       "properties": {
         "Text": "string (required)",
         "TaxRate": "decimal? (optional, default 0.15)"
@@ -77,6 +77,7 @@
     {
       "item": "ParseResponseBase.cs",
       "description": "Base response with meta",
+      "location": "contracts/",
       "properties": {
         "Classification": "string (\"expense\" | \"other\")",
         "Meta": "ResponseMeta"
@@ -85,6 +86,7 @@
     {
       "item": "ExpenseParseResponse.cs",
       "description": "Expense-specific response (inherits base)",
+      "location": "contracts/",
       "properties": {
         "Classification": "\"expense\"",
         "Expense": "ExpenseData",
@@ -94,6 +96,7 @@
     {
       "item": "OtherParseResponse.cs",
       "description": "Other-specific response (inherits base)",
+      "location": "contracts/",
       "properties": {
         "Classification": "\"other\"",
         "Other": "OtherData",
@@ -103,6 +106,7 @@
     {
       "item": "ExpenseData.cs",
       "description": "Expense payload",
+      "location": "contracts/",
       "properties": {
         "Vendor": "string",
         "Total": "decimal",
@@ -115,6 +119,7 @@
     {
       "item": "OtherData.cs",
       "description": "Other payload",
+      "location": "contracts/",
       "properties": {
         "RawTags": "Dictionary<string, string>",
         "Note": "string"
@@ -123,6 +128,7 @@
     {
       "item": "ResponseMeta.cs",
       "description": "Metadata for all responses",
+      "location": "contracts/",
       "properties": {
         "CorrelationId": "Guid",
         "Warnings": "List<string>",
@@ -132,6 +138,7 @@
     {
       "item": "ErrorResponse.cs",
       "description": "Error response DTO",
+      "location": "contracts/",
       "properties": {
         "Error": "ErrorDetail",
         "CorrelationId": "Guid"
@@ -140,6 +147,7 @@
     {
       "item": "ErrorDetail.cs",
       "description": "Error details",
+      "location": "contracts/",
       "properties": {
         "Code": "string (UNCLOSED_TAGS, MISSING_TOTAL, etc.)",
         "Message": "string",

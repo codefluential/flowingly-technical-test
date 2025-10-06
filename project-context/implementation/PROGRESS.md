@@ -1,8 +1,8 @@
 # Implementation Progress Tracker
 
-**Last Updated**: 2025-10-06 16:53
+**Last Updated**: 2025-10-06 18:09
 **Current Phase**: Planning Complete → Ready for Implementation
-**Overall Progress**: 30/50 tasks (60%)
+**Overall Progress**: 31/50 tasks (62%)
 
 ---
 
@@ -12,8 +12,8 @@
 |--------|--------|
 | **Phase** | Phase 1: Core Submission (M0→M3) |
 | **Current Milestone** | M1: Core Parsing & Validation |
-| **Current Task** | task_030: Implement Expense Processor | **Current Task** | task_030: Implement Expense Processor | **Current Task** | task_022: Implement ITaxCalculator | Verify M1 DoD | Verify M1 DoD |
-| **Tasks Completed** | 30/50 (60%) |
+| **Current Task** | task_031: Create DTOs |
+| **Tasks Completed** | 31/50 (62%) |
 | **Tests Passing** | 18/45 (18 unit, 0 contract, 0 E2E) |
 | **Blockers** | None |
 
@@ -80,10 +80,10 @@
 
 ---
 
-### ⏳ M2: API Contracts (0/10 tasks - 0%)
-**Target**: 4 hours | **Status**: Not Started
+### 🔄 M2: API Contracts (1/10 tasks - 10%)
+**Target**: 4 hours | **Status**: In Progress
 
-- [ ] task_031: Create DTOs
+- [x] task_031: Create DTOs
 - [ ] task_032: Implement FluentValidation
 - [ ] task_033: Create Error Codes & Models
 - [ ] task_034: Implement Error Mapping

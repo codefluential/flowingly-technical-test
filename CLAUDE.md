@@ -281,10 +281,17 @@ cat project-context/implementation/PROGRESS.md
 
 **Workflow**: Use `update-progress.sh` before/after each task. Script automatically:
 - Updates `tasks.json` with status and timestamps
+- **Tracks task duration** (started_at, completed_at, duration_minutes calculated automatically)
 - Updates `PROGRESS.md` checkboxes and metrics
 - Appends to `BUILDLOG.md` for milestone gates (task_010, 030, 040, 050)
 - Triggers background Serena re-indexing for semantic code analysis
 - Suggests commit messages
+
+**Duration Tracking**:
+- `started_at`: ISO timestamp when task marked in_progress
+- `completed_at`: ISO timestamp when task marked completed
+- `duration_minutes`: Auto-calculated on completion (rounded to nearest minute)
+- Query duration metrics: `jq '.tasks[] | select(.duration_minutes != null) | {id, name, duration_minutes}' project-context/implementation/tasks/tasks.json`
 
 See `project-context/implementation/TRACKING-WORKFLOW.md` for complete workflow documentation.
 

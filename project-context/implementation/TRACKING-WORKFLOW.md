@@ -94,11 +94,18 @@ All three stay synchronized automatically via the `update-progress.sh` script.
       "id": "task_001",
       "status": "pending",  // pending|in_progress|completed|blocked
       "started_at": null,
-      "completed_at": null
+      "completed_at": null,
+      "duration_minutes": null  // auto-calculated on completion
     }
   ]
 }
 ```
+
+**Duration Tracking**:
+- `started_at`: ISO 8601 timestamp when task marked in_progress
+- `completed_at`: ISO 8601 timestamp when task marked completed
+- `duration_minutes`: Auto-calculated from started_at to completed_at (rounded to nearest minute)
+- Use for velocity tracking and sprint planning
 
 **Updates**: Automatically by script
 
@@ -283,6 +290,15 @@ jq '.milestones_completed' project-context/implementation/tasks/tasks.json
 
 # Test progress
 jq '.progress_tracking.tests_passing' project-context/implementation/tasks/tasks.json
+
+# Task duration analysis
+jq '.tasks[] | select(.duration_minutes != null) | {id, name, duration_minutes, started_at, completed_at}' project-context/implementation/tasks/tasks.json
+
+# Average task duration
+jq '[.tasks[] | select(.duration_minutes != null) | .duration_minutes] | add / length' project-context/implementation/tasks/tasks.json
+
+# Longest tasks
+jq '.tasks[] | select(.duration_minutes != null) | {id, name, duration_minutes} | sort_by(.duration_minutes) | reverse | .[0:5]' project-context/implementation/tasks/tasks.json
 ```
 
 ---

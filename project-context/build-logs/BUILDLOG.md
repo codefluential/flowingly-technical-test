@@ -1016,3 +1016,45 @@ N/A - M1 is domain/parsing layer only. No API endpoints yet (M2 milestone).
 **Current Milestone**: M2 - API Contracts (next: task_031)
 
 ---
+
+## 2025-10-06 - task_031: Create DTOs (M2 Start)
+
+**Changes Made**:
+- Created 9 DTO classes in `src/Api/Contracts/` implementing ADR-0007 XOR pattern
+- **ParseRequest.cs**: Request payload with Text (required) and TaxRate (optional, 0-1 range)
+- **ParseResponseBase.cs**: Abstract base with abstract Classification property and Meta
+- **ExpenseParseResponse.cs**: Inherits from base, Classification => "expense", contains ExpenseData
+- **OtherParseResponse.cs**: Inherits from base, Classification => "other", contains OtherData
+- **ExpenseData.cs**: 6 properties (Vendor, Total, TotalExclTax, SalesTax, CostCentre, Description?)
+- **OtherData.cs**: RawTags dictionary and Note string
+- **ResponseMeta.cs**: CorrelationId, Warnings list, TagsFound list
+- **ErrorResponse.cs**: Error detail and CorrelationId
+- **ErrorDetail.cs**: Code, Message, Details?
+
+**Rationale**:
+- **XOR Enforcement**: Abstract base class with separate derived classes ensures responses NEVER contain both expense and other data simultaneously (compile-time guarantee via inheritance)
+- **Type Safety**: Decimal types for all money fields (Total, TotalExclTax, SalesTax)
+- **Validation**: Data annotations ([Required], [Range]) enable ASP.NET Core model binding validation
+- **Documentation**: XML comments on all public properties for IntelliSense and Swagger generation
+- **Classification Field**: String literals ("expense"|"other") implemented as readonly property override
+
+**Issues Encountered**:
+None - straightforward DTO implementation with clear requirements from ADR-0007.
+
+**Testing Notes**:
+- Compilation successful (0 warnings, 0 errors)
+- All 9 files created in `src/Api/Contracts/` namespace
+- XOR pattern verified: ExpenseParseResponse has ONLY Expense property, OtherParseResponse has ONLY Other property
+- Both response types inherit Meta from abstract base
+- No unit tests needed for DTOs (M2 contract tests will validate serialization/deserialization)
+
+**Deployment**:
+N/A - DTOs are contract definitions only. Will be tested via API contract tests (task_037-038).
+
+**Next Steps**:
+- task_032: Implement FluentValidation for ParseRequest (custom validators for tag integrity, tax rate bounds)
+- task_033: Create Error Codes & Models (standardized error codes: VALIDATION_ERROR, UNCLOSED_TAG, etc.)
+
+**Progress**: 31/50 tasks (62%) | M0: 10/10 (100%) ✅ | M1: 20/20 (100%) ✅ | M2: 1/10 (10%)
+
+---
